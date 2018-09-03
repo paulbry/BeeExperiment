@@ -146,7 +146,8 @@ class SlurmAdaptee:
         for cc in self._config_req['CharliecloudRequirement']:
             cc_task = self._config_req['CharliecloudRequirement'][cc]
             cc_deploy = "srun ch-tar2dir " + str(cc_task['source']) + " " + \
-                         str(cc_task.get('tarDir', '/var/tmp')) + "\n"
+                        str(self._config_req['CharliecloudRequirement'][cc].get('tarDir', '/var/tmp'))\
+                        + "\n"
             temp_file.write(bytes(cc_deploy, self._encode))
 
     def __env_variables(self, temp_file):
