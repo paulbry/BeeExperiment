@@ -1,4 +1,7 @@
 # BEE: Build and Execute Environment
+
+Needs updated!
+
 The goal of BEE (Build and Execution Environment) is to create a unified
 software stack to _containerize_ HPC applications. A container is a package of
 code (usually binaries) and all of that code's dependencies (libraries,
@@ -35,10 +38,6 @@ a repository, it can be automatically tested across a suite of different softwar
 # Build Instructions
 
 To be added
-
-# Mail List and Contact
-
-For bugs and problems report, suggestions and other general questions regarding the BEE project, Please subscribe to [BEE-LANL](https://groups.google.com/forum/#!forum/BEE-User-Group) and post your quesitons. 
 
 
 # Release
