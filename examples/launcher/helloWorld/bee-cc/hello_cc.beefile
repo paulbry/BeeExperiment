@@ -12,9 +12,10 @@ requirements:
     SoftwarePackages:
         charliecloud:
     CharliecloudRequirement:
-        source: /var/tmp/alpine.tar.gz
-        tarDir: /var/tmp
-        deleteAfter: False
+        alpine:
+            source: /var/tmp/alpine.tar.gz
+            tarDir: /var/tmp
+            deleteAfter: False
     EnvVarRequirements:
         envDef:
             BEE_ALPINE: /var/tmp/alpine
