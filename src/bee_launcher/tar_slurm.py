@@ -45,9 +45,9 @@ class SlurmAdaptee:
         self.__deploy_bee_orchestrator(temp_file=tmp_f)
 
         tmp_f.seek(0)
-        out, err = self._run_sbatch(tmp_f.name)
+        out = self._run_sbatch(tmp_f.name)
         tmp_f.close()
-        return out, err
+        return out
 
     def specific_schedule(self):
         pass
@@ -72,8 +72,11 @@ class SlurmAdaptee:
         p.communicate()
         exit(0)
         """
-        out, err = self._run_popen_safe(command=cmd, err_exit=False)
-        return out, err
+        out = self._run_popen_safe(command=cmd, err_exit=True)
+        str_out = str(out)
+        str_out = str_out[:-1]
+        str_out = str_out.rsplit(" ", 1)[1]
+        return str_out
 
     def __resource_requirement(self, temp_file):
         """
@@ -175,7 +178,7 @@ class SlurmAdaptee:
         """
         temp_file.write(bytes("\n# Launch BEE\n", self._encode))
         bee_deploy = [
-            "python3 -m bee-orchestrator -o -t " + self._file_loc +
+            "bee-orchestrator -o -t " + self._file_loc +
             "/" + self._task_name + ") "
         ]
         for data in bee_deploy:
@@ -197,21 +200,18 @@ class SlurmAdaptee:
         try:
             p = Popen(command, shell, stdout=PIPE, stderr=STDOUT)
             out, err = p.communicate()
-            return out, err
+            return out
         except CalledProcessError as e:
             self._handle_message(msg="Error during - " + str(command) + "\n" +
                                  str(e), color=self.error_color)
             if err_exit:
                 exit(1)
-            else:
-                return None, str(e)
         except OSError as e:
             self._handle_message(msg="Error during - " + str(command) + "\n" +
                                  str(e), color=self.error_color)
             if err_exit:
                 exit(1)
-            else:
-                return None, str(e)
+        return None
 
     # Task management support functions (private)
     def _handle_message(self, msg, color=None):

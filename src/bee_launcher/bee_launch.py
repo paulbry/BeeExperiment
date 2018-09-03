@@ -36,16 +36,9 @@ class BeeLauncher(object):
                self._message_color)
         adapt = Adapter(system=b_rjms, config=beefile, file_loc=file_loc,
                         task_name=task_name)
-        out, err = adapt.allocate()
-
-        print(out)
-        print(err)
-
-        if out is not None:
-            # Error during allocation phase
-            pass
-        else:  # Success
-            pass
+        out = adapt.allocate()
+        cprint("[" + str(task_name) + "] launched with job id: " + out,
+               self._message_color)
 
     def list_all_tasks(self):
         # TODO: implement
