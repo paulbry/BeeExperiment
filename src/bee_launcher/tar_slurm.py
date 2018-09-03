@@ -197,6 +197,8 @@ class SlurmAdaptee:
         try:
             p = Popen(command, shell, stdout=PIPE, stderr=STDOUT)
             out, err = p.communicate()
+            print(out)
+            print(err)
             return out, err
         except CalledProcessError as e:
             self._handle_message(msg="Error during - " + str(command) + "\n" +
