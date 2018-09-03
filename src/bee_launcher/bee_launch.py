@@ -38,7 +38,10 @@ class BeeLauncher(object):
                         task_name=task_name)
         out, err = adapt.allocate()
 
-        if out is None:
+        print(out)
+        print(err)
+
+        if out is not None:
             # Error during allocation phase
             pass
         else:  # Success

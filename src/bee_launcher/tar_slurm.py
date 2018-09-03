@@ -26,7 +26,7 @@ class SlurmAdaptee:
         :return: unique job id associated with successful allocation
         """
         tmp_f = NamedTemporaryFile()
-        tmp_f.write(bytes("#!\\bin\\bash\n\n", 'UTF-8'))
+        tmp_f.write(bytes("#!/bin/bash\n\n", 'UTF-8'))
         #######################################################################
         # Prepare SBATCH file
         # TODO: further document
@@ -197,8 +197,6 @@ class SlurmAdaptee:
         try:
             p = Popen(command, shell, stdout=PIPE, stderr=STDOUT)
             out, err = p.communicate()
-            print(out)
-            print(err)
             return out, err
         except CalledProcessError as e:
             self._handle_message(msg="Error during - " + str(command) + "\n" +
