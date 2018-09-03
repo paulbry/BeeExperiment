@@ -1,0 +1,26 @@
+class: BEE-Charliecloud
+id: helloWorld
+label: Basic hello world example
+requirements:
+    ResourceRequirement:
+        numNodes: 1
+        jobTime: "0:10:00"
+        manageSys: slurm
+        custom:
+            --hello: world
+            --test: this/stuff
+    SoftwarePackages:
+        charliecloud:
+    CharliecloudRequirement:
+        source: /var/tmp/alpine.tar.gz
+        tarDir: /var/tmp
+        deleteAfter: False
+    EnvVarRequirements:
+        envDef:
+            BEE_ALPINE: /var/tmp/alpine
+        sourceDef:
+            activate: bee_env
+workerBees:
+    helloTime.sh:
+        program:
+            system: sh
