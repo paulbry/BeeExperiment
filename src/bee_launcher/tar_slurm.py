@@ -20,7 +20,7 @@ class SlurmAdaptee:
 
     def specific_allocate(self):
         """
-        Create sbatch file utilizing Beefile's desfined 'requirements' then
+        Create sbatch file utilizing Beefile's defined 'requirements' then
         execute this sbatch via subprocess.
         At this moment this system must be run on the login node of the cluster
         :return: unique job id associated with successful allocation
@@ -64,14 +64,6 @@ class SlurmAdaptee:
 
     def _run_sbatch(self, file):
         cmd = ['sbatch', file]
-        """
-        # TODO: remove test code
-        print(cmd)
-        command = ['mousepad', file]
-        p = Popen(command, stdout=PIPE, stderr=STDOUT)
-        p.communicate()
-        exit(0)
-        """
         out = self._run_popen_safe(command=cmd, err_exit=True)
         str_out = str(out)
         str_out = str_out[:-1]
