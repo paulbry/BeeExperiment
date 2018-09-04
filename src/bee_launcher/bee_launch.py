@@ -98,8 +98,10 @@ class BeeLauncher(object):
                            "manageSys TEXT, "
                            "status TEXT, "
                            "beefileName TEXT, "
+                           "beefileLocation TEXT,"
                            "beefileFull TEXT, "
                            "beeflowName TEXT, "
+                           "beeflowLocation TEXT,"
                            "beeflowFull TEXT, "
                            "errDetails TEXT, "
                            "time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL)")
@@ -108,8 +110,20 @@ class BeeLauncher(object):
                    self._error_color)
             print(e)
 
-    def __insert_launch_event(self):
-        pass
+    @staticmethod
+    def __insert_launch_event(cursor, job_id, b_class, b_rjms=None,
+                              status=None, error=None, beefile_name=None,
+                              beefile_full=None, beefile_loc=None,
+                              beeflow_name=None, beeflow_loc=None,
+                              beeflow_full=None):
+        cursor.execute("INSERT INTO launcher "
+                       "(jobID, class, manageSys, status, beefileName, "
+                       "beefileLocation, beefileFull, beeflowName,"
+                       "beeflowLocation, beeflowFull, errDetails) "
+                       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                       (job_id, b_class, b_rjms, status, beefile_name,
+                        beefile_loc, str(beefile_full), beeflow_name,
+                        beeflow_loc, str(beeflow_full), str(error)))
 
 
 # Manage main argument responses
