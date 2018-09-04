@@ -11,8 +11,7 @@ from subprocess import Popen
 from termcolor import cprint
 from time import sleep
 # project
-from exec_targets.bee_charliecloud.bee_charliecloud_launcher import \
-    BeeCharliecloudLauncher as beeCC
+from .bee_localhost import  BeeLocalhostLauncher as beeLH
 
 
 @Pyro4.expose
@@ -26,9 +25,17 @@ class BeeLauncherDaemon(object):
         print("Bee orchestration controller: received task creating request")
         exec_target = beefile['class']
         beetask_name = beefile.get('id', file_name + time.strftime("_%Y%m%d_%H%M%S"))
+        # TODO: correct
         if str(exec_target).lower() == 'bee-charliecloud':
-            cprint("[" + beetask_name + "] Launched BEE-Charliecloud Instance!")
-            self.beetask = beeCC(beetask_name, beefile)
+            pass
+        #    from exec_targets.bee_charliecloud.bee_charliecloud_launcher import \
+        #        BeeCharliecloudLauncher as beeCC
+        #    cprint("[" + beetask_name + "] Launched BEE-Charliecloud Instance!")
+        #    self.beetask = beeCC(beetask_name, beefile)
+        elif str(exec_target).lower() == 'bee-localhost':
+            cprint("[" + beetask_name + "] Launched BEE-Localhost Instance!")
+            self.beetask = beeLH(beetask_name, beefile)
+
 
     def launch_task(self):
         self.beetask.start()
