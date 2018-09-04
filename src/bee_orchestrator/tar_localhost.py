@@ -17,7 +17,11 @@ class LocalhostAdaptee:
         self._warning_color = "yellow"
 
     def specific_execute(self, command, system=None):
-        self.__run_popen(command)
+        if system is not None:
+            # TODO: non-localhost
+            pass
+        else:
+            self._run_popen_safe(command)
 
     def specific_shutdown(self):
         pass
@@ -26,19 +30,47 @@ class LocalhostAdaptee:
         pass
 
     # Task management support functions (public)
-    def __run_popen(self, cmd):
-        # TODO: document
-        cprint("Executing: " + str(cmd), )
+    # TODO: Move to shared location (bee-internal)?
+    def _run_popen_safe(self, command, err_exit=True):
+        """
+        Run defined command via Popen, try/except statements
+        built in and message output when appropriate
+        :param command: Command to be run
+        :param err_exit: Exit upon error, default True
+        :return: stdout from p.communicate() based upon results
+                    of command run via subprocess
+                None, error message returned if except reached
+                    and err_exit=False
+        """
+        self._handle_message("Executing: " + str(command))
         try:
-            p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+            p = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
             out, err = p.communicate()
             print("stdout: ", repr(out))
             print("stderr: ", repr(err))
+            return out
         except CalledProcessError as e:
-            cprint("Error during - " + str(cmd) + "\n" + str(e),
-                   self._error_color)
-            exit(1)
+            self._handle_message(msg="Error during - " + str(command) + "\n" +
+                                 str(e), color=self._error_color)
+            if err_exit:
+                exit(1)
+            return None
         except OSError as e:
-            cprint("Error during - " + str(cmd) + "\n" + str(e),
-                   self._error_color)
-            exit(1)
+            self._handle_message(msg="Error during - " + str(command) + "\n" +
+                                 str(e), color=self._error_color)
+            if err_exit:
+                exit(1)
+            return None
+
+    # Task management support functions (private)
+    def _handle_message(self, msg, color=None):
+        """
+        :param msg: To be printed to console
+        :param color: If message is be colored via termcolor
+                        Default = none (normal print)
+        """
+
+        if color is None:
+            print("[{}] {}".format(self._task_name, msg))
+        else:
+            cprint("[{}] {}".format(self._task_name, msg), color)
