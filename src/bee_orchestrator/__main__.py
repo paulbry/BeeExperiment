@@ -93,7 +93,7 @@ def manage_args(args):
 def main():
     try:
         args = parser.parse_args()
-        args.func(args)
+        manage_args(args)
     except AttributeError:
         cprint("Command line arguments required", "red")
         parser.parse_args(['-h'])
