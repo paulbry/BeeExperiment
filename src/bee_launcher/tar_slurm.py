@@ -14,9 +14,9 @@ class SlurmAdaptee:
         self._encode = 'UTF-8'
 
         # Termcolor
-        self.error_color = "red"
-        self.warning_color = "yellow"
-        self.message_color = "cyan"
+        self._error_color = "red"
+        self._warning_color = "yellow"
+        self._message_color = "cyan"
 
     def specific_allocate(self):
         """
@@ -35,7 +35,7 @@ class SlurmAdaptee:
             self.__resource_requirement(temp_file=tmp_f)
         else:
             cprint("[" + self._task_name + "] ResourceRequirement key is required for"
-                                           " allocation", self.error_color)
+                                           " allocation", self._error_color)
         if self._config_req.get('SoftwarePackages') is not None:
             self.__software_packages(temp_file=tmp_f)
         if self._config_req.get('EnvVarRequirements') is not None:
@@ -176,36 +176,39 @@ class SlurmAdaptee:
         for data in bee_deploy:
             temp_file.write(bytes(data + "\n", self._encode))
 
-    def _run_popen_safe(self, command, shell=False, err_exit=True):
+    # Task management support functions (public)
+    # TODO: Move to shared location (bee-internal)?
+    def _run_popen_safe(self, command, err_exit=True):
         """
         Run defined command via Popen, try/except statements
         built in and message output when appropriate
         :param command: Command to be run
-        :param shell: Shell flag (boolean), default false
         :param err_exit: Exit upon error, default True
-        :return: tuple [out, err] from p.communicate() based upon results
+        :return: stdout from p.communicate() based upon results
                     of command run via subprocess
                 None, error message returned if except reached
                     and err_exit=False
         """
         self._handle_message("Executing: " + str(command))
         try:
-            p = Popen(command, shell, stdout=PIPE)
-            out = p.communicate()
-            return out[0]
+            p = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+            out, err = p.communicate()
+            print("stdout: ", repr(out))
+            print("stderr: ", repr(err))
+            return out
         except CalledProcessError as e:
             self._handle_message(msg="Error during - " + str(command) + "\n" +
-                                 str(e), color=self.error_color)
+                                 str(e), color=self._error_color)
             if err_exit:
                 exit(1)
+            return None
         except OSError as e:
             self._handle_message(msg="Error during - " + str(command) + "\n" +
-                                 str(e), color=self.error_color)
+                                 str(e), color=self._error_color)
             if err_exit:
                 exit(1)
-        return None
+            return None
 
-    # Task management support functions (private)
     def _handle_message(self, msg, color=None):
         """
         :param msg: To be printed to console
