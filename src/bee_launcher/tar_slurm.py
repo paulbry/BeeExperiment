@@ -68,7 +68,7 @@ class SlurmAdaptee:
         out = self._run_popen_safe(command=cmd, err_exit=True)
         print("SBATCH OUT: " + str(out))
         str_out = str(out)
-        str_out = str_out[:-1]
+        str_out = str_out[:-3]
         str_out = str_out.rsplit(" ", 1)[1]
         print("STR_OUT: " + str_out)
         return str_out
