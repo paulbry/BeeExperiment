@@ -33,6 +33,7 @@ class BeeLocalhostLauncher(BeeTask):
         self.launch()
 
         self.begin_event = 1
+        self.__current_status = 4  # Running
 
         self.execute_workers()
         self.execute_base()
@@ -45,12 +46,15 @@ class BeeLocalhostLauncher(BeeTask):
         # TODO: what else ???
 
     def execute_workers(self):
-        self.__current_status = 4  # Running
+        pass
         # TODO: run worker bees
 
     def execute_base(self):
-        import subprocess
-        subprocess.call(self._beefile['baseCommand'])
+        # TODO: document
+        cmd = [self._beefile.get('baseCommand')]
+        if cmd[0] is not None:
+            # TODO: implement support for input/output
+            self._sys_adapter.execute(cmd)
 
     def wait_for_others(self):
         self.current_status = 2  # Waiting
