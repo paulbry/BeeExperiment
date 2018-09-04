@@ -37,7 +37,7 @@ class BeeLauncher(object):
         adapt = Adapter(system=b_rjms, config=beefile, file_loc=file_loc,
                         task_name=task_name)
         out = adapt.allocate()
-        cprint("[" + str(task_name) + "] launched with job id: " + out,
+        cprint("[" + str(task_name) + "] launched with job id: " + str(out),
                self._message_color)
 
     def list_all_tasks(self):
