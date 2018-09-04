@@ -19,7 +19,7 @@ class BeeLauncher(object):
 
         # Database Tracking
         self._db_full = self.__homedir + "/.bee/launcher.db"
-        self.__db_conn = None  # Database connection
+        self.__db_conn = None
 
         # Termcolor messages
         self._error_color = 'red'
@@ -39,6 +39,15 @@ class BeeLauncher(object):
         out = adapt.allocate()
         cprint("[" + str(task_name) + "] launched with job id: " + str(out),
                self._message_color)
+
+        # Datbase / logging
+        cursor = self.__connect_db()
+        self.__launcher_table(cursor=cursor)
+        self.__insert_launch_event(cursor=cursor, job_id=out, b_class=b_class,
+                                   b_rjms=b_rjms, status="Launching",
+                                   beefile_full=beefile,
+                                   beefile_loc=file_loc)
+        self.__close_db()
 
     def list_all_tasks(self):
         # TODO: implement
@@ -105,6 +114,7 @@ class BeeLauncher(object):
                            "beeflowFull TEXT, "
                            "errDetails TEXT, "
                            "time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL)")
+            cursor.commit()
         except sqlite3.Error as e:
             cprint("[" + self._db_full + "]Error while creating launcher table",
                    self._error_color)
@@ -124,6 +134,7 @@ class BeeLauncher(object):
                        (job_id, b_class, b_rjms, status, beefile_name,
                         beefile_loc, str(beefile_full), beeflow_name,
                         beeflow_loc, str(beeflow_full), str(error)))
+        cursor.commit()
 
 
 # Manage main argument responses
