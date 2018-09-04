@@ -147,10 +147,9 @@ sub_flow_group.set_defaults(func=flow_default)
 def main():
     try:
         args = parser.parse_args()
-        args.func(args)
-    except AttributeError:
-        cprint("Command line arguments required", "red")
-        parser.parse_args(['-h'])
+        if not args.func(args):
+            cprint("Command line arguments required", "red")
+            parser.parse_args(['-h'])
     except argparse.ArgumentError as e:
         cprint(e, "red")
         exit(1)
