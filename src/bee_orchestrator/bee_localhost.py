@@ -1,7 +1,8 @@
 # system
 from termcolor import cprint
 # project
-from bee_cluster import BeeTask
+from .bee_cluster import BeeTask
+from .orc_translator import Adapter
 
 
 # Manipulates all nodes in a task
@@ -13,6 +14,11 @@ class BeeLocalhostLauncher(BeeTask):
 
         # Task configuration
         self.platform = 'BEE-Localhost'
+
+        self._manageSys = self._beefile['requirements']['ResourceRequirement']\
+            .get('manageSys', 'localhost')
+        self._sys_adapter = Adapter(system="localhost", config=self._beefile,
+                                    file_loc='', task_name=self._task_id)
 
         self.current_status = 1  # initialized
 
@@ -29,17 +35,19 @@ class BeeLocalhostLauncher(BeeTask):
     def launch(self):
         self.terminate()
         self.__current_status = 3  # Launching
-
-        cprint("[" + self._task_id + "] Charliecloud launching", self.output_color)
         # TODO: what else ???
 
     def execute_workers(self):
         self.__current_status = 4  # Running
-        self.begin_event = True
+        self.begin_event(True)
         # General, SRUN, and MPI run can be run together & defined
         # in the same beefile; however, batch mode is exclusive
         # TODO: run worker bees
-        self.end_event = True
+        self.end_event(True)
+
+    def execute_base(self):
+        import subprocess
+        subprocess.call(self._beefile['baseCommand'])
 
     def wait_for_others(self):
         self.current_status = 2  # Waiting

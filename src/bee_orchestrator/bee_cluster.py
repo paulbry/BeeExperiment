@@ -5,8 +5,6 @@ from subprocess import Popen, PIPE, \
 from threading import Thread, Event
 from termcolor import cprint
 from pwd import getpwuid
-# project
-from .orc_translator import Adapter
 
 
 class BeeTask(Thread):
@@ -17,15 +15,11 @@ class BeeTask(Thread):
         self.platform = None
         self._beefile = beefile
         self._task_id = task_id
-        self._task_label = self._beefile.get('label', 'BEE-Charliecloud: {}'.
+        self._task_label = self._beefile.get('label', 'BEE: {}'.
                                              format(self._task_id))
 
         # System configuration
         self._user_name = getpwuid(os.getuid())[0]
-        self._rjms = self._beefile['requirements']['ResourceRequirement']\
-            .get('rjms', 'ssh')
-        self._sys_adapter = Adapter(system=self._rjms, config=self._beefile,
-                                    file_loc='', task_name=self._task_id)
 
         # Output colors
         self.output_color = "cyan"
