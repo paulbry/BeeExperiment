@@ -24,16 +24,16 @@ class BeeLocalhostLauncher(BeeTask):
 
     # Wait events (support for existing bee_orc_ctl)
     def add_wait_event(self, new_event):
-        self.event_list(new_event)
+        self.__event_list(new_event)
 
     # Task management
     def run(self):
         self.launch()
 
-        self.begin_event(True)
+        self.__begin_event = True
         self.execute_workers()
         self.execute_base()
-        self.begin_event(True)
+        self.__begin_event = False
 
     def launch(self):
         self.terminate()
