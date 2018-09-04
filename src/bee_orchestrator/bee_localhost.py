@@ -29,8 +29,11 @@ class BeeLocalhostLauncher(BeeTask):
     # Task management
     def run(self):
         self.launch()
+
+        self.begin_event(True)
         self.execute_workers()
         self.execute_base()
+        self.begin_event(True)
 
     def launch(self):
         self.terminate()
@@ -39,11 +42,7 @@ class BeeLocalhostLauncher(BeeTask):
 
     def execute_workers(self):
         self.__current_status = 4  # Running
-        self.begin_event(True)
-        # General, SRUN, and MPI run can be run together & defined
-        # in the same beefile; however, batch mode is exclusive
         # TODO: run worker bees
-        self.end_event(True)
 
     def execute_base(self):
         import subprocess
