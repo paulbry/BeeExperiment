@@ -20,9 +20,9 @@ class BeeTask(Thread):
         self._user_name = getpwuid(os.getuid())[0]
 
         # Output colors
-        self.output_color = "cyan"
-        self.error_color = "red"
-        self.warning_color = "yellow"
+        self._output_color = "cyan"
+        self._error_color = "red"
+        self._warning_color = "yellow"
 
         # Events for workflow
         self.__begin_event = None
@@ -121,9 +121,9 @@ class BeeTask(Thread):
                 if not silent:
                     cprint("[" + self._task_id + "] User defined value for ["
                            + str(key) + "] was not found, default value: "
-                           + str(default) + " used.", self.warning_color)
+                           + str(default) + " used.", self._warning_color)
                 return default
             else:
                 cprint("[" + self._task_id + "] Key: " + str(key) + " was not found in: " +
-                       str(dictionary), self.error_color)
+                       str(dictionary), self._error_color)
                 exit(1)
