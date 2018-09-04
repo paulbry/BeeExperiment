@@ -68,6 +68,8 @@ def manage_args(args):
 
     if args.task is not None:
         if args.orc:
+            # TODO: support not full path?
+            # bee-orchestrator -o -t $(pwd)/hello_lh
             p = args.task[0]
             t = p.rfind("/")
             chdir(p[:t])
