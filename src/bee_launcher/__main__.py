@@ -1,6 +1,5 @@
 # system
 import argparse
-import sys
 from os import getcwd, path
 from termcolor import cprint
 # project

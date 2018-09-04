@@ -4,7 +4,7 @@ from termcolor import cprint
 from os import path, remove, chdir
 # project
 from .bee_orc_ctl import main as boc
-from beefile_manager import BeefileLoader
+from bee_internal.beefile_manager import BeefileLoader
 
 
 # Parser supporting functions / classes

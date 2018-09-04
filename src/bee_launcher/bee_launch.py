@@ -4,7 +4,7 @@ import os
 import sqlite3
 from termcolor import cprint
 # project
-from .beefile_manager import BeefileLoader
+from bee_internal.beefile_manager import BeefileLoader
 from .launcher_translator import Adapter
 
 
