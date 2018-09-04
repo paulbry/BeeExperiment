@@ -1,0 +1,18 @@
+class: BEE-Localhost
+id: helloWorld
+label: Basic hello world example
+requirements:
+    ResourceRequirement:
+        numNodes: 1
+        jobTime: "0:10:00"
+        manageSys: slurm
+    SoftwarePackages:
+        python/3.6-anaconda-5.0.1:
+    EnvVarRequirements:
+        sourceDef:
+            activate: bee_exp
+workerBees:
+    helloTime.sh:
+        program:
+            system: sh
+baseCommand: env
