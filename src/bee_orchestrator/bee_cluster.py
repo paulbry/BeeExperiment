@@ -27,8 +27,8 @@ class BeeTask(Thread):
         self.warning_color = "yellow"
 
         # Events for workflow
-        self.__begin_event = Event()
-        self.__end_event = Event()
+        self.__begin_event = None
+        self.__end_event = None
         self.__event_list = []
 
     # Event/Trigger management
@@ -38,12 +38,10 @@ class BeeTask(Thread):
 
     @begin_event.setter
     def begin_event(self, flag):
-        """
-        If bool T then set internal flag,
-        else clear internal flag
-        :param flag: boolean value
-        """
-        if flag:
+        # TODO: document
+        if flag == 0:
+            self.__begin_event = Event()
+        elif flag == 1:
             self.__begin_event.set()
         else:
             self.__begin_event.clear()
@@ -54,12 +52,10 @@ class BeeTask(Thread):
 
     @end_event.setter
     def end_event(self, flag):
-        """
-        If bool T then set internal flag,
-        else clear internal flag
-        :param flag: boolean value
-        """
-        if flag:
+        # TODO: document
+        if flag == 0:
+            self.__end_event = Event()
+        elif flag == 1:
             self.__end_event.set()
         else:
             self.__end_event.clear()

@@ -11,6 +11,8 @@ class BeeLocalhostLauncher(BeeTask):
         BeeTask.__init__(self, task_id=task_id, beefile=beefile)
 
         self.__current_status = 0  # initializing
+        self.begin_event = 0
+        self.end_event = 0
 
         # Task configuration
         self.platform = 'BEE-Localhost'
@@ -30,10 +32,12 @@ class BeeLocalhostLauncher(BeeTask):
     def run(self):
         self.launch()
 
-        self.__begin_event = True
+        self.begin_event = 1
+
         self.execute_workers()
         self.execute_base()
-        self.__begin_event = False
+
+        self.end_event = 1
 
     def launch(self):
         self.terminate()
