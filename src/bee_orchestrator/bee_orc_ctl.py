@@ -36,6 +36,7 @@ class BeeLauncherDaemon(object):
     def create_and_launch_task(self, beefile, file_name):
         cprint("[" + file_name + ".beefile] Task received in current working "
                                  "directory: " + os.getcwd(), 'cyan')
+        # TODO: add encode step for file!
         self.create_task(beefile, file_name)
         self.launch_task()
 
