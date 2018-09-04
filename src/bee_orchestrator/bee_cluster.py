@@ -1,7 +1,5 @@
 # system
 import os
-from subprocess import Popen, PIPE, \
-    STDOUT, CalledProcessError
 from threading import Thread, Event
 from termcolor import cprint
 from pwd import getpwuid
@@ -87,37 +85,6 @@ class BeeTask(Thread):
 
     def terminate(self):
         pass
-
-    # Task management support functions (public)
-    def run_popen_safe(self, command, nodes=None, shell=False, err_exit=True):
-        """
-        Run defined command via Popen, try/except statements
-        built in and message output when appropriate
-        :param command: Command to be run
-        :param nodes: Defaults to os.environ['SLURM_NODELIST']
-                        Use to specify range of nodes message
-                        applies too (pass string!)
-        :param shell: Shell flag (boolean), default false
-        :param err_exit: Exit upon error, default True
-        """
-        self._handle_message("Executing: " + str(command), nodes)
-        try:
-            p = Popen(command, shell, stdout=PIPE, stderr=STDOUT)
-            out, err = p.communicate()
-            if out:
-                self._handle_message(msg=out)
-            if err:
-                self._handle_message(msg=err, color=self.error_color)
-        except CalledProcessError as e:
-            self._handle_message(msg="Error during - " + str(command) + "\n" +
-                                 str(e), color=self.error_color)
-            if err_exit:
-                exit(1)
-        except OSError as e:
-            self._handle_message(msg="Error during - " + str(command) + "\n" +
-                                 str(e), color=self.error_color)
-            if err_exit:
-                exit(1)
 
     # Task management support functions (private)
     def _handle_message(self, msg, color=None):
