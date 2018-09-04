@@ -171,7 +171,7 @@ class SlurmAdaptee:
         temp_file.write(bytes("\n# Launch BEE\n", self._encode))
         bee_deploy = [
             "bee-orchestrator -o -t " + self._file_loc +
-            "/" + self._task_name + ") "
+            "/" + self._task_name
         ]
         for data in bee_deploy:
             temp_file.write(bytes(data + "\n", self._encode))
