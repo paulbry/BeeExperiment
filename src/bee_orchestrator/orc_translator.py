@@ -26,17 +26,20 @@ class Target(metaclass=abc.ABCMeta):
         if self.__system == "slurm":
             self._adaptee = SlurmAdaptee(self._config, self._file_loc,
                                          self._task_name)
+        if self.__system == "ssh":
+            self._adaptee = LocalhostAdaptee(self._config, self._file_loc,
+                                             self._task_name)
         if self.__system == "localhost":
             self._adaptee = LocalhostAdaptee(self._config, self._file_loc,
                                              self._task_name)
         else:
             cprint("Unable to support target system: " + self.__system +
-                   " attempting ssh.", "yellow")
+                   " attempting localhost.", "yellow")
             self._adaptee = SSHAdaptee(self._config, self._file_loc,
                                        self._task_name)
 
     @abc.abstractmethod
-    def execute(self):
+    def execute(self, command, system=None):
         pass
 
     @abc.abstractmethod
@@ -52,8 +55,8 @@ class Adapter(Target):
     """
     Adapt the interface of adaptee to the target request
     """
-    def execute(self):
-        self._adaptee.specific_execute()
+    def execute(self, command, system=None):
+        self._adaptee.specific_execute(command, system=None)
 
     def shutdown(self):
         self._adaptee.specific_shutdown()
