@@ -17,16 +17,18 @@ class LocalhostAdaptee:
         self._warning_color = "yellow"
 
     def specific_execute(self, command, system=None):
+        # TODO: add DB related steps?
         if system is not None:
-            # TODO: non-localhost
-            pass
-        else:
+            self._run_popen_safe(command)
+        else:  # run via localhost (take responsibility)
             self._run_popen_safe(command)
 
     def specific_shutdown(self):
+        # TODO: add DB related steps?
         pass
 
     def specific_move_file(self):
+        # TODO: identify requirement?
         pass
 
     # Task management support functions (public)
