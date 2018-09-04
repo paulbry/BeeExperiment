@@ -46,7 +46,36 @@ class BeeLocalhostLauncher(BeeTask):
     def execute_workers(self):
         # TODO: document and support for inputs / outputs
         # TODO: identify plan for support variables
-        pass
+        workers = self._beefile.get('workerBees')
+        if workers is not None:
+            for wb in workers:
+                cmd = []
+
+                prog = workers[wb].get('program')
+                if prog is not None:
+                    p_sys = prog.get('system')
+                    if p_sys is not None:
+                        cmd.append(str(p_sys))
+
+                    p_flags = prog.get('flags')
+                    if p_flags is not None:
+                        for key, value in p_flags.items():
+                            cmd.append(str(key))
+                            if value is not None:
+                                cmd.append((str(value)))
+
+                cmd.append(str(wb))
+
+                wb_flags = workers[wb].get('flags')
+                if wb_flags is not None:
+                    for key, value in wb_flags.items():
+                        cmd.append(str(key))
+                        if value is not None:
+                            cmd.append((str(value)))
+
+                self._handle_message("[" + self._task_id + "] Executing: " + str(cmd),
+                                     self._output_color)
+                self._sys_adapter.execute(cmd, system=prog)
 
     def execute_base(self):
         # TODO: document
