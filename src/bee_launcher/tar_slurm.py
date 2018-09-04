@@ -160,7 +160,7 @@ class SlurmAdaptee:
             for key, value in env_dict.get('sourceDef').items():
                 source = "source {}".format(str(key))
                 if value is not None:
-                    source += str(value)
+                    source += " " + str(value)
                 temp_file.write(bytes(source + "\n", 'UTF-8'))
 
     def __deploy_bee_orchestrator(self, temp_file):
