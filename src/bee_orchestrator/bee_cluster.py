@@ -6,7 +6,7 @@ from threading import Thread, Event
 from termcolor import cprint
 from pwd import getpwuid
 # project
-from translator import Adapter
+from .orc_translator import Adapter
 
 
 class BeeTask(Thread):
@@ -81,6 +81,22 @@ class BeeTask(Thread):
         :param new_event:
         """
         self.__event_list.append(new_event)
+
+    # Standard BEE methods
+    def run(self):
+        pass
+
+    def launch(self):
+        pass
+
+    def execute_workers(self):
+        pass
+
+    def execute_base(self):
+        pass
+
+    def terminate(self):
+        pass
 
     # Task management support functions (public)
     def run_popen_safe(self, command, nodes=None, shell=False, err_exit=True):
