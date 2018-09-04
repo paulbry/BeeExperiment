@@ -3,7 +3,7 @@ import argparse
 from termcolor import cprint
 from os import path, remove, chdir
 # project
-from .bee_orc_ctl import main as boc
+import bee_orc_ctl
 from bee_internal.beefile_manager import BeefileLoader
 
 
@@ -74,14 +74,14 @@ def manage_args(args):
             t = p.rfind("/")
             chdir(p[:t])
             f = BeefileLoader(args.task[0])
-            boc(f.beefile, p[t+1:len(p)])
+            bee_orc_ctl.main(f.beefile, p[t+1:len(p)])
         elif args.orc_arm:
             cprint("ARM support not ready at the moment!", 'red')
         else:
             cprint("Please specify a valid orchestrator!", 'red')
 
     elif args.orc:
-        boc()
+        bee_orc_ctl.main()
     elif args.orc_arm:
         cprint("ARM support not ready at the moment!", 'red')
 
@@ -95,10 +95,10 @@ def manage_args(args):
 def main():
     try:
         args = parser.parse_args()
+        if not args.func(args):
+            cprint("Command line arguments required", "red")
+            parser.parse_args(['-h'])
         manage_args(args)
-    except AttributeError:
-        cprint("Command line arguments required", "red")
-        parser.parse_args(['-h'])
     except argparse.ArgumentError as e:
         cprint(e, "red")
         exit(1)

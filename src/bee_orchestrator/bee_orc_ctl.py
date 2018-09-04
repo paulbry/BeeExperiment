@@ -11,7 +11,7 @@ from subprocess import Popen
 from termcolor import cprint
 from time import sleep
 # project
-from .bee_localhost import  BeeLocalhostLauncher as beeLH
+from bee_localhost import BeeLocalhostLauncher as beeLH
 
 
 @Pyro4.expose
@@ -35,7 +35,6 @@ class BeeLauncherDaemon(object):
         elif str(exec_target).lower() == 'bee-localhost':
             cprint("[" + beetask_name + "] Launched BEE-Localhost Instance!")
             self.beetask = beeLH(beetask_name, beefile)
-
 
     def launch_task(self):
         self.beetask.start()
