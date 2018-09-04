@@ -11,7 +11,7 @@ from subprocess import Popen
 from termcolor import cprint
 from time import sleep
 # project
-from bee_localhost import BeeLocalhostLauncher as beeLH
+from .bee_localhost import BeeLocalhostLauncher as beeLH
 
 
 @Pyro4.expose
