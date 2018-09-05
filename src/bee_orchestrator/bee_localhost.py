@@ -95,3 +95,5 @@ class BeeLocalhostLauncher(BeeTask):
             self.__current_status = 70  # Closed (clean)
         else:
             self.__current_status = 80  # Terminate
+        # TODO: review ways to manage/surpress error messages
+        self._bldaemon.shutdown_daemon()
