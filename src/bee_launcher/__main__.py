@@ -47,6 +47,11 @@ def verify_single_beeflow(potential_file):
 # See Python official documentation:
 # https://docs.python.org/2.7/library/argparse.html
 ###############################################################################
+def default(args):
+    # TODO: better method of dealing with empty namespace
+    args.func(args)
+
+
 def launch_default(args):
     bee_args = None
     try:
@@ -147,7 +152,7 @@ sub_flow_group.set_defaults(func=flow_default)
 def main():
     try:
         args = parser.parse_args()
-        if not args.func(args):
+        if not default(args):
             cprint("Command line arguments required", "red")
             parser.parse_args(['-h'])
     except argparse.ArgumentError as e:
