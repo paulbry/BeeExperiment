@@ -18,6 +18,7 @@ class BeeLauncher(object):
         self.__homedir = os.path.expanduser('~')
 
         # Database Tracking
+        # TODO: implemented options bee_conf file?
         self._db_full = self.__homedir + "/.bee/launcher.db"
         self.__db_conn = None
 
@@ -40,7 +41,7 @@ class BeeLauncher(object):
         cprint("[" + str(task_name) + "] launched with job id: " + str(out),
                self._message_color)
 
-        # Datbase / logging
+        # Database / logging
         cursor = self.__connect_db()
         self.__launcher_table(cursor=cursor)
         self.__insert_launch_event(cursor=cursor, job_id=out, b_class=b_class,
@@ -89,7 +90,7 @@ class BeeLauncher(object):
 
     ###########################################################################
     # Database reflated functions
-    #
+    # TODO: document
     ###########################################################################
     def __connect_db(self):
         self.__db_conn = sqlite3.connect(self._db_full)
@@ -114,14 +115,13 @@ class BeeLauncher(object):
                            "beeflowFull TEXT, "
                            "errDetails TEXT, "
                            "time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL)")
-            cursor.commit()
+            self.__db_conn.commit()
         except sqlite3.Error as e:
             cprint("[" + self._db_full + "]Error while creating launcher table",
                    self._error_color)
             print(e)
 
-    @staticmethod
-    def __insert_launch_event(cursor, job_id, b_class, b_rjms=None,
+    def __insert_launch_event(self, cursor, job_id, b_class, b_rjms=None,
                               status=None, error=None, beefile_name=None,
                               beefile_full=None, beefile_loc=None,
                               beeflow_name=None, beeflow_loc=None,
@@ -134,7 +134,7 @@ class BeeLauncher(object):
                        (job_id, b_class, b_rjms, status, beefile_name,
                         beefile_loc, str(beefile_full), beeflow_name,
                         beeflow_loc, str(beeflow_full), str(error)))
-        cursor.commit()
+        self.__db_conn.commit()
 
 
 # Manage main argument responses
