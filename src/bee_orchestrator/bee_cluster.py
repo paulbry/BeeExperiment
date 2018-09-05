@@ -3,6 +3,8 @@ import os
 from threading import Thread, Event
 from termcolor import cprint
 from pwd import getpwuid
+from json import load
+# project
 
 
 class BeeTask(Thread):
@@ -15,6 +17,9 @@ class BeeTask(Thread):
         self._task_id = task_id
         self._task_label = self._beefile.get('label', 'BEE: {}'.
                                              format(self._task_id))
+
+        # Pyro4
+        self._port = self.__pyro_port()
 
         # System configuration
         self._user_name = getpwuid(os.getuid())[0]
@@ -83,7 +88,7 @@ class BeeTask(Thread):
     def execute_base(self):
         pass
 
-    def terminate(self):
+    def terminate(self, clean=False):
         pass
 
     # Task management support functions (private)
@@ -127,3 +132,11 @@ class BeeTask(Thread):
                 cprint("[" + self._task_id + "] Key: " + str(key) + " was not found in: " +
                        str(dictionary), self._error_color)
                 exit(1)
+
+    def __pyro_port(self):
+        # TODO: document
+        conf_file = str(os.path.expanduser('~')) + "/.bee/port_conf.json"
+        with open(conf_file, 'r') as fc:
+            data = load(fc)
+            port = data["pyro4-ns-port"]
+        return port
