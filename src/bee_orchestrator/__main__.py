@@ -3,7 +3,7 @@ import argparse
 from termcolor import cprint
 from os import path, remove, chdir
 # project
-import bee_orc_ctl
+from .bee_orc_ctl import ExecOrc
 from bee_internal.beefile_manager import BeefileLoader
 
 
@@ -65,6 +65,7 @@ parser.add_argument("--logfile",
 def manage_args(args):
     # check file requirements
     verify_pyro4_conf()
+    eo = ExecOrc()
 
     if args.task is not None:
         if args.orc:
@@ -74,14 +75,14 @@ def manage_args(args):
             t = p.rfind("/")
             chdir(p[:t])
             f = BeefileLoader(args.task[0])
-            bee_orc_ctl.main(f.beefile, p[t+1:len(p)])
+            eo.main(f.beefile, p[t+1:len(p)])
         elif args.orc_arm:
             cprint("ARM support not ready at the moment!", 'red')
         else:
             cprint("Please specify a valid orchestrator!", 'red')
 
     elif args.orc:
-        bee_orc_ctl.main()
+        eo.main()
     elif args.orc_arm:
         cprint("ARM support not ready at the moment!", 'red')
 
@@ -95,10 +96,9 @@ def manage_args(args):
 def main():
     try:
         args = parser.parse_args()
-        if not args.func(args):
+        if not manage_args(args):
             cprint("Command line arguments required", "red")
             parser.parse_args(['-h'])
-        manage_args(args)
     except argparse.ArgumentError as e:
         cprint(e, "red")
         exit(1)
