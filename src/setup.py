@@ -28,7 +28,7 @@ setuptools.setup(
             'bee-orchestrator = bee_orchestrator.__main__:main',
             'bee-internal = bee_internal.__main__:main',
             'bee-logging = bee_logging.__main__:main',
-            'bee_monitor = bee_monitor.__main__:main'
+            'bee-monitor = bee_monitor.__main__:main'
         ]
     }
 )
