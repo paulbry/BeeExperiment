@@ -39,9 +39,9 @@ class Target(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def allocate(self):
         #######################################################################
-        # Should return tuple [out, err]
+        # Should return tuple stdout
         # out: Unique job idea (signify successful allocation) or None (failed)
-        # err: Error message (if available)
+        # Print error message(s) and fail allocation if applicable
         #######################################################################
         pass
 
