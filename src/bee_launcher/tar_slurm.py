@@ -65,9 +65,6 @@ class SlurmAdaptee:
         pass
 
     # private / supporting functions
-    def _run_salloc(self):
-        pass
-
     def _run_sbatch(self, file):
         cmd = ['sbatch', file]
         out = self._run_popen_safe(command=cmd, err_exit=True)
