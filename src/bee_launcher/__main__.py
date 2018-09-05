@@ -20,7 +20,7 @@ def verify_single_beefile(potential_file):
         return potential_file
     else:
         cprint(potential_file + ".beefile cannot be found", "red")
-        exit(2)
+        exit(1)
 
 
 def verify_single_beeflow(potential_file):
@@ -35,7 +35,7 @@ def verify_single_beeflow(potential_file):
         return potential_file
     else:
         print(potential_file + ".beeflow cannot be found")
-        exit(2)
+        exit(1)
 
 
 ###############################################################################
@@ -54,7 +54,7 @@ def launch_default(args):
     except Exception as e:
         print(e)
         cprint("Verify Bee Orchestrator is running!", "red")
-        exit(2)
+        exit(1)
 
     # execute task if argument is present
     # exclusivity rules are managed by argparse groups
@@ -81,6 +81,7 @@ parser = argparse.ArgumentParser(description="BEE Launcher\n"
 #
 # There is no logging support from the bee-launcher, it is only designed
 # to be implemented and utilised by the "orchestrator"
+# TODO: find better way to support & test
 ###############################################################################
 parser.add_argument("--logflag",
                     action="store_true",
@@ -125,11 +126,8 @@ launch_group.add_argument("-l", "--launch",
                                "that needs to be in the current directory")
 launch_group.add_argument("-t", "--terminate",
                           dest='terminate_task', nargs=1,
-                          help="Terminate tasks <TERMINATE_TASK>")
-sub_launch_group.add_argument("-s", "--status",
-                              action='store_true',
-                              help="List all tasks with status, automatically "
-                                   "updates status")
+                          help="Terminate tasks <TERMINATE_TASK> by "
+                               "shutting/canceling any associated allocations.")
 sub_launch_group.set_defaults(func=launch_default)
 
 
@@ -148,9 +146,7 @@ def main():
     try:
         args = parser.parse_args()
         # TODO: better method of dealing with empty namespace
-        if not args.func(args):
-            cprint("Command line arguments required", "red")
-            parser.parse_args(['-h'])
+        args.func(args)
     except argparse.ArgumentError as e:
         cprint(e, "red")
         exit(1)
