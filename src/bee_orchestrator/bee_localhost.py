@@ -8,7 +8,7 @@ class BeeLocalhostLauncher(BeeTask):
     def __init__(self, task_id, beefile):
         BeeTask.__init__(self, task_id=task_id, beefile=beefile)
 
-        self.__current_status = 0  # initializing
+        self.__current_status = 10  # initializing
         self.begin_event = 0
         self.end_event = 0
 
@@ -20,7 +20,7 @@ class BeeLocalhostLauncher(BeeTask):
         self._sys_adapter = Adapter(system="localhost", config=self._beefile,
                                     file_loc='', task_name=self._task_id)
 
-        self.current_status = 1  # initialized
+        self.current_status = 20  # initialized
 
     # Wait events (support for existing bee_orc_ctl)
     def add_wait_event(self, new_event):
@@ -31,16 +31,17 @@ class BeeLocalhostLauncher(BeeTask):
         self.launch()
 
         self.begin_event = 1
-        self.__current_status = 4  # Running
+        self.__current_status = 50  # Running
 
         self.execute_workers()
         self.execute_base()
 
         self.end_event = 1
+        self.__current_status = 60  # finished
 
     def launch(self):
         self.terminate()
-        self.__current_status = 3  # Launching
+        self.__current_status = 40  # Launching
         # TODO: what else ???
 
     def execute_workers(self):
@@ -85,6 +86,12 @@ class BeeLocalhostLauncher(BeeTask):
             self._sys_adapter.execute(cmd)
 
     def wait_for_others(self):
-        self.current_status = 2  # Waiting
+        self.__current_status = 30  # Waiting
         for event in self.event_list:
             event.wait()
+
+    def terminate(self, clean=False):
+        if clean:
+            self.__current_status = 70  # Closed (clean)
+        else:
+            self.__current_status = 80  # Terminate
