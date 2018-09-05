@@ -5,16 +5,16 @@ import sqlite3
 from termcolor import cprint
 # project
 from bee_internal.beefile_manager import BeefileLoader
+from bee_monitor.db_launch import LaunchDB
 from .launcher_translator import Adapter
 
 
 class BeeLauncher(object):
     def __init__(self, log=False, log_dest="None"):
         # Logging configuration
-        self.__log = log  # log flag (T/F)
-        self.__log_dest = log_dest + ".launcher"  # log file destinations
+        self._log = log  # log flag (T/F)
+        self._log_dest = log_dest + ".launcher"  # log file destinations
 
-        self.__cwdir = os.getcwd()
         self.__homedir = os.path.expanduser('~')
 
         # Database Tracking
@@ -50,27 +50,11 @@ class BeeLauncher(object):
                                    beefile_loc=file_loc)
         self.__close_db()
 
-    def list_all_tasks(self):
-        # TODO: implement
-        pass
-
-    def terminate_task(self, beetask_name):
-        # TODO: implement
-        pass
-
-    @property
-    def log_flag(self):
-        """
-        :return: Boolean, True if logging enabled
-        """
-        return self.__log
-
-    @property
-    def log_dest(self):
-        """
-        :return: File (path) where logging is stored
-        """
-        return self.__log_dest
+    def terminate_task(self, job_id, rjms):
+        # TODO: utlize monitor to verify correct jobId?
+        # TODO: idetnify way to communicate with ORC for clean shutdown?
+        adapt = Adapter(system=rjms, config=None, file_loc=None, task_name=None)
+        adapt.shutdown(job_id)
 
     def _fetch_beefile_value(self, dictionary, key, default=None,
                              quit_err=False, silent=False):
@@ -114,6 +98,7 @@ class BeeLauncher(object):
                            "beeflowLocation TEXT,"
                            "beeflowFull TEXT, "
                            "errDetails TEXT, "
+                           "allocationScript TEXT,"
                            "time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL)")
             self.__db_conn.commit()
         except sqlite3.Error as e:
@@ -146,7 +131,6 @@ class BeeArguments(BeeLauncher):
         """
         Send launch request for single task to daemon
         :param args: command line argument namespace
-        :return: None
         """
         beefile = str(args.launch_task[0])
         f = BeefileLoader(beefile)
@@ -158,12 +142,13 @@ class BeeArguments(BeeLauncher):
         """
         Send termination request for specific task to daemon
         :param args: command line argument namespace
-        :return: None
         """
-        beetask_name = args.terminate_task[0]
+        job_id = args.terminate_task[0]
         print("Sending termination request.")
-        self.terminate_task(beetask_name)
-        print("Task: " + beetask_name + " is terminated.")
+        db = LaunchDB(self._db_full)
+        rjms = db.query_value("jobID", job_id, "manageSys")
+        self.terminate_task(job_id, rjms)
+        print("Task: " + job_id + " is terminated.")
 
     # TODO: implement high level status support using job id
     def opt_status(self):

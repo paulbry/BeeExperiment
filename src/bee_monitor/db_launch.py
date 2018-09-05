@@ -16,16 +16,34 @@ class LaunchDB(object):
     def query_all(self):
         # TODO: document
         # TODO: expand display
-        cprint("Launcher DB - Query All", self._query_color)
+        cmd = "SELECT * FROM launcher"
+        cprint("Launcher DB - {}".format(cmd), self._query_color)
         cursor = self.__connect_db()
 
         try:
-            cursor.execute("SELECT * FROM launcher")
+            cursor.execute()
             print(cursor.fetchall())
         except sqlite3.OperationalError as e:
             cprint(str(e), self._error_color)
 
         self.__close_db()
+
+    def query_value(self, index, value, result="*"):
+        cmd = "SELECT {} FROM launcher WHERE {}={}".format(
+            str(result), str(index), str(value)
+        )
+        cprint("Launcher DB - {}".format(cmd), self._query_color)
+        cursor = self.__connect_db()
+
+        r = None
+        try:
+            cursor.execute(cmd)
+            r = cursor.fetchone()
+        except sqlite3.OperationalError as e:
+            cprint(str(e), self._error_color)
+
+        self.__close_db()
+        return r
 
     def __connect_db(self):
         self.__db_conn = sqlite3.connect(self._db_full)

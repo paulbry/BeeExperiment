@@ -8,7 +8,8 @@ from termcolor import cprint
 class SlurmAdaptee:
     def __init__(self, config, file_loc, task_name):
         self._config = config
-        self._config_req = self._config['requirements']
+        if self._config is not None:
+            self._config_req = self._config['requirements']
         self._file_loc = file_loc
         self._task_name = task_name
         self._encode = 'UTF-8'
@@ -57,7 +58,7 @@ class SlurmAdaptee:
         pass
 
     def specific_shutdown(self, job_id):
-        # TODO: add documentation
+        # TODO: add identify other requirements?
         cmd = ['scancel', job_id]
         self._run_popen_safe(cmd)
 
@@ -68,10 +69,8 @@ class SlurmAdaptee:
     def _run_sbatch(self, file):
         cmd = ['sbatch', file]
         out = self._run_popen_safe(command=cmd, err_exit=True)
-        str_out = str(out)
-        str_out = str_out[:-3]
-        str_out = str_out.rsplit(" ", 1)[1]
-        return str_out
+        str_out = (str(out))[:-3]
+        return str_out.rsplit(" ", 1)[1]
 
     def __resource_requirement(self, temp_file):
         """
