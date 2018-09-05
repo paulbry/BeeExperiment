@@ -56,8 +56,10 @@ class SlurmAdaptee:
     def specific_schedule(self):
         pass
 
-    def specific_shutdown(self):
-        pass
+    def specific_shutdown(self, job_id):
+        # TODO: add documentation
+        cmd = ['scancel', job_id]
+        self._run_popen_safe(cmd)
 
     def specific_move_file(self):
         pass
@@ -197,8 +199,8 @@ class SlurmAdaptee:
         try:
             p = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
             out, err = p.communicate()
-            print("stdout: ", repr(out))
-            print("stderr: ", repr(err))
+            print("\tstdout: ", repr(out))
+            print("\tstderr: ", repr(err))
             return out
         except CalledProcessError as e:
             self._handle_message(msg="Error during - " + str(command) + "\n" +
