@@ -16,10 +16,11 @@ from .bee_localhost import BeeLocalhostLauncher as beeLH
 
 @Pyro4.expose
 class BeeLauncherDaemon(object):
-    def __init__(self):
+    def __init__(self, daemon=None):
         print("Starting Bee orchestration controller..")
         self.__py_dir = os.path.dirname(os.path.abspath(__file__))
         self.beetask = None
+        self.orc_daemon = daemon
 
     def create_task(self, beefile, file_name):
         print("Bee orchestration controller: received task creating request")
@@ -55,6 +56,10 @@ class BeeLauncherDaemon(object):
     def list_all_tasks(self):
         pass
 
+    def shutdown_daemon(self):
+        cprint("Bee orchestration controller shutting down", 'cyan')
+        self.orc_daemon.shutdown()
+
 
 class ExecOrc(object):
     # TODO: identify class objects and update
@@ -78,8 +83,8 @@ class ExecOrc(object):
         #############################################################
         # TODO: document daemon!!!
         #############################################################
-        bldaemon = BeeLauncherDaemon()
         daemon = Pyro4.Daemon()
+        bldaemon = BeeLauncherDaemon(daemon)
         bldaemon_uri = daemon.register(bldaemon)
         ns = Pyro4.locateNS(port=open_port, hmac_key=hmac_key)
         ns.register("bee_launcher.daemon", bldaemon_uri)
