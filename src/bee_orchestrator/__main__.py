@@ -96,9 +96,8 @@ def manage_args(args):
 def main():
     try:
         args = parser.parse_args()
-        if not manage_args(args):
-            cprint("Command line arguments required", "red")
-            parser.parse_args(['-h'])
+        # TODO: better method of dealing with empty namespace
+        manage_args(args)
     except argparse.ArgumentError as e:
         cprint(e, "red")
         exit(1)
