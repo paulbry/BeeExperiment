@@ -46,7 +46,6 @@ class SlurmAdaptee:
 
         tmp_f.seek(0)
         out = self._run_sbatch(tmp_f.name)
-        print("SPECIFIC_ALLOCATE: " + str(out))
         tmp_f.close()
         return out
 
@@ -66,11 +65,9 @@ class SlurmAdaptee:
     def _run_sbatch(self, file):
         cmd = ['sbatch', file]
         out = self._run_popen_safe(command=cmd, err_exit=True)
-        print("SBATCH OUT: " + str(out))
         str_out = str(out)
         str_out = str_out[:-3]
         str_out = str_out.rsplit(" ", 1)[1]
-        print("STR_OUT: " + str_out)
         return str_out
 
     def __resource_requirement(self, temp_file):

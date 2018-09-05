@@ -63,7 +63,7 @@ class Adapter(Target):
     Adapt the interface of adaptee to the target request
     """
     def allocate(self):
-        self._adaptee.specific_allocate()
+        return self._adaptee.specific_allocate()
 
     def schedule(self):
         self._adaptee.specific_schedule()
