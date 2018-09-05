@@ -50,7 +50,7 @@ class Target(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
-    def shutdown(self):
+    def shutdown(self, job_id):
         pass
 
     @abc.abstractmethod
@@ -68,8 +68,8 @@ class Adapter(Target):
     def schedule(self):
         self._adaptee.specific_schedule()
 
-    def shutdown(self):
-        self._adaptee.specific_shutdown()
+    def shutdown(self, job_id):
+        self._adaptee.specific_shutdown(job_id)
 
     def move_file(self):
         self._adaptee.specific_move_file()
