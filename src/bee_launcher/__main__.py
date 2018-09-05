@@ -127,7 +127,8 @@ launch_group.add_argument("-l", "--launch",
 launch_group.add_argument("-t", "--terminate",
                           dest='terminate_task', nargs=1,
                           help="Terminate tasks <TERMINATE_TASK> by "
-                               "shutting/canceling any associated allocations.")
+                               "shutting/canceling any associated allocations "
+                               "by jobID.")
 sub_launch_group.set_defaults(func=launch_default)
 
 
