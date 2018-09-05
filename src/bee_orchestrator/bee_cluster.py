@@ -1,5 +1,6 @@
 # system
 import os
+import Pyro4
 from threading import Thread, Event
 from termcolor import cprint
 from pwd import getpwuid
@@ -18,11 +19,14 @@ class BeeTask(Thread):
         self._task_label = self._beefile.get('label', 'BEE: {}'.
                                              format(self._task_id))
 
-        # Pyro4
-        self._port = self.__pyro_port()
-
         # System configuration
         self._user_name = getpwuid(os.getuid())[0]
+
+        # Pyro4
+        self._port = self.__pyro_port()
+        ns = Pyro4.locateNS(port=self._port, hmac_key=self._user_name)
+        uri = ns.lookup("bee_launcher.daemon")
+        self._bldaemon = Pyro4.Proxy(uri)
 
         # Output colors
         self._output_color = "cyan"
