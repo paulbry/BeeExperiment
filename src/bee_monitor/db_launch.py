@@ -41,6 +41,10 @@ class LaunchDB(object):
         self.__close_db()
 
     def query_value(self, index, value, result="*"):
+        """
+        Query launcher table for
+        SELECT <result> FOMR launcher WHERE <index>=<value>
+        """
         cmd = "SELECT {} FROM launcher WHERE {}={}".format(
             str(result), str(index), str(value)
         )
@@ -70,6 +74,10 @@ class LaunchDB(object):
                 print('\t' * indent + str(key) + ": " + str(value))
 
     def __print_all(self, line):
+        """
+        Print data from launcher.db in readable format
+        :param line: single line from SELECT * FROM launcher
+        """
         cprint("\nBeefile Name: {}".format(line[5]), self._query_color)
         print("JobID: {}".format(line[1]))
         print("Class: {}".format(line[2]))
