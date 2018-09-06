@@ -147,8 +147,12 @@ class BeeArguments(BeeLauncher):
         print("Sending termination request.")
         db = LaunchDB(self._db_full)
         rjms = db.query_value("jobID", job_id, "manageSys")
-        self.terminate_task(job_id, rjms)
-        print("Task: " + job_id + " is terminated.")
+        if rjms is not None:
+            self.terminate_task(job_id, rjms)
+        else:
+            cprint("No task identified with JobID: {}".format(job_id),
+                   'red')
+        cprint("Task: " + job_id + " is terminated.", 'cyan')
 
     # TODO: implement high level status support using job id
     def opt_status(self):
