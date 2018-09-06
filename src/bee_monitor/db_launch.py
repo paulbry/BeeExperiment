@@ -21,7 +21,7 @@ class LaunchDB(object):
         cursor = self.__connect_db()
 
         try:
-            cursor.execute()
+            cursor.execute(cmd)
             print(cursor.fetchall())
         except sqlite3.OperationalError as e:
             cprint(str(e), self._error_color)
