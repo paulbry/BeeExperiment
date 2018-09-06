@@ -83,8 +83,7 @@ class LaunchDB(object):
             print("Beeflow Name: {}".format(line[8]))
             print("Beeflow")
             self._clean_dict(ast.literal_eval(line[10]))
-        if line[11] is not None:
-            cprint("Error: {}".format(line[11]), "red")
+        cprint("Error: {}".format(line[11]), "red")
 
     def __connect_db(self):
         self.__db_conn = sqlite3.connect(self._db_full)
