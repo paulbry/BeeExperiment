@@ -46,8 +46,8 @@ class SlurmAdaptee:
         self.__deploy_bee_orchestrator(temp_file=tmp_f)
 
         print("[" + self._task_name + "] SBATCH CONTENTS")
-        with open(tmp_f.name, 'r') as fin:
-            print(fin.read())
+        tmp_f.seek(0)
+        print(tmp_f.read().decode())
 
         tmp_f.seek(0)
         out = self._run_sbatch(tmp_f.name)
