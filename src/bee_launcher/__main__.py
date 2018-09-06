@@ -64,10 +64,6 @@ def launch_default(args):
     if args.terminate_task:
         bee_args.opt_terminate(args)
 
-    # ensure status remains low in order
-    if args.status:
-        bee_args.opt_status()
-
 
 def flow_default(args):
     BeeFlow(args.logflag, args.log_dest).main(args.launch_flow[0])
