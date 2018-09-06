@@ -65,6 +65,9 @@ class SlurmAdaptee:
     def specific_move_file(self):
         pass
 
+    def specific_execute(self):
+        pass
+
     # private / supporting functions
     def _run_sbatch(self, file):
         cmd = ['sbatch', file]

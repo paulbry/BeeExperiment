@@ -1,4 +1,4 @@
-class LocalhostAdaptee:
+class SSHAdaptee:
     def __init__(self, config, file_loc, task_name):
         self._config = config
         self._config_req = self._config['requirements']
@@ -18,3 +18,5 @@ class LocalhostAdaptee:
     def specific_move_file(self):
         pass
 
+    def specific_execute(self):
+        pass

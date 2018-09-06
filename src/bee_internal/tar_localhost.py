@@ -16,20 +16,24 @@ class LocalhostAdaptee:
         self._error_color = "red"
         self._warning_color = "yellow"
 
+    def specific_allocate(self):
+        pass
+
+    def specific_schedule(self):
+        pass
+
+    def specific_shutdown(self):
+        pass
+
+    def specific_move_file(self):
+        pass
+
     def specific_execute(self, command, system=None):
         # TODO: add DB related steps?
         if system is not None:
             self._run_popen_safe(command)
         else:  # run via localhost (take responsibility)
             self._run_popen_safe(command)
-
-    def specific_shutdown(self):
-        # TODO: add DB related steps?
-        pass
-
-    def specific_move_file(self):
-        # TODO: identify requirement?
-        pass
 
     # Task management support functions (public)
     # TODO: Move to shared location (bee-internal)?
