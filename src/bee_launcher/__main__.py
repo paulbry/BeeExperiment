@@ -4,7 +4,6 @@ from os import getcwd, path
 from termcolor import cprint
 # project
 from .bee_launch import BeeArguments
-from .bee_flow import BeeFlow
 
 
 # Parser supporting functions
@@ -50,7 +49,7 @@ def verify_single_beeflow(potential_file):
 def launch_default(args):
     bee_args = None
     try:
-        bee_args = BeeArguments(args.logflag, args.log_dest)
+        bee_args = BeeArguments(args.logflag, args.log_des, args.quite)
     except Exception as e:
         print(e)
         cprint("Verify Bee Orchestrator is running!", "red")
@@ -66,11 +65,13 @@ def launch_default(args):
 
 
 def flow_default(args):
-    BeeFlow(args.logflag, args.log_dest).main(args.launch_flow[0])
+    # TODO: update upon implementation
+    # BeeFlow(args.logflag, args.log_dest).main(args.launch_flow[0])
+    cprint("Not yet implemented!", 'red')
 
 
 parser = argparse.ArgumentParser(description="BEE Launcher\n"
-                                             "https://github.com/lanl/BEE")
+                                             "https://github.com/paulbry/BeeExperiment")
 
 ###############################################################################
 # Un-organized arguments that can be
@@ -80,41 +81,31 @@ parser = argparse.ArgumentParser(description="BEE Launcher\n"
 # TODO: find better way to support & test
 ###############################################################################
 parser.add_argument("--logflag",
-                    action="store_true",
+                    action="store_true", dest="logflag",
                     default=False,
                     help="Flag logger (default=False)")
 parser.add_argument("--logfile",
                     dest='log_dest', nargs=1,
                     default="/var/tmp/bee.log",
                     help="Target destination for log file (default=/var/tmp/bee.log)")
-
-
-###############################################################################
-# Subparser (main)
-# NOTE: To my knowledge Python 2.7 does not support optional subparser groups
-# This means the use is required to select on of the below options when
-# launching the application or an error will be thrown
-#
-# Each original python module that had handled arguments has had that
-# functionality removed along with any corresponding __main__.
-# Translation: module -> subparser
-#   bee_launcher.py  ->  launch
-#   bee_flow.py  -> flow
-#   bee_ci_launcher.py  -> swarm
-###############################################################################
-subparser = parser.add_subparsers(title="BEE Modules")
-sub_launch_group = subparser.add_parser("launch",
-                                        help="bee_launch.py")
-sub_flow_group = subparser.add_parser("flow",
-                                      help="bee_flow.py")
-
+parser.add_argument("-q", "--quite",
+                    dest='quite', action="store_true",
+                    default=False,
+                    help="Suppress non-error console messages. Will "
+                         "override any logging requests.")
+parser.add_argument("--test-only",
+                    action="store_true", dest="testonly",
+                    default=False,
+                    help="Validate and create launcher script but avoid executing it.")
 
 ###############################################################################
 # Bee Launcher
 # Launching/removing a task is currently only supported individually, thus
 # they should remain mutually exclusive (launch_group)
+#
+# Bee Flow (composer)
 ###############################################################################
-launch_group = sub_launch_group.add_mutually_exclusive_group()
+launch_group = parser.add_mutually_exclusive_group()
 launch_group.add_argument("-l", "--launch",
                           dest='launch_task', nargs=1,
                           type=verify_single_beefile,
@@ -125,18 +116,12 @@ launch_group.add_argument("-t", "--terminate",
                           help="Terminate tasks <TERMINATE_TASK> by "
                                "shutting/canceling any associated allocations "
                                "by jobID.")
-sub_launch_group.set_defaults(func=launch_default)
-
-
-###############################################################################
-# Bee Flow (composer)
-###############################################################################
-sub_flow_group.add_argument("-f", "--beeflow",
-                            dest='launch_flow', nargs=1,
-                            type=verify_single_beeflow,
-                            help="Runs task specified by <LAUNCH_FLOW>.beeflow, "
-                                 "that needs to be in the current directory")
-sub_flow_group.set_defaults(func=flow_default)
+launch_group.add_argument("-f", "--beeflow",
+                          dest='launch_flow', nargs=1,
+                          type=verify_single_beeflow,
+                          help="Runs task specified by <LAUNCH_FLOW>.beeflow, "
+                               "that needs to be in the current directory")
+launch_group.set_defaults(func=launch_default)
 
 
 def main():

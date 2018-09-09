@@ -1,25 +1,28 @@
 # system
 from tempfile import NamedTemporaryFile
-from subprocess import Popen, PIPE, \
-    STDOUT, CalledProcessError
-from termcolor import cprint
+# project
+from bee_internal.shared_tools import TranslatorMethods
 
 
 class SlurmAdaptee:
-    def __init__(self, config, file_loc, task_name):
+    def __init__(self, config, file_loc, task_name, beelog):
         self._config = config
         if self._config is not None:
-            self._config_req = self._config['requirements']
+            self._config_req = self._config.get('requirements')
         self._file_loc = file_loc
         self._task_name = task_name
         self._encode = 'UTF-8'
 
-        # Termcolor
-        self._error_color = "red"
-        self._warning_color = "yellow"
-        self._message_color = "cyan"
+        # Logging conf. object -> BeeLogging(log, log_dest, quite)
+        self.blog = beelog
 
-    def specific_allocate(self):
+        # Shared tools
+        self._stm = TranslatorMethods(config=self._config,
+                                      file_loc=self._file_loc,
+                                      task_name=self._task_name,
+                                      beelog=self.blog)
+
+    def specific_allocate(self, test_only=False):
         """
         Create sbatch file utilizing Beefile's defined 'requirements' then
         execute this sbatch via subprocess.
@@ -32,25 +35,29 @@ class SlurmAdaptee:
         # Prepare SBATCH file
         # TODO: further document
         #######################################################################
-        if self._config_req.get('ResourceRequirement') is not None:
-            self.__resource_requirement(temp_file=tmp_f)
-        else:
-            cprint("[" + self._task_name + "] ResourceRequirement key is required for"
-                                           " allocation", self._error_color)
-        if self._config_req.get('SoftwarePackages') is not None:
-            self.__software_packages(temp_file=tmp_f)
-        if self._config_req.get('EnvVarRequirements') is not None:
-            self.__env_variables(temp_file=tmp_f)
-        if self._config_req.get('CharliecloudRequirement') is not None:
-            self.__deploy_charliecloud(temp_file=tmp_f)
+        if self._config_req is not None:
+            if self._config_req.get('ResourceRequirement') is not None:
+                self.__resource_requirement(temp_file=tmp_f)
+            else:
+                self.blog.message("ResourceRequirement key is required for "
+                                  "allocation", self._task_name, self.blog.err)
+            if self._config_req.get('SoftwareModules') is not None:
+                self._stm.software_modules(temp_file=tmp_f)
+            if self._config_req.get('EnvVarRequirements') is not None:
+                self._stm.env_variables(temp_file=tmp_f)
+            if self._config_req.get('CharliecloudRequirement') is not None:
+                self._stm.deploy_charliecloud(temp_file=tmp_f, ch_pre="srun")
+
         self.__deploy_bee_orchestrator(temp_file=tmp_f)
 
-        print("[" + self._task_name + "] SBATCH CONTENTS")
+        self.blog.message("SBATCH CONTENTS", self._task_name, self.blog.msg)
         tmp_f.seek(0)
-        print(tmp_f.read().decode())
+        self.blog.message(tmp_f.read().decode())
 
         tmp_f.seek(0)
-        out = self._run_sbatch(tmp_f.name)
+        out = None
+        if not test_only:
+            out = self._run_sbatch(tmp_f.name)
         tmp_f.close()
         return out
 
@@ -60,7 +67,7 @@ class SlurmAdaptee:
     def specific_shutdown(self, job_id):
         # TODO: add identify other requirements?
         cmd = ['scancel', job_id]
-        self._run_popen_safe(cmd)
+        self._stm.run_popen_safe(cmd)
 
     def specific_move_file(self):
         pass
@@ -71,7 +78,7 @@ class SlurmAdaptee:
     # private / supporting functions
     def _run_sbatch(self, file):
         cmd = ['sbatch', file]
-        out = self._run_popen_safe(command=cmd, err_exit=True)
+        out = self._stm.run_popen_safe(command=cmd, err_exit=True)
         str_out = (str(out))[:-3]
         return str_out.rsplit(" ", 1)[1]
 
@@ -122,53 +129,8 @@ class SlurmAdaptee:
             c = "=" + str(value)
             return a + b + c
 
-    def __software_packages(self, temp_file):
-        """
-        Module load <target(s)>, add to file
-        :param temp_file: Target sbatch file (named temp file)
-        """
-        temp_file.write(bytes("\n\n# Load Modules\n", self._encode))
-        for key, value in self.\
-                _config['requirements']['SoftwarePackages'].items():
-            module = "module load {}".format(key)
-            if value is not None:
-                module += "/" + str(value.get('version', None))
-            temp_file.write(bytes(module + "\n", 'UTF-8'))
-
-    def __deploy_charliecloud(self, temp_file):
-        """
-        Identify and un-tar Charliecloud container, add to file
-        :param temp_file: Target sbatch file (named temp file)
-        """
-        temp_file.write(bytes("\n# Deploy Charliecloud Container\n", self._encode))
-        # TODO: better error handling?
-        # TODO: options for build/pull?
-        for cc in self._config_req['CharliecloudRequirement']:
-            cc_task = self._config_req['CharliecloudRequirement'][cc]
-            cc_deploy = "srun ch-tar2dir " + str(cc_task['source']) + " " + \
-                        str(cc_task.get('tarDir', '/var/tmp')) + "\n"
-            temp_file.write(bytes(cc_deploy, self._encode))
-
-    def __env_variables(self, temp_file):
-        """
-        Added source <key> <value> and export <key> <value>:$<key>
-        in order to establish the environment
-        :param temp_file: Target sbatch file (named temp file)
-        """
-        temp_file.write(bytes("\n# Environmental Requirements\n", self._encode))
-        env_dict = self._config_req['EnvVarRequirements']
-        if env_dict.get('envDef') is not None:
-            for key, value in env_dict.get('envDef').items():
-                export = "export {} {}:${}".format(str(key), str(value), str(key))
-                temp_file.write(bytes(export + "\n", 'UTF-8'))
-        if env_dict.get('sourceDef') is not None:
-            for key, value in env_dict.get('sourceDef').items():
-                source = "source {}".format(str(key))
-                if value is not None:
-                    source += " " + str(value)
-                temp_file.write(bytes(source + "\n", 'UTF-8'))
-
     def __deploy_bee_orchestrator(self, temp_file):
+        # TODO: re-write to account for log changes!
         """
         Scripting to launch bee_orchestrator, add to file
         :param temp_file: Target sbatch file (named temp file)
@@ -180,48 +142,3 @@ class SlurmAdaptee:
         ]
         for data in bee_deploy:
             temp_file.write(bytes(data + "\n", self._encode))
-
-    # Task management support functions (public)
-    # TODO: Move to shared location (bee-internal)?
-    def _run_popen_safe(self, command, err_exit=True):
-        """
-        Run defined command via Popen, try/except statements
-        built in and message output when appropriate
-        :param command: Command to be run
-        :param err_exit: Exit upon error, default True
-        :return: stdout from p.communicate() based upon results
-                    of command run via subprocess
-                None, error message returned if except reached
-                    and err_exit=False
-        """
-        self._handle_message("Executing: " + str(command))
-        try:
-            p = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
-            out, err = p.communicate()
-            print("\tstdout: ", repr(out))
-            print("\tstderr: ", repr(err))
-            return out
-        except CalledProcessError as e:
-            self._handle_message(msg="Error during - " + str(command) + "\n" +
-                                 str(e), color=self._error_color)
-            if err_exit:
-                exit(1)
-            return None
-        except OSError as e:
-            self._handle_message(msg="Error during - " + str(command) + "\n" +
-                                 str(e), color=self._error_color)
-            if err_exit:
-                exit(1)
-            return None
-
-    def _handle_message(self, msg, color=None):
-        """
-        :param msg: To be printed to console
-        :param color: If message is be colored via termcolor
-                        Default = none (normal print)
-        """
-
-        if color is None:
-            print("[{}] {}".format(self._task_name, msg))
-        else:
-            cprint("[{}] {}".format(self._task_name, msg), color)

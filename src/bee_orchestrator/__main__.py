@@ -5,6 +5,7 @@ from os import path, remove, chdir
 # project
 from .bee_orc_ctl import ExecOrc
 from bee_internal.beefile_manager import BeefileLoader
+from bee_logging.bee_log import BeeLogging
 
 
 # Parser supporting functions / classes
@@ -53,19 +54,26 @@ parser.add_argument("-t", "--task",
 # to be implemented and utilised by the "orchestrator"
 ###############################################################################
 parser.add_argument("--logflag",
-                    action="store_true",
+                    action="store_true", dest="logflag",
                     default=False,
                     help="Flag logger (default=False)")
 parser.add_argument("--logfile",
                     dest='log_dest', nargs=1,
                     default="/var/tmp/bee.log",
                     help="Target destination for log file (default=/var/tmp/bee.log)")
+parser.add_argument("-q", "--quite",
+                    dest='quite', action="store_true",
+                    default=False,
+                    help="Suppress non-error console messages. Will "
+                         "override any logging requests.")
 
 
 def manage_args(args):
     # check file requirements
     verify_pyro4_conf()
-    eo = ExecOrc()
+
+    beelog = BeeLogging(args.logflag, args.log_dest, args.quite)
+    eo = ExecOrc(beelog)
 
     if args.task is not None:
         if args.orc:
@@ -74,23 +82,20 @@ def manage_args(args):
             p = args.task[0]
             t = p.rfind("/")
             chdir(p[:t])
-            f = BeefileLoader(args.task[0])
+            f = BeefileLoader(args.task[0], beelog)
             eo.main(f.beefile, p[t+1:len(p)])
         elif args.orc_arm:
-            cprint("ARM support not ready at the moment!", 'red')
+            beelog.message("ARM support not ready at the moment!",
+                           color=beelog.err)
         else:
-            cprint("Please specify a valid orchestrator!", 'red')
+            beelog.message("Please specify a valid orchestrator!",
+                           color=beelog.err)
 
     elif args.orc:
         eo.main()
     elif args.orc_arm:
-        cprint("ARM support not ready at the moment!", 'red')
-
-    # Enable only when log flag is set true!
-    if args.logflag is True:
-        cprint("Logging not implemented yet\n"
-               "Logflag = " + str(args.logflag) +
-               "\nLogfile = " + args.log_dest, 'red')
+        beelog.message("ARM support not ready at the moment!",
+                       color=beelog.err)
 
 
 def main():

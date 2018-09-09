@@ -1,29 +1,72 @@
-from subprocess import Popen, PIPE, CalledProcessError, \
-    STDOUT
-from termcolor import cprint
+# system
+from tempfile import NamedTemporaryFile
+from datetime import datetime
+from time import time
+# project
+from bee_internal.shared_tools import TranslatorMethods
 
 
 class LocalhostAdaptee:
-    def __init__(self, config, file_loc, task_name):
+    def __init__(self, config, file_loc, task_name, beelog):
         self._config = config
-        self._config_req = self._config['requirements']
+        if self._config is not None:
+            self._config_req = self._config.get('requirements')
         self._file_loc = file_loc
         self._task_name = task_name
         self._encode = 'UTF-8'
 
-        # Termcolor (temp)
-        self._message_color = "cyan"
-        self._error_color = "red"
-        self._warning_color = "yellow"
+        # Logging conf. object -> BeeLogging(log, log_dest, quite)
+        self.blog = beelog
 
-    def specific_allocate(self):
-        pass
+        # Shared tools
+        self._stm = TranslatorMethods(config=self._config,
+                                      file_loc=self._file_loc,
+                                      task_name=self._task_name,
+                                      beelog=self.blog)
+
+    def specific_allocate(self, test_only=False):
+        # TODO: document
+        tmp_f = NamedTemporaryFile()
+        tmp_f.write(bytes("#!/bin/bash\n\n", 'UTF-8'))
+        #######################################################################
+        # Prepare script
+        # TODO: further document
+        #######################################################################
+        if self._config_req is not None:
+            if self._config_req.get('ResourceRequirement') is not None:
+                self.__resource_requirement(temp_file=tmp_f)
+            if self._config_req.get('SoftwareModules') is not None:
+                self._stm.software_modules(temp_file=tmp_f)
+            if self._config_req.get('EnvVarRequirements') is not None:
+                self._stm.env_variables(temp_file=tmp_f)
+            if self._config_req.get('CharliecloudRequirement') is not None:
+                self._stm.deploy_charliecloud(temp_file=tmp_f)
+
+        job_id = datetime.fromtimestamp(time()).strftime('%m%d-%H%M%S')
+        self.__deploy_bee_orchestrator(temp_file=tmp_f, job_id=job_id)
+
+        self.blog.message("LOCALHOST SCRIPT CONTENTS", self._task_name,
+                          self.blog.msg)
+        tmp_f.seek(0)
+        self.blog.message(tmp_f.read().decode())
+
+        tmp_f.seek(0)
+        out = None
+        if not test_only:
+            out = "lh-{}".format(job_id)
+            with open(out, 'a') as s_file:
+                s_file.write(tmp_f.read().decode())
+            self._run_screen(out, out)
+        tmp_f.close()
+        return out
 
     def specific_schedule(self):
         pass
 
-    def specific_shutdown(self):
-        pass
+    def specific_shutdown(self, job_id):
+        # TODO: identify other requirements
+        cmd = ['screen', '-X', '-S', job_id, 'quit']
+        self._stm.run_popen_safe(cmd)
 
     def specific_move_file(self):
         pass
@@ -31,52 +74,30 @@ class LocalhostAdaptee:
     def specific_execute(self, command, system=None):
         # TODO: add DB related steps?
         if system is not None:
-            self._run_popen_safe(command)
+            self._stm.run_popen_safe(command)
         else:  # run via localhost (take responsibility)
-            self._run_popen_safe(command)
+            self._stm.run_popen_safe(command)
 
-    # Task management support functions (public)
-    # TODO: Move to shared location (bee-internal)?
-    def _run_popen_safe(self, command, err_exit=True):
-        """
-        Run defined command via Popen, try/except statements
-        built in and message output when appropriate
-        :param command: Command to be run
-        :param err_exit: Exit upon error, default True
-        :return: stdout from p.communicate() based upon results
-                    of command run via subprocess
-                None, error message returned if except reached
-                    and err_exit=False
-        """
-        self._handle_message("Executing: " + str(command))
-        try:
-            p = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
-            out, err = p.communicate()
-            print("stdout: ", repr(out))
-            print("stderr: ", repr(err))
-            return out
-        except CalledProcessError as e:
-            self._handle_message(msg="Error during - " + str(command) + "\n" +
-                                 str(e), color=self._error_color)
-            if err_exit:
-                exit(1)
-            return None
-        except OSError as e:
-            self._handle_message(msg="Error during - " + str(command) + "\n" +
-                                 str(e), color=self._error_color)
-            if err_exit:
-                exit(1)
-            return None
+    def _run_screen(self, file, job_id):
+        # TODO: clean up Popen and document
+        cmd = ['screen', '-S', job_id, '-d', '-m', 'bash', file]
+        self._stm.run_popen_safe(cmd)
 
-    # Task management support functions (private)
-    def _handle_message(self, msg, color=None):
-        """
-        :param msg: To be printed to console
-        :param color: If message is be colored via termcolor
-                        Default = none (normal print)
-        """
+    def __resource_requirement(self, temp_file):
+        # TODO: identify resources that should/could be affected
+        pass
 
-        if color is None:
-            print("[{}] {}".format(self._task_name, msg))
-        else:
-            cprint("[{}] {}".format(self._task_name, msg), color)
+    def __deploy_bee_orchestrator(self, temp_file, job_id):
+        # TODO: re-write to account for log changes!
+        """
+        Scripting to launch bee_orchestrator, add to file
+        :param temp_file: Target sbatch file (named temp file)
+        """
+        temp_file.write(bytes("\n# Launch BEE\n", self._encode))
+        bee_deploy = [
+            "bee-orchestrator -o -t " + self._file_loc +
+            "/" + self._task_name
+        ]
+        for data in bee_deploy:
+            temp_file.write(bytes(data + "\n", self._encode))
+

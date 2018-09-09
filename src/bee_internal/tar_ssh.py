@@ -1,12 +1,15 @@
 class SSHAdaptee:
-    def __init__(self, config, file_loc, task_name):
+    def __init__(self, config, file_loc, task_name, beelog):
         self._config = config
         self._config_req = self._config['requirements']
         self._file_loc = file_loc
         self._task_name = task_name
         self._encode = 'UTF-8'
 
-    def specific_allocate(self):
+        # Logging conf. object -> BeeLogging(log, log_dest, quite)
+        self.blog = beelog
+
+    def specific_allocate(self, test_only=False):
         pass
 
     def specific_schedule(self):

@@ -1,6 +1,5 @@
 # system
 import abc
-from termcolor import cprint
 # project
 from bee_internal.tar_slurm import SlurmAdaptee
 from bee_internal.tar_ssh import SSHAdaptee
@@ -11,8 +10,11 @@ class Target(metaclass=abc.ABCMeta):
     """
     Define the domain-specific interface that Client uses
     """
-    def __init__(self, system, config, file_loc, task_name):
+    def __init__(self, system, config, file_loc, task_name, beelog):
         self.__system = str(system).lower()
+
+        # Logging conf. object -> BeeLogging(log, log_dest, quite)
+        self.blog = beelog
 
         # Beefile related
         self._config = config
@@ -25,19 +27,19 @@ class Target(metaclass=abc.ABCMeta):
     def update_adaptee(self):
         if self.__system == "slurm":
             self._adaptee = SlurmAdaptee(self._config, self._file_loc,
-                                         self._task_name)
+                                         self._task_name, self.blog)
 
         elif self.__system == "localhost":
             self._adaptee = LocalhostAdaptee(self._config, self._file_loc,
-                                             self._task_name)
+                                             self._task_name, self.blog)
         else:
-            cprint("Unable to support target system: " + self.__system +
-                   " attempting ssh.", "yellow")
+            self.blog.message("Unable to support target system: " + self.__system
+                              + " attempting ssh.", color=self.blog.warn)
             self._adaptee = SSHAdaptee(self._config, self._file_loc,
-                                       self._task_name)
+                                       self._task_name, self.blog)
 
     @abc.abstractmethod
-    def allocate(self):
+    def allocate(self, test_only=False):
         #######################################################################
         # Should return tuple stdout
         # out: Unique job idea (signify successful allocation) or None (failed)
@@ -62,8 +64,8 @@ class Adapter(Target):
     """
     Adapt the interface of adaptee to the target request
     """
-    def allocate(self):
-        return self._adaptee.specific_allocate()
+    def allocate(self, test_only=False):
+        return self._adaptee.specific_allocate(test_only=test_only)
 
     def schedule(self):
         self._adaptee.specific_schedule()

@@ -26,7 +26,6 @@ setuptools.setup(
         'console_scripts': [
             'bee-launcher = bee_launcher.__main__:main',
             'bee-orchestrator = bee_orchestrator.__main__:main',
-            'bee-logging = bee_logging.__main__:main',
             'bee-monitor = bee_monitor.__main__:main'
         ]
     }

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # system
 import os
 import socket
@@ -8,7 +7,6 @@ import time
 from json import load, dumps
 from pwd import getpwuid
 from subprocess import Popen
-from termcolor import cprint
 from time import sleep
 # project
 from .bee_localhost import BeeLocalhostLauncher as beeLH
@@ -16,17 +14,21 @@ from .bee_localhost import BeeLocalhostLauncher as beeLH
 
 @Pyro4.expose
 class BeeLauncherDaemon(object):
-    def __init__(self, daemon=None):
-        print("Starting Bee orchestration controller..")
+    def __init__(self, beelog, daemon=None):
+        # Logging conf. object -> BeeLogging(log, log_dest, quite)
+        self.blog = beelog
+
+        self.blog.message("Starting Bee orchestration controller..")
         self.__py_dir = os.path.dirname(os.path.abspath(__file__))
         self.beetask = None
         self.orc_daemon = daemon
 
     def create_task(self, beefile, file_name):
-        print("Bee orchestration controller: received task creating request")
-        exec_target = beefile['class']
+        self.blog.message("Bee orchestration controller: received task "
+                          "creating request")
+        exec_target = beefile.get('class', 'bee-localhost')
         beetask_name = beefile.get('id', file_name + time.strftime("_%Y%m%d_%H%M%S"))
-        # TODO: correct
+        # TODO: correct, accouting for optional/unavailable modules?
         if str(exec_target).lower() == 'bee-charliecloud':
             pass
         #    from exec_targets.bee_charliecloud.bee_charliecloud_launcher import \
@@ -34,15 +36,15 @@ class BeeLauncherDaemon(object):
         #    cprint("[" + beetask_name + "] Launched BEE-Charliecloud Instance!")
         #    self.beetask = beeCC(beetask_name, beefile)
         elif str(exec_target).lower() == 'bee-localhost':
-            cprint("[" + beetask_name + "] Launched BEE-Localhost Instance!")
-            self.beetask = beeLH(beetask_name, beefile)
+            self.blog.message("Launched BEE-Localhost Instance!", task_name=beetask_name)
+            self.beetask = beeLH(beetask_name, beefile, self.blog)
 
     def launch_task(self):
         self.beetask.start()
     
     def create_and_launch_task(self, beefile, file_name):
-        cprint("[" + file_name + ".beefile] Task received in current working "
-                                 "directory: " + os.getcwd(), 'cyan')
+        self.blog.message("Task received in current working directory: " + os.getcwd(),
+                          "{}.beefile".format(file_name), self.blog.msg)
         # TODO: add encode step for file!
         self.create_task(beefile, file_name)
         self.launch_task()
@@ -57,14 +59,15 @@ class BeeLauncherDaemon(object):
         pass
 
     def shutdown_daemon(self):
-        cprint("Bee orchestration controller shutting down", 'cyan')
+        self.blog.message("Bee orchestration controller shutting down",
+                          color=self.blog.msg)
         self.orc_daemon.shutdown()
 
 
 class ExecOrc(object):
     # TODO: identify class objects and update
-    def __init__(self):
-        pass
+    def __init__(self, beelog):
+        self.blog = beelog
 
     def main(self, beefile=None, file_name=None):
         """
@@ -84,11 +87,12 @@ class ExecOrc(object):
         # TODO: document daemon!!!
         #############################################################
         daemon = Pyro4.Daemon()
-        bldaemon = BeeLauncherDaemon(daemon)
+        bldaemon = BeeLauncherDaemon(self.blog, daemon)
         bldaemon_uri = daemon.register(bldaemon)
         ns = Pyro4.locateNS(port=open_port, hmac_key=hmac_key)
         ns.register("bee_launcher.daemon", bldaemon_uri)
-        cprint("Bee orchestration controller started.", 'cyan')
+        self.blog.message("Bee orchestration controller started.",
+                          color=self.blog.msg)
 
         # Launch task before starting daemon
         if beefile is not None:

@@ -4,6 +4,7 @@ from os import path
 from termcolor import cprint
 # project
 from .db_launch import LaunchDB
+from bee_logging.bee_log import BeeLogging
 
 
 # Variable required in script
@@ -34,7 +35,8 @@ def verify_file(potential_file):
 def launch_default(args):
     ldb = None
     try:
-        ldb = LaunchDB(mon_db_launch)
+        ldb = LaunchDB(mon_db_launch, BeeLogging(log=False, log_dest=None,
+                                                 quite=False))
     except Exception as e:
         cprint("Unable to load LaunchDB supporting class", "red")
         print(str(e))
@@ -44,6 +46,8 @@ def launch_default(args):
     # exclusivity rules are managed by argparse groups
     if args.launch_all:
         ldb.query_all()
+    elif args.delete_all:
+        ldb.delete_all()
 
     if args.launch_jobid:
         print("launch jobid")
@@ -76,13 +80,16 @@ sub_flow_group = subparser.add_parser("orchestrator",
 launch_group = sub_launch_group.add_mutually_exclusive_group()
 launch_group.add_argument("-a", "--all",
                           dest='launch_all', action='store_true',
-                          help="Query launcher database for everything.")
+                          help="Query launcher table for everything.")
 launch_group.add_argument("-j", "--jobid",
                           dest='launch_jobid', nargs=1,
-                          help="Query launcher database using jobid.")
+                          help="Query launcher table using jobid.")
 launch_group.add_argument("-s", "--status",
                           dest='launch_status', nargs=1,
-                          help="Query launcher database using job status.")
+                          help="Query launcher table using job status.")
+launch_group.add_argument("-da", "--delete-all",
+                          dest='delete_all', action='store_true',
+                          help="Completely clear launcher table.")
 # TODO: document status (in BEE terms)
 
 sub_launch_group.set_defaults(func=launch_default)

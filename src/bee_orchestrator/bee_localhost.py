@@ -5,8 +5,8 @@ from .orc_translator import Adapter
 
 # Manipulates all nodes in a task
 class BeeLocalhostLauncher(BeeTask):
-    def __init__(self, task_id, beefile):
-        BeeTask.__init__(self, task_id=task_id, beefile=beefile)
+    def __init__(self, task_id, beefile, beelog):
+        BeeTask.__init__(self, task_id=task_id, beefile=beefile, beelog=beelog)
 
         self.__current_status = 10  # initializing
         self.begin_event = 0
@@ -15,9 +15,13 @@ class BeeLocalhostLauncher(BeeTask):
         # Task configuration
         self.platform = 'BEE-Localhost'
 
-        self._manageSys = self._beefile['requirements']['ResourceRequirement']\
-            .get('manageSys', 'localhost')
-        self._sys_adapter = Adapter(system="localhost", config=self._beefile,
+        try:
+            self._manageSys = self._beefile['requirements']['ResourceRequirement']\
+                .get('manageSys', 'localhost')
+        except KeyError:
+            self._manageSys = 'localhost'
+
+        self._sys_adapter = Adapter(system=self._manageSys, config=self._beefile,
                                     file_loc='', task_name=self._task_id)
 
         self.current_status = 20  # initialized
@@ -39,8 +43,10 @@ class BeeLocalhostLauncher(BeeTask):
         self.end_event = 1
         self.__current_status = 60  # finished
 
+        if self._beefile.get('terminateAfter', True):
+            self.terminate(clean=True)
+
     def launch(self):
-        self.terminate()
         self.__current_status = 40  # Launching
         # TODO: what else ???
 
@@ -74,8 +80,8 @@ class BeeLocalhostLauncher(BeeTask):
                         if value is not None:
                             cmd.append((str(value)))
 
-                self._handle_message("[" + self._task_id + "] Executing: " + str(cmd),
-                                     self._output_color)
+                self.blog.message("Executing: " + str(cmd), self._task_id,
+                                  self.blog.msg)
                 self._sys_adapter.execute(cmd, system=prog)
 
     def execute_base(self):

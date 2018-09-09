@@ -1,37 +1,35 @@
 # system
-import os
 import Pyro4
+from os import path, getuid
 from threading import Thread, Event
-from termcolor import cprint
 from pwd import getpwuid
 from json import load
 # project
 
 
 class BeeTask(Thread):
-    def __init__(self, task_id, beefile):
+    def __init__(self, task_id, beefile, beelog):
         Thread.__init__(self)
+
+        # Logging conf. object -> BeeLogging(log, log_dest, quite)
+        self.blog = beelog
 
         # Task configuration
         self.platform = None
         self._beefile = beefile
+        self._beefile_req = self._beefile.get('requirements')
         self._task_id = task_id
         self._task_label = self._beefile.get('label', 'BEE: {}'.
                                              format(self._task_id))
 
         # System configuration
-        self._user_name = getpwuid(os.getuid())[0]
+        self._user_name = getpwuid(getuid())[0]
 
         # Pyro4
         self._port = self.__pyro_port()
         ns = Pyro4.locateNS(port=self._port, hmac_key=self._user_name)
         uri = ns.lookup("bee_launcher.daemon")
         self._bldaemon = Pyro4.Proxy(uri)
-
-        # Output colors
-        self._output_color = "cyan"
-        self._error_color = "red"
-        self._warning_color = "yellow"
 
         # Events for workflow
         self.__begin_event = None
@@ -96,50 +94,9 @@ class BeeTask(Thread):
         pass
 
     # Task management support functions (private)
-    def _handle_message(self, msg, color=None):
-        """
-        :param msg: To be printed to console
-        :param color: If message is be colored via termcolor
-                        Default = none (normal print)
-        """
-
-        if color is None:
-            print("[{}] {}".format(self._task_id, msg))
-        else:
-            cprint("[{}] {}".format(self._task_id, msg), color)
-
-    def _fetch_beefile_value(self, key, dictionary, default=None, quit_err=False,
-                              silent=False):
-        """
-        Fetch a specific key/value pair from the .beefile and
-        raise error is no default supplied and nothing found
-        :param key: Key for value in dictionary
-        :param dictionary: dictionary to be searched
-                            e.g. self.__beefile['task_conf']
-        :param default: Returned if no value found, if None (def)
-                        then error message surfaced
-        :param quit_err: Exit with non-zero (default=False)
-        :param silent: Hide warning message (default=False)
-        :return: Value for key. Data type dependent on beefile,
-                    and no verification beyond existence
-        """
-        try:
-            return dictionary[key]
-        except KeyError:
-            if default is not None and not quit_err:
-                if not silent:
-                    cprint("[" + self._task_id + "] User defined value for ["
-                           + str(key) + "] was not found, default value: "
-                           + str(default) + " used.", self._warning_color)
-                return default
-            else:
-                cprint("[" + self._task_id + "] Key: " + str(key) + " was not found in: " +
-                       str(dictionary), self._error_color)
-                exit(1)
-
     def __pyro_port(self):
         # TODO: document
-        conf_file = str(os.path.expanduser('~')) + "/.bee/port_conf.json"
+        conf_file = str(path.expanduser('~')) + "/.bee/port_conf.json"
         with open(conf_file, 'r') as fc:
             data = load(fc)
             port = data["pyro4-ns-port"]
