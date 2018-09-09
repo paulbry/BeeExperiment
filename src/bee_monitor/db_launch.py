@@ -64,17 +64,22 @@ class LaunchDB(object):
         try:
             cursor.execute(cmd)
             return True
+        except sqlite3.Error as e:
+            self.blog.message("Error during: {}\n".format(cmd) + repr(e),
+                              self._db_full, self.blog.err)
+            return False
         except sqlite3.OperationalError as e:
-            self.blog.message(str(e), color=self.blog.err)
+            self.blog.message("Error during: {}\n".format(cmd) + repr(e),
+                              self._db_full, self.blog.err)
             return False
 
     def _clean_dict(self, d, indent=1):
         for key, value in d.items():
             if isinstance(value, dict):
-                print('\t' * indent + str(key) + ":")
+                self.blog.message('\t' * indent + str(key) + ":")
                 self._clean_dict(value, indent + 1)
             else:
-                print('\t' * indent + str(key) + ": " + str(value))
+                self.blog.message('\t' * indent + str(key) + ": " + str(value))
 
     def __print_all(self, line):
         """
@@ -95,14 +100,15 @@ class LaunchDB(object):
             self.blog.message("Beeflow")
             self._clean_dict(ast.literal_eval(line[10]))
         self.blog.message("Error: {}".format(line[11]),
-                          color=self.blog.dbase)
+                          color=self.blog.err)
 
     def __connect_db(self):
         self.__db_conn = sqlite3.connect(self._db_full)
         return self.__db_conn.cursor()
 
-    def __close_db(self):
-        self.__db_conn.commit()
+    def __close_db(self, commit=True):
+        if commit:
+            self.__db_conn.commit()
         self.__db_conn.close()
 
     ###########################################################################
@@ -128,40 +134,44 @@ class LaunchDB(object):
         self.__close_db()
 
     def __launcher_table(self, cursor):
-        try:
-            cursor.execute("CREATE TABLE IF NOT EXISTS launcher "
-                           "(tableID INTEGER PRIMARY KEY, "
-                           "jobID TEXT NOT NULL, "
-                           "class TEXT NOT NULL, "
-                           "manageSys TEXT, "
-                           "status TEXT, "
-                           "beefileName TEXT, "
-                           "beefileLocation TEXT,"
-                           "beefileFull TEXT, "
-                           "beeflowName TEXT, "
-                           "beeflowLocation TEXT,"
-                           "beeflowFull TEXT, "
-                           "errDetails TEXT, "
-                           "allocationScript TEXT,"
-                           "time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL)")
+        cmd = "CREATE TABLE IF NOT EXISTS launcher " \
+              "(tableID INTEGER PRIMARY KEY, " \
+              "jobID TEXT NOT NULL, " \
+              "class TEXT NOT NULL, " \
+              "manageSys TEXT, " \
+              "status TEXT, " \
+              "beefileName TEXT, " \
+              "beefileLocation TEXT, " \
+              "beefileFull TEXT, " \
+              "beeflowName TEXT, " \
+              "beeflowLocation TEXT, " \
+              "beeflowFull TEXT, " \
+              "errDetails TEXT, " \
+              "allocationScript TEXT," \
+              "time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL)"
+        if self.execute_query(cursor, cmd):
             self.__db_conn.commit()
-        except sqlite3.Error as e:
-            self.blog.message("Error while creating launcher table",
-                              self._db_full, self.blog.err)
-            print(e)
 
     def __insert_launch_event(self, cursor, job_id, b_class, b_rjms=None,
                               status=None, error=None, beefile_name=None,
                               beefile_full=None, beefile_loc=None,
                               beeflow_name=None, beeflow_loc=None,
                               beeflow_full=None, allocation_script=None):
-        cursor.execute("INSERT INTO launcher "
-                       "(jobID, class, manageSys, status, beefileName, "
-                       "beefileLocation, beefileFull, beeflowName,"
-                       "beeflowLocation, beeflowFull, errDetails) "
-                       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                       (job_id, b_class, b_rjms, status, beefile_name,
-                        beefile_loc, str(beefile_full), beeflow_name,
-                        beeflow_loc, str(beeflow_full),
-                        str(allocation_script), str(error)))
-        self.__db_conn.commit()
+        try:
+            cursor.execute("INSERT INTO launcher "
+                           "(jobID, class, manageSys, status, beefileName, "
+                           "beefileLocation, beefileFull, beeflowName,"
+                           "beeflowLocation, beeflowFull, errDetails, "
+                           "allocationScript) "
+                           "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                           (job_id, b_class, b_rjms, status, beefile_name,
+                            beefile_loc, str(beefile_full), beeflow_name,
+                            beeflow_loc, str(beeflow_full),
+                            str(allocation_script), str(error)))
+            self.__db_conn.commit()
+        except sqlite3.Error as e:
+            self.blog.message("Error during: insert_launch_event\n" + repr(e),
+                              self._db_full, self.blog.err)
+        except sqlite3.OperationalError as e:
+            self.blog.message("Error during: insert_launch_event\n" + repr(e),
+                              self._db_full, self.blog.err)

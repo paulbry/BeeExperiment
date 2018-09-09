@@ -22,7 +22,8 @@ class BeeLocalhostLauncher(BeeTask):
             self._manageSys = 'localhost'
 
         self._sys_adapter = Adapter(system=self._manageSys, config=self._beefile,
-                                    file_loc='', task_name=self._task_id)
+                                    file_loc='', task_name=self._task_id,
+                                    beelog=self.blog)
 
         self.current_status = 20  # initialized
 

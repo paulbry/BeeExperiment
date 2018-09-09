@@ -4,6 +4,7 @@ from os import getcwd, path
 from termcolor import cprint
 # project
 from .bee_launch import BeeArguments
+from bee_logging.bee_log import BeeLogging
 
 
 # Parser supporting functions
@@ -48,11 +49,11 @@ def verify_single_beeflow(potential_file):
 ###############################################################################
 def launch_default(args):
     bee_args = None
+    bl = BeeLogging(args.logflag, args.log_dest, args.quite)
     try:
-        bee_args = BeeArguments(args.logflag, args.log_des, args.quite)
+        bee_args = BeeArguments(bl)
     except Exception as e:
-        print(e)
-        cprint("Verify Bee Orchestrator is running!", "red")
+        bl.message("Error during launch", color=bl.err)
         exit(1)
 
     # execute task if argument is present
@@ -67,7 +68,8 @@ def launch_default(args):
 def flow_default(args):
     # TODO: update upon implementation
     # BeeFlow(args.logflag, args.log_dest).main(args.launch_flow[0])
-    cprint("Not yet implemented!", 'red')
+    bl = BeeLogging(args.logflag, args.log_dest, args.quite)
+    bl.message("Not yet implemented!", bl.err)
 
 
 parser = argparse.ArgumentParser(description="BEE Launcher\n"

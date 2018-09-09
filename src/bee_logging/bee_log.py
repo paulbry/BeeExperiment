@@ -32,7 +32,11 @@ class BeeLogging(object):
 
     def message(self, msg, task_name=None, color=None):
         # TODO: document
-        if not self._quite:
+        msg_q = self._quite
+        if color is not None and color == self.__error_color:
+            msg_q = False
+
+        if not msg_q:
             if color is not None:
                 if task_name is not None:
                     cprint("[{}] {}".format(task_name, msg), color)

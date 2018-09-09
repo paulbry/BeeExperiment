@@ -5,13 +5,12 @@ from bee_internal.beefile_manager import BeefileLoader
 from bee_internal.shared_tools import GeneralMethods
 from bee_monitor.db_launch import LaunchDB
 from .launcher_translator import Adapter
-from bee_logging.bee_log import BeeLogging
 
 
 class BeeLauncher(object):
-    def __init__(self, log=False, log_dest="None", quite=False):
+    def __init__(self, beelog):
         # Logging configuration object
-        self.blog = BeeLogging(log, log_dest, quite)
+        self.blog = beelog
 
         self.gen = GeneralMethods(self.blog)
         self.__homedir = path.expanduser('~')
@@ -56,8 +55,8 @@ class BeeLauncher(object):
 
 # Manage main argument responses
 class BeeArguments(BeeLauncher):
-    def __init__(self, log, log_dest, quite):
-        BeeLauncher.__init__(self, log, log_dest, quite)
+    def __init__(self, beelog):
+        BeeLauncher.__init__(self, beelog)
 
     def opt_launch(self, args):
         """
