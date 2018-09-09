@@ -1,11 +1,10 @@
 import setuptools
 
 setuptools.setup(
-    name="bee-exec-targets",
+    name="bee-combs",
     version="0.1.0",
     license="https://github.com/lanl/BEE/blob/master/LICENSE",
     author="Paul",
-    author_email="pbryant1@kent.edu",
     packages=[
         "bee_charliecloud"
     ],

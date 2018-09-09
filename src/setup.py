@@ -5,7 +5,6 @@ setuptools.setup(
     version="0.1.0",
     license="https://github.com/lanl/BEE/blob/master/LICENSE",
     author="Paul",
-    author_email="pbryant1@kent.edu",
     packages=[
         "bee_launcher",
         "bee_monitor",
