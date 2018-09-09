@@ -10,7 +10,8 @@ class Target(metaclass=abc.ABCMeta):
     """
     Define the domain-specific interface that Client uses
     """
-    def __init__(self, system, config, file_loc, task_name, beelog):
+    def __init__(self, system, config, file_loc, task_name, beelog,
+                 yml_in_file):
         self.__system = str(system).lower()
 
         # Logging conf. object -> BeeLogging(log, log_dest, quite)
@@ -21,22 +22,28 @@ class Target(metaclass=abc.ABCMeta):
         self._file_loc = file_loc
         self._task_name = task_name
 
+        # Input file
+        self._yml_in_file = yml_in_file
+
         self._adaptee = None
         self.update_adaptee()
 
     def update_adaptee(self):
         if self.__system == "slurm":
             self._adaptee = SlurmAdaptee(self._config, self._file_loc,
-                                         self._task_name, self.blog)
+                                         self._task_name, self.blog,
+                                         self._yml_in_file)
 
         elif self.__system == "localhost":
             self._adaptee = LocalhostAdaptee(self._config, self._file_loc,
-                                             self._task_name, self.blog)
+                                             self._task_name, self.blog,
+                                             self._yml_in_file)
         else:
             self.blog.message("Unable to support target system: " + self.__system
                               + " attempting ssh.", color=self.blog.warn)
             self._adaptee = SSHAdaptee(self._config, self._file_loc,
-                                       self._task_name, self.blog)
+                                       self._task_name, self.blog,
+                                       self._yml_in_file)
 
     @abc.abstractmethod
     def allocate(self, test_only=False):

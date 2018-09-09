@@ -46,6 +46,10 @@ parser.add_argument("-t", "--task",
                     dest='task', nargs=1,
                     default=None,
                     help="Bee task (.beefile) you will to execute via orchestrator")
+parser.add_argument("-i", "--input",
+                    dest='input_file', nargs=1,
+                    default=None,
+                    help="<INPUT_FILE>.yml")
 
 ###############################################################################
 # Un-organized arguments that can be

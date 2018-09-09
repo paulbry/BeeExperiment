@@ -14,6 +14,17 @@ class BeeLogging(object):
         self.__warning_color = 'yellow'
         self.__database_color = 'green'
 
+    def orc_flags(self):
+        # TODO: document
+        f = ""
+        if self._log:
+            f += "--logflag "
+        if self._log_dest != "/var/tmp/bee.log":
+            f += "--logfile={} ".format(self._log_dest)
+        if self._quite:
+            f += " --quite "
+        return f
+
     @property
     def err(self):
         return self.__error_color

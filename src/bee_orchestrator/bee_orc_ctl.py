@@ -3,11 +3,10 @@ import os
 import socket
 import Pyro4
 import Pyro4.naming
-import time
 from json import load, dumps
 from pwd import getpwuid
 from subprocess import Popen
-from time import sleep
+from time import sleep, strftime
 # project
 from .bee_localhost import BeeLocalhostLauncher as beeLH
 
@@ -27,7 +26,7 @@ class BeeLauncherDaemon(object):
         self.blog.message("Bee orchestration controller: received task "
                           "creating request")
         exec_target = beefile.get('class', 'bee-localhost')
-        beetask_name = beefile.get('id', file_name + time.strftime("_%Y%m%d_%H%M%S"))
+        beetask_name = beefile.get('id', file_name + strftime("_%Y%m%d_%H%M%S"))
         # TODO: correct, accouting for optional/unavailable modules?
         if str(exec_target).lower() == 'bee-charliecloud':
             pass

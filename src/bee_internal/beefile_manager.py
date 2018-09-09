@@ -38,7 +38,7 @@ class YMLLoader(object):
     def __init__(self, file_name, beelog):
         try:
             stream = open(file_name, "r")
-            self.beefile = load(stream)
+            self.ymlfile = load(stream)
         except YAMLError as err:
             beelog.message(err, file_name, beelog.err)
             exit(1)

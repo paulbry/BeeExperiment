@@ -4,10 +4,11 @@ from datetime import datetime
 from time import time
 # project
 from bee_internal.shared_tools import TranslatorMethods
+from bee_internal.in_out_manage import InputManagement
 
 
 class LocalhostAdaptee:
-    def __init__(self, config, file_loc, task_name, beelog):
+    def __init__(self, config, file_loc, task_name, beelog, yml_in_file):
         self._config = config
         if self._config is not None:
             self._config_req = self._config.get('requirements')
@@ -17,6 +18,12 @@ class LocalhostAdaptee:
 
         # Logging conf. object -> BeeLogging(log, log_dest, quite)
         self.blog = beelog
+
+        self._user_values = yml_in_file
+        self._beefile_input = self._config.get('inputs')
+        if self._user_values is not None and self._beefile_input is not None:
+            self.in_mng = InputManagement(self._beefile_input, self._user_values,
+                                          self.blog)
 
         # Shared tools
         self._stm = TranslatorMethods(config=self._config,
@@ -43,7 +50,7 @@ class LocalhostAdaptee:
                 self._stm.deploy_charliecloud(temp_file=tmp_f)
 
         job_id = datetime.fromtimestamp(time()).strftime('%m%d-%H%M%S')
-        self.__deploy_bee_orchestrator(temp_file=tmp_f, job_id=job_id)
+        self.__deploy_bee_orchestrator(temp_file=tmp_f)
 
         self.blog.message("LOCALHOST SCRIPT CONTENTS", self._task_name,
                           self.blog.msg)
@@ -87,17 +94,18 @@ class LocalhostAdaptee:
         # TODO: identify resources that should/could be affected
         pass
 
-    def __deploy_bee_orchestrator(self, temp_file, job_id):
+    def __deploy_bee_orchestrator(self, temp_file):
         # TODO: re-write to account for log changes!
         """
         Scripting to launch bee_orchestrator, add to file
         :param temp_file: Target sbatch file (named temp file)
         """
         temp_file.write(bytes("\n# Launch BEE\n", self._encode))
-        bee_deploy = [
-            "bee-orchestrator -o -t " + self._file_loc +
-            "/" + self._task_name
-        ]
-        for data in bee_deploy:
-            temp_file.write(bytes(data + "\n", self._encode))
-
+        if self.in_mng is not None:
+            in_flag = "--input {}".format(self._user_values)
+        else:
+            in_flag = ""
+        bee_deploy = "bee-orchestrator --orc " + in_flag + self.blog.orc_flags() \
+                     + " --task " + self._task_name
+        temp_file.write(bytes("cd {} \n".format(self._file_loc), self._encode))
+        temp_file.write(bytes(bee_deploy + "\n", self._encode))

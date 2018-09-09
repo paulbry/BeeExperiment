@@ -15,11 +15,15 @@ def verify_single_beefile(potential_file):
     :param potential_file: argument provided by user (name)
     :return: argument IF .beefile found
     """
-    tar = getcwd() + '/' + potential_file + '.beefile'
+    ext = potential_file[-4:]
+    if ext == "yaml" or ext == ".yml":
+        tar = getcwd() + '/' + potential_file
+    else:
+        tar = getcwd() + '/' + potential_file + '.beefile'
     if path.isfile(tar):
         return potential_file
     else:
-        cprint(potential_file + ".beefile cannot be found", "red")
+        cprint(potential_file + "{} cannot be found".format(tar), "red")
         exit(1)
 
 
@@ -63,6 +67,9 @@ def launch_default(args):
 
     if args.terminate_task:
         bee_args.opt_terminate(args)
+
+    if args.examine_task:
+        bee_args.opt_examine(args)
 
 
 def flow_default(args):
@@ -109,10 +116,11 @@ parser.add_argument("--test-only",
 ###############################################################################
 launch_group = parser.add_mutually_exclusive_group()
 launch_group.add_argument("-l", "--launch",
-                          dest='launch_task', nargs=1,
+                          dest='launch_task', nargs=2,
                           type=verify_single_beefile,
                           help="Runs task specified by <LAUNCH_TASK>.beefile, "
-                               "that needs to be in the current directory")
+                               "that needs to be in the current directory\n"
+                               "If <INPUT_FILE>.yaml required also include")
 launch_group.add_argument("-t", "--terminate",
                           dest='terminate_task', nargs=1,
                           help="Terminate tasks <TERMINATE_TASK> by "
@@ -123,6 +131,10 @@ launch_group.add_argument("-f", "--beeflow",
                           type=verify_single_beeflow,
                           help="Runs task specified by <LAUNCH_FLOW>.beeflow, "
                                "that needs to be in the current directory")
+launch_group.add_argument("-e", "--examine",
+                          dest='examine_task', nargs=1,
+                          help="Examine supplied Beefile for structure & key "
+                               "validity.")
 launch_group.set_defaults(func=launch_default)
 
 

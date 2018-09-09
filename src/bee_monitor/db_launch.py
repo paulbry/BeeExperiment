@@ -12,9 +12,9 @@ class LaunchDB(object):
     def query_all(self):
         """
         Query launcher table for all entries and print in human-readable form
-        SELECT * FROM launcher
+        SELECT * FROM launcher ORDER BY time ASC
         """
-        cmd = "SELECT * FROM launcher"
+        cmd = "SELECT * FROM launcher ORDER BY time ASC"
         cursor = self.__connect_db()
         if self.execute_query(cursor, cmd):
             for line in cursor.fetchall():
@@ -92,7 +92,7 @@ class LaunchDB(object):
         self.blog.message("Class: {}".format(line[2]))
         self.blog.message("Management System: {}".format(line[3]))
         self.blog.message("Status: {}".format(line[4]))
-        self.blog.message("TimeStamp: {}".format(line[13]))
+        self.blog.message("TimeStamp: {}".format(line[14]))
         self.blog.message("Beefile", color=self.blog.dbase)
         self._clean_dict(ast.literal_eval(line[7]))
         if line[8] is not None:
@@ -101,6 +101,9 @@ class LaunchDB(object):
             self._clean_dict(ast.literal_eval(line[10]))
         self.blog.message("Error: {}".format(line[11]),
                           color=self.blog.err)
+        if line[13] is not None:
+            self.blog.message("Input Values")
+            self._clean_dict(ast.literal_eval(line[13]))
 
     def __connect_db(self):
         self.__db_conn = sqlite3.connect(self._db_full)
@@ -119,7 +122,7 @@ class LaunchDB(object):
                    b_rjms=None, status=None, error=None,
                    beefile_name=None, beefile_full=None, beefile_loc=None,
                    beeflow_name=None, beeflow_loc=None, beeflow_full=None,
-                   allocation_script=None):
+                   allocation_script=None, input_values=None):
         c = self.__connect_db()
         self.__launcher_table(c)
         self.__insert_launch_event(cursor=c, job_id=job_id, b_class=b_class,
@@ -130,7 +133,8 @@ class LaunchDB(object):
                                    beeflow_name=beeflow_name,
                                    beeflow_loc=beeflow_loc,
                                    beeflow_full=beeflow_full,
-                                   allocation_script=allocation_script)
+                                   allocation_script=allocation_script,
+                                   input_values=input_values)
         self.__close_db()
 
     def __launcher_table(self, cursor):
@@ -147,7 +151,8 @@ class LaunchDB(object):
               "beeflowLocation TEXT, " \
               "beeflowFull TEXT, " \
               "errDetails TEXT, " \
-              "allocationScript TEXT," \
+              "allocationScript TEXT, " \
+              "inputValues TEXT," \
               "time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL)"
         if self.execute_query(cursor, cmd):
             self.__db_conn.commit()
@@ -156,18 +161,37 @@ class LaunchDB(object):
                               status=None, error=None, beefile_name=None,
                               beefile_full=None, beefile_loc=None,
                               beeflow_name=None, beeflow_loc=None,
-                              beeflow_full=None, allocation_script=None):
+                              beeflow_full=None, allocation_script=None,
+                              input_values=None):
         try:
-            cursor.execute("INSERT INTO launcher "
-                           "(jobID, class, manageSys, status, beefileName, "
-                           "beefileLocation, beefileFull, beeflowName,"
-                           "beeflowLocation, beeflowFull, errDetails, "
-                           "allocationScript) "
-                           "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                           (job_id, b_class, b_rjms, status, beefile_name,
-                            beefile_loc, str(beefile_full), beeflow_name,
-                            beeflow_loc, str(beeflow_full),
-                            str(allocation_script), str(error)))
+            cursor.execute("INSERT INTO launcher ("
+                           "jobID, "
+                           "class, "
+                           "manageSys, "
+                           "status, "
+                           "beefileName, "
+                           "beefileLocation, "
+                           "beefileFull, "
+                           "beeflowName,"
+                           "beeflowLocation, "
+                           "beeflowFull, "
+                           "errDetails, "
+                           "allocationScript, "
+                           "inputValues) "
+                           "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                           (job_id,
+                            b_class,
+                            b_rjms,
+                            status,
+                            beefile_name,
+                            beefile_loc,
+                            beefile_full,
+                            beeflow_name,
+                            beeflow_loc,
+                            beeflow_full,
+                            error,
+                            allocation_script,
+                            input_values))
             self.__db_conn.commit()
         except sqlite3.Error as e:
             self.blog.message("Error during: insert_launch_event\n" + repr(e),
