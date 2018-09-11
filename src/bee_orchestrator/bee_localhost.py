@@ -5,7 +5,7 @@ from .orc_translator import Adapter
 
 # Manipulates all nodes in a task
 class BeeLocalhostLauncher(BeeTask):
-    def __init__(self, task_id, beefile, beelog):
+    def __init__(self, task_id, beefile, beelog, input_mng):
         BeeTask.__init__(self, task_id=task_id, beefile=beefile, beelog=beelog)
 
         self.__current_status = 10  # initializing
@@ -15,6 +15,8 @@ class BeeLocalhostLauncher(BeeTask):
         # Task configuration
         self.platform = 'BEE-Localhost'
 
+        self._input_mng = input_mng
+
         try:
             self._manageSys = self._beefile['requirements']['ResourceRequirement']\
                 .get('manageSys', 'localhost')
@@ -23,7 +25,7 @@ class BeeLocalhostLauncher(BeeTask):
 
         self._sys_adapter = Adapter(system=self._manageSys, config=self._beefile,
                                     file_loc='', task_name=self._task_id,
-                                    beelog=self.blog)
+                                    beelog=self.blog, input_mng=self._input_mng)
 
         self.current_status = 20  # initialized
 
@@ -63,23 +65,24 @@ class BeeLocalhostLauncher(BeeTask):
                 if prog is not None:
                     p_sys = prog.get('system')
                     if p_sys is not None:
+                        p_sys = self._input_mng.check_str(p_sys)
                         cmd.append(str(p_sys))
 
                     p_flags = prog.get('flags')
                     if p_flags is not None:
                         for key, value in p_flags.items():
-                            cmd.append(str(key))
+                            cmd.append(str(self._input_mng.check_str(key)))
                             if value is not None:
-                                cmd.append((str(value)))
+                                cmd.append((str(self._input_mng.check_str(value))))
 
-                cmd.append(str(wb))
+                cmd.append(str(self._input_mng.check_str(wb)))
 
                 wb_flags = workers[wb].get('flags')
                 if wb_flags is not None:
                     for key, value in wb_flags.items():
-                        cmd.append(str(key))
+                        cmd.append(str(self._input_mng.check_str(key)))
                         if value is not None:
-                            cmd.append((str(value)))
+                            cmd.append((str(self._input_mng.check_str(value))))
 
                 self.blog.message("Executing: " + str(cmd), self._task_id,
                                   self.blog.msg)
@@ -87,7 +90,7 @@ class BeeLocalhostLauncher(BeeTask):
 
     def execute_base(self):
         # TODO: document
-        cmd = [self._beefile.get('baseCommand')]
+        cmd = self._input_mng.prepare_base_cmd(self._beefile.get('baseCommand'))
         if cmd[0] is not None:
             # TODO: implement support for input/output
             self._sys_adapter.execute(cmd)
@@ -102,5 +105,5 @@ class BeeLocalhostLauncher(BeeTask):
             self.__current_status = 70  # Closed (clean)
         else:
             self.__current_status = 80  # Terminate
-        # TODO: review ways to manage/surpress error messages
+        # TODO: review ways to manage/suppress error messages
         self._bldaemon.shutdown_daemon()

@@ -8,7 +8,7 @@ from bee_logging.bee_log import BeeLogging
 
 
 # Parser supporting functions
-def verify_single_beefile(potential_file):
+def verify_launch_file(potential_file):
     """
     Checks if file specified exists, if not errors and
     halts application
@@ -18,7 +18,7 @@ def verify_single_beefile(potential_file):
     ext = potential_file[-4:]
     if ext == "yaml" or ext == ".yml":
         tar = getcwd() + '/' + potential_file
-    else:
+    else:  # assume beefile
         tar = getcwd() + '/' + potential_file + '.beefile'
     if path.isfile(tar):
         return potential_file
@@ -38,7 +38,7 @@ def verify_single_beeflow(potential_file):
     if path.isfile(tar):
         return potential_file
     else:
-        print(potential_file + ".beeflow cannot be found")
+        cprint(potential_file + "{} cannot be found".format(tar), "red")
         exit(1)
 
 
@@ -56,8 +56,8 @@ def launch_default(args):
     bl = BeeLogging(args.logflag, args.log_dest, args.quite)
     try:
         bee_args = BeeArguments(bl)
-    except Exception as e:
-        bl.message("Error during launch", color=bl.err)
+    except Exception as err:
+        bl.message("Error during launch\n{}".format(err), color=bl.err)
         exit(1)
 
     # execute task if argument is present
@@ -83,11 +83,7 @@ parser = argparse.ArgumentParser(description="BEE Launcher\n"
                                              "https://github.com/paulbry/BeeExperiment")
 
 ###############################################################################
-# Un-organized arguments that can be
-#
-# There is no logging support from the bee-launcher, it is only designed
-# to be implemented and utilised by the "orchestrator"
-# TODO: find better way to support & test
+# Un-organized arguments that can be used to augment the launch process
 ###############################################################################
 parser.add_argument("--logflag",
                     action="store_true", dest="logflag",
@@ -116,8 +112,8 @@ parser.add_argument("--test-only",
 ###############################################################################
 launch_group = parser.add_mutually_exclusive_group()
 launch_group.add_argument("-l", "--launch",
-                          dest='launch_task', nargs=2,
-                          type=verify_single_beefile,
+                          dest='launch_task', nargs='*',
+                          type=verify_launch_file,
                           help="Runs task specified by <LAUNCH_TASK>.beefile, "
                                "that needs to be in the current directory\n"
                                "If <INPUT_FILE>.yaml required also include")

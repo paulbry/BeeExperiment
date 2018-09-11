@@ -11,7 +11,7 @@ class Target(metaclass=abc.ABCMeta):
     Define the domain-specific interface that Client uses
     """
     def __init__(self, system, config, file_loc, task_name, beelog,
-                 yml_in_file):
+                 input_mng):
         self.__system = str(system).lower()
 
         # Logging conf. object -> BeeLogging(log, log_dest, quite)
@@ -22,8 +22,8 @@ class Target(metaclass=abc.ABCMeta):
         self._file_loc = file_loc
         self._task_name = task_name
 
-        # Input file
-        self._yml_in_file = yml_in_file
+        # Input file with user provided values
+        self._input_mng = input_mng
 
         self._adaptee = None
         self.update_adaptee()
@@ -32,18 +32,22 @@ class Target(metaclass=abc.ABCMeta):
         if self.__system == "slurm":
             self._adaptee = SlurmAdaptee(self._config, self._file_loc,
                                          self._task_name, self.blog,
-                                         self._yml_in_file)
+                                         self._input_mng)
 
+        elif self.__system == "ssh":
+            self._adaptee = SSHAdaptee(self._config, self._file_loc,
+                                       self._task_name, self.blog,
+                                       self._input_mng)
         elif self.__system == "localhost":
             self._adaptee = LocalhostAdaptee(self._config, self._file_loc,
                                              self._task_name, self.blog,
-                                             self._yml_in_file)
+                                             self._input_mng)
         else:
             self.blog.message("Unable to support target system: " + self.__system
-                              + " attempting ssh.", color=self.blog.warn)
-            self._adaptee = SSHAdaptee(self._config, self._file_loc,
-                                       self._task_name, self.blog,
-                                       self._yml_in_file)
+                              + " attempting localhost.", color=self.blog.warn)
+            self._adaptee = LocalhostAdaptee(self._config, self._file_loc,
+                                             self._task_name, self.blog,
+                                             self._input_mng)
 
     @abc.abstractmethod
     def allocate(self, test_only=False):

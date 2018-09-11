@@ -7,15 +7,14 @@ from .db_launch import LaunchDB
 from bee_logging.bee_log import BeeLogging
 
 
-# Variable required in script
-# TODO: clean up and implement optional bee_conf
+# Database are currently hardcoded across the application
 mon_homedir = path.expanduser('~')
 mon_db_launch = mon_homedir + "/.bee/launcher.db"
+mon_db_orchestrator = mon_homedir + "/.bee/orchestrator.db"
 
 
 # Parser supporting functions
 def verify_file(potential_file):
-    # TODO: document
     if path.isfile(potential_file):
         return True
     else:
@@ -35,8 +34,7 @@ def verify_file(potential_file):
 def launch_default(args):
     ldb = None
     try:
-        ldb = LaunchDB(mon_db_launch, BeeLogging(log=False, log_dest=None,
-                                                 quite=False))
+        ldb = LaunchDB(BeeLogging(log=False, log_dest=None, quite=False))
     except Exception as e:
         cprint("Unable to load LaunchDB supporting class", "red")
         print(str(e))
@@ -49,11 +47,12 @@ def launch_default(args):
     elif args.delete_all:
         ldb.delete_all()
 
-    if args.launch_jobid:
-        print("launch jobid")
-
-    if args.launch_status:
-        print("launch status!")
+    if args.launch_custom:
+        ldb.query_all_specific(args.launch_custom[0], args.launch_custom[1])
+    elif args.launch_jobid:
+        ldb.query_all_specific("jobid", str(args.launch_jobid[0]))
+    elif args.launch_status:
+        ldb.query_all_specific("status", str(args.launch_status[0]))
 
 
 def orc_default(args):
@@ -66,7 +65,10 @@ parser = argparse.ArgumentParser(description="BEE Monitor\n"
                                              "https://github.com/paulbry/BeeExperiment")
 
 ###############################################################################
-# TODO: document
+# Subparser based upon desired database / context
+#
+#   launcher -> bee-launcher
+#   orchestrator -> bee-orchestrator
 ###############################################################################
 subparser = parser.add_subparsers(title="Monitoring Targets")
 sub_launch_group = subparser.add_parser("launcher",
@@ -87,11 +89,13 @@ launch_group.add_argument("-j", "--jobid",
 launch_group.add_argument("-s", "--status",
                           dest='launch_status', nargs=1,
                           help="Query launcher table using job status.")
+launch_group.add_argument("-c", "--custom",
+                          dest='launch_custom', nargs=2,
+                          help="Query launcher table using user-defined key/value.\n"
+                               "... -c <index> <value>")
 launch_group.add_argument("-da", "--delete-all",
                           dest='delete_all', action='store_true',
                           help="Completely clear launcher table.")
-# TODO: document status (in BEE terms)
-
 sub_launch_group.set_defaults(func=launch_default)
 
 ###############################################################################

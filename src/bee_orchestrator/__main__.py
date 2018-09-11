@@ -4,7 +4,8 @@ from termcolor import cprint
 from os import path, remove, chdir
 # project
 from .bee_orc_ctl import ExecOrc
-from bee_internal.beefile_manager import BeefileLoader
+from bee_internal.beefile_manager import BeefileLoader, YMLLoader
+from bee_internal.in_out_manage import InputManagement
 from bee_logging.bee_log import BeeLogging
 
 
@@ -81,13 +82,16 @@ def manage_args(args):
 
     if args.task is not None:
         if args.orc:
-            # TODO: support not full path?
             # bee-orchestrator -o -t $(pwd)/hello_lh
-            p = args.task[0]
-            t = p.rfind("/")
-            chdir(p[:t])
             f = BeefileLoader(args.task[0], beelog)
-            eo.main(f.beefile, p[t+1:len(p)])
+
+            if args.input_file:
+                y = YMLLoader(args.input_file[0], beelog)
+                input_mng = InputManagement(f.beefile, y.ymlfile, beelog, args.input_file[0])
+            else:
+                input_mng = InputManagement(f.beefile, None, beelog, None)
+
+            eo.main(f.beefile, args.task[0], input_mng)
         elif args.orc_arm:
             beelog.message("ARM support not ready at the moment!",
                            color=beelog.err)

@@ -22,7 +22,7 @@ class BeeLauncherDaemon(object):
         self.beetask = None
         self.orc_daemon = daemon
 
-    def create_task(self, beefile, file_name):
+    def create_task(self, beefile, file_name, input_mng):
         self.blog.message("Bee orchestration controller: received task "
                           "creating request")
         exec_target = beefile.get('class', 'bee-localhost')
@@ -36,16 +36,16 @@ class BeeLauncherDaemon(object):
         #    self.beetask = beeCC(beetask_name, beefile)
         elif str(exec_target).lower() == 'bee-localhost':
             self.blog.message("Launched BEE-Localhost Instance!", task_name=beetask_name)
-            self.beetask = beeLH(beetask_name, beefile, self.blog)
+            self.beetask = beeLH(beetask_name, beefile, self.blog, input_mng)
 
     def launch_task(self):
         self.beetask.start()
     
-    def create_and_launch_task(self, beefile, file_name):
+    def create_and_launch_task(self, beefile, file_name, input_mng):
         self.blog.message("Task received in current working directory: " + os.getcwd(),
                           "{}.beefile".format(file_name), self.blog.msg)
         # TODO: add encode step for file!
-        self.create_task(beefile, file_name)
+        self.create_task(beefile, file_name, input_mng)
         self.launch_task()
 
     def terminate_task(self, beetask_name):
@@ -68,13 +68,14 @@ class ExecOrc(object):
     def __init__(self, beelog):
         self.blog = beelog
 
-    def main(self, beefile=None, file_name=None):
+    def main(self, beefile=None, file_name=None, input_mng=None):
         """
         Prepare environment for daemon and launch (loop)
             https://pypi.org/project/Pyro4/
         :param beefile: Task to be launched once daemon launched
                         Full path to task (beefile) e.g. /var/tmp/test
         :param file_name: Beefile name (no .beefile)
+        :param input_mng: InputManagement object
         """
         open_port = self.get_open_port()
         self.update_system_conf(open_port)
@@ -95,7 +96,7 @@ class ExecOrc(object):
 
         # Launch task before starting daemon
         if beefile is not None:
-            bldaemon.create_and_launch_task(beefile, file_name)
+            bldaemon.create_and_launch_task(beefile, file_name, input_mng)
 
         daemon.requestLoop()
 

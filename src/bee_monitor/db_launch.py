@@ -1,11 +1,13 @@
 # system
 import ast
 import sqlite3
+from os import path
 
 
 class LaunchDB(object):
-    def __init__(self, db_location, beelog):
-        self._db_full = db_location
+    def __init__(self, beelog):
+        # Database Tracking (atm hardcoded location!)
+        self._db_full = path.expanduser('~') + "/.bee/launcher.db"
         self.__db_conn = None
         self.blog = beelog
 
@@ -22,6 +24,9 @@ class LaunchDB(object):
         self.__close_db()
 
     def delete_all(self):
+        """
+        Remove all entries from the launcher table
+        """
         cmd = "DELETE FROM launcher"
         cursor = self.__connect_db()
         if self.execute_query(cursor, cmd):
@@ -34,8 +39,8 @@ class LaunchDB(object):
         Query launcher table for all entries and print in human-readable forme
         SELECT * FROM launcher WHERE <index>=<value>
         """
-        cmd = "SELECT * FROM launcher WHERE {}={}".format(
-            str(index), str(value)
+        cmd = "SELECT * FROM launcher WHERE {}='{}'".format(
+            index, value
         )
         cursor = self.__connect_db()
         if self.execute_query(cursor, cmd):
@@ -46,10 +51,10 @@ class LaunchDB(object):
     def query_value(self, index, value, result="*"):
         """
         Query launcher table for
-        SELECT <result> FROM launcher WHERE <index>=<value>
+        SELECT <result> FROM launcher WHERE <index> = <value>
         """
         cmd = "SELECT {} FROM launcher WHERE {}={}".format(
-            str(result), str(index), str(value)
+            result, index, str(value)
         )
         cursor = self.__connect_db()
         if self.execute_query(cursor, cmd):
@@ -60,7 +65,6 @@ class LaunchDB(object):
         return r
 
     def execute_query(self, cursor, cmd):
-        self.blog.message("Launcher DB - {}".format(cmd), color=self.blog.dbase)
         try:
             cursor.execute(cmd)
             return True
@@ -74,6 +78,9 @@ class LaunchDB(object):
             return False
 
     def _clean_dict(self, d, indent=1):
+        """
+        Print (to console) the Python dicationary passed (d).
+        """
         for key, value in d.items():
             if isinstance(value, dict):
                 self.blog.message('\t' * indent + str(key) + ":")
@@ -102,7 +109,7 @@ class LaunchDB(object):
         self.blog.message("Error: {}".format(line[11]),
                           color=self.blog.err)
         if line[13] is not None:
-            self.blog.message("Input Values")
+            self.blog.message("Input Values", color=self.blog.dbase)
             self._clean_dict(ast.literal_eval(line[13]))
 
     def __connect_db(self):
@@ -116,13 +123,19 @@ class LaunchDB(object):
 
     ###########################################################################
     # launcher table
-    # TODO: document
     ###########################################################################
     def new_launch(self, job_id, b_class,
                    b_rjms=None, status=None, error=None,
                    beefile_name=None, beefile_full=None, beefile_loc=None,
                    beeflow_name=None, beeflow_loc=None, beeflow_full=None,
                    allocation_script=None, input_values=None):
+        """
+        Invoke when a new launch even occurs that needs to be tracked.
+        The job_id (jobID), b_class (class), and b_rjms (manageSys) are
+        required. Remaining parameters are optional.
+        NOTE: creating the launcher table (if required) will be handled
+        automatically.
+        """
         c = self.__connect_db()
         self.__launcher_table(c)
         self.__insert_launch_event(cursor=c, job_id=job_id, b_class=b_class,
@@ -185,13 +198,13 @@ class LaunchDB(object):
                             status,
                             beefile_name,
                             beefile_loc,
-                            beefile_full,
+                            str(beefile_full),
                             beeflow_name,
                             beeflow_loc,
-                            beeflow_full,
+                            str(beeflow_full),
                             error,
-                            allocation_script,
-                            input_values))
+                            str(allocation_script),
+                            str(input_values)))
             self.__db_conn.commit()
         except sqlite3.Error as e:
             self.blog.message("Error during: insert_launch_event\n" + repr(e),
