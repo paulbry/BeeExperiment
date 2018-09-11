@@ -1,0 +1,34 @@
+class: BEE-Localhost
+id: helloWorld
+label: Basic hello world example
+inputs:
+  example_flag:
+    type: boolean
+    inputBinding:
+      position: 1
+      prefix: -f
+    default: true
+  example_string:
+    type: string
+    inputBinding:
+      position: 3
+      prefix: --example-string
+    default: "Hello"
+  example_int:
+    type: int
+    inputBinding:
+      position: 2
+      prefix: -i
+    default: 5
+requirements:
+    EnvVarRequirements:
+      envDef:
+        PATH: $HOME/.local/bin
+      sourceDef:
+        activate: beeenv
+workerBees:
+    helloTime.sh:
+        program:
+            system: sh
+terminateAfter: true
+baseCommand: echo
