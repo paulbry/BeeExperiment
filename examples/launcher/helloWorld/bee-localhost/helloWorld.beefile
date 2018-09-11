@@ -6,7 +6,7 @@ requirements:
       envDef:
         PATH: $HOME/.local/bin
       sourceDef:
-        activate: beeenv
+        activate: bxp
 workerBees:
     helloTime.sh:
         program:
