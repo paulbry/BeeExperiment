@@ -42,6 +42,7 @@ class LocalhostAdaptee:
                 self._stm.env_variables(temp_file=tmp_f)
             if self._config_req.get('CharliecloudRequirement') is not None:
                 self._stm.deploy_charliecloud(temp_file=tmp_f)
+        tmp_f.write(bytes("rm -- \"$0\"\n", self._encode))
 
         job_id = datetime.fromtimestamp(time()).strftime('%m%d-%H%M%S')
         self.__deploy_bee_orchestrator(temp_file=tmp_f)
