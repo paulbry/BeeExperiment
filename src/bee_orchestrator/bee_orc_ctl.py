@@ -9,7 +9,8 @@ from subprocess import Popen
 from time import sleep, strftime
 # project
 from .bee_localhost import BeeLocalhostLauncher as beeLH
-
+from bee_combs.bee_charliecloud.bee_charliecloud_launcher \
+    import BeeCharliecloudLauncher as beeCC
 
 @Pyro4.expose
 class BeeLauncherDaemon(object):
@@ -29,11 +30,8 @@ class BeeLauncherDaemon(object):
         beetask_name = beefile.get('id', file_name + strftime("_%Y%m%d_%H%M%S"))
         # TODO: correct, accouting for optional/unavailable modules?
         if str(exec_target).lower() == 'bee-charliecloud':
-            pass
-        #    from exec_targets.bee_charliecloud.bee_charliecloud_launcher import \
-        #        BeeCharliecloudLauncher as beeCC
-        #    cprint("[" + beetask_name + "] Launched BEE-Charliecloud Instance!")
-        #    self.beetask = beeCC(beetask_name, beefile)
+            self.blog.message("Launched BEE-Charliecloud Instance!", task_name=beetask_name,)
+            self.beetask = beeCC(beetask_name, beefile, self.blog, input_mng)
         elif str(exec_target).lower() == 'bee-localhost':
             self.blog.message("Launched BEE-Localhost Instance!", task_name=beetask_name)
             self.beetask = beeLH(beetask_name, beefile, self.blog, input_mng)
