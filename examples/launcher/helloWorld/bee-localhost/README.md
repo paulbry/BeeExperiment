@@ -6,6 +6,6 @@ Take a moment prior to launching to verify the `EnvVarRequirements:`. In this ex
 * `sourceDef: ..`
         -> `source activate beeenv` 
        
-Launch: `bee-launcher -l helloWorld`
+Launch: `bee-launcher -l helloLH`
 
 Keep in mind that the launcher will first build a script that will be invoked within a `screen`. This scripts will establish the environment as defined under `requirements:` followed by initating the `Bee-Orchestrator`.

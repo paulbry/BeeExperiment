@@ -7,7 +7,8 @@ requirements:
     jobTime: "0:10:00"
     manageSys: slurm
   SoftwareModules:
-    python
+    python:
+      version: 2.7-anaconda-5.0.1
     friendly-testing:
     charliecloud:
   CharliecloudRequirement:

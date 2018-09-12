@@ -76,8 +76,14 @@ class SlurmAdaptee:
     def specific_move_file(self):
         pass
 
-    def specific_execute(self):
-        pass
+    def specific_execute(self, command, system=None):
+        # TODO: add DB related steps?
+        cmd = ['srun'] + command
+        if system is not None:
+            # TODO: think about how to approach
+            return self._stm.run_popen_safe(cmd)
+        else:  # run via SRUN (take responsibility)
+            return self._stm.run_popen_safe(cmd)
 
     # private / supporting functions
     def _run_sbatch(self, file):
