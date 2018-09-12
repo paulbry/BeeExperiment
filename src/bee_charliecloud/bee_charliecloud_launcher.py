@@ -60,8 +60,8 @@ class BeeCharliecloudLauncher(BeeTask):
         self.__current_status = 40  # Launching
         # TODO: what else ???
 
-        self.blog("Charliecloud launching", self._task_id,
-                  self.blog.msg)
+        self.blog.message("Charliecloud launching", self._task_id,
+                          self.blog.msg)
 
         # TODO: re-implement
         """
