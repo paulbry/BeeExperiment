@@ -2,26 +2,30 @@ class: BEE-Charliecloud
 id: helloWorld
 label: Basic hello world example
 requirements:
-    ResourceRequirement:
-        numNodes: 1
-        jobTime: "0:10:00"
-        manageSys: slurm
-        custom:
-            --hello: world
-            --test: this/stuff
-    SoftwarePackages:
-        charliecloud:
-    CharliecloudRequirement:
-        alpine:
-            source: /var/tmp/alpine.tar.gz
-            tarDir: /var/tmp
-            deleteAfter: False
-    EnvVarRequirements:
-        envDef:
-            BEE_ALPINE: /var/tmp/alpine
-        sourceDef:
-            activate: bee_env
+  ResourceRequirement:
+    numNodes: 1
+    jobTime: "0:10:00"
+    manageSys: slurm
+  SoftwareModules:
+    python
+    friendly-testing:
+    charliecloud:
+  CharliecloudRequirement:
+    alpine:
+      source: /var/tmp/alpine.tar.gz
+      tarDir: /var/tmp
+      removeAfter: False
+      defaultFlags:
+        -b: $HOME/pbryant/test
+        --no-home:
+  EnvVarRequirements:
+    envDef:
+      PATH: $HOME/.local/bin
+    sourceDef:
+      activate: bxp
 workerBees:
-    helloTime.sh:
-        program:
-            system: sh
+   helloTime.sh:
+    program:
+      system: alpine
+      flags:
+        -c: /mnt/0

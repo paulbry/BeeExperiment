@@ -1,5 +1,6 @@
 # system
-from yaml import load, YAMLError
+from yaml import load, loader, YAMLError
+from collections import OrderedDict
 
 
 class BeefileLoader(object):

@@ -80,7 +80,7 @@ class BeeArguments(BeeLauncher):
         f = BeefileLoader(filename, self.blog)
 
         if len(args.launch_task) == 2:
-            y = YMLLoader(args.input_file[0], self.blog)
+            y = YMLLoader(args.launch_task[1], self.blog)
             input_mng = InputManagement(f.beefile, y.ymlfile,
                                         self.blog, args.launch_task[1])
         else:

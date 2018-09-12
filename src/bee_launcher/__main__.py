@@ -19,6 +19,8 @@ def verify_launch_file(potential_file):
     if ext == "yaml" or ext == ".yml":
         tar = getcwd() + '/' + potential_file
     else:  # assume beefile
+        if potential_file[-8:] == ".beefile":
+            potential_file = potential_file[:-8]
         tar = getcwd() + '/' + potential_file + '.beefile'
     if path.isfile(tar):
         return potential_file

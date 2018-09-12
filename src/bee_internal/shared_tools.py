@@ -44,12 +44,13 @@ class GlobalMethods(object):
                     and err_exit=False
         """
         self.blog.message("Executing: " + str(command))
+        # TODO: improve for larger program requirements? Stream output?
         try:
-            p = Popen(command, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+            p = Popen(command, stdout=PIPE, stderr=STDOUT)
             out, err = p.communicate()
             self.blog.message("\tstdout: {}".format(repr(out)))
             self.blog.message("\tstderr: {}".format(repr(err)))
-            return out
+            return out.decode('utf8')
         except CalledProcessError as e:
             self.blog.message(msg="Error during - " + str(command) + "\n" +
                                   str(e), color=self.blog.err)

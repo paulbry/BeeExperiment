@@ -6,10 +6,10 @@ requirements:
       envDef:
         PATH: $HOME/.local/bin
       sourceDef:
-        activate: bxp
+        activate: beeenv
 workerBees:
     helloTime.sh:
         program:
             system: sh
 terminateAfter: true
-baseCommand: env
+baseCommand: echo

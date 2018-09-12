@@ -3,10 +3,10 @@ from .bee_cluster import BeeTask
 from .orc_translator import Adapter
 
 
-# Manipulates all nodes in a task
 class BeeLocalhostLauncher(BeeTask):
     def __init__(self, task_id, beefile, beelog, input_mng):
-        BeeTask.__init__(self, task_id=task_id, beefile=beefile, beelog=beelog)
+        BeeTask.__init__(self, task_id=task_id, beefile=beefile, beelog=beelog,
+                         input_mng=input_mng)
 
         self.__current_status = 10  # initializing
         self.begin_event = 0
@@ -15,14 +15,11 @@ class BeeLocalhostLauncher(BeeTask):
         # Task configuration
         self.platform = 'BEE-Localhost'
 
-        self._input_mng = input_mng
-
         try:
             self._manageSys = self._beefile['requirements']['ResourceRequirement']\
                 .get('manageSys', 'localhost')
         except KeyError:
             self._manageSys = 'localhost'
-
         self._sys_adapter = Adapter(system=self._manageSys, config=self._beefile,
                                     file_loc='', task_name=self._task_id,
                                     beelog=self.blog, input_mng=self._input_mng)
@@ -60,7 +57,6 @@ class BeeLocalhostLauncher(BeeTask):
         if workers is not None:
             for wb in workers:
                 cmd = []
-
                 prog = workers[wb].get('program')
                 if prog is not None:
                     p_sys = prog.get('system')
@@ -86,24 +82,24 @@ class BeeLocalhostLauncher(BeeTask):
 
                 self.blog.message("Executing: " + str(cmd), self._task_id,
                                   self.blog.msg)
-                self._sys_adapter.execute(cmd, system=prog)
-
-    def execute_base(self):
-        # TODO: document
-        cmd = self._input_mng.prepare_base_cmd(self._beefile.get('baseCommand'))
-        if cmd[0] is not None:
-            # TODO: implement support for input/output
-            self._sys_adapter.execute(cmd)
+                out = self._sys_adapter.execute(cmd, system=prog)
+                if out is not None and workers[wb].get('output') is not None:
+                    self._input_mng.update_vars(workers[wb].get('output'), out)
 
     def wait_for_others(self):
         self.__current_status = 30  # Waiting
         for event in self.event_list:
             event.wait()
 
+    def execute_base(self):
+        # TODO: support output in accordance with OWL
+        cmd = self._input_mng.prepare_base_cmd(self._beefile.get('baseCommand'))
+        if cmd is not None:
+            out = self._sys_adapter.execute(cmd)
+
     def terminate(self, clean=False):
         if clean:
             self.__current_status = 70  # Closed (clean)
         else:
             self.__current_status = 80  # Terminate
-        # TODO: review ways to manage/suppress error messages
         self._bldaemon.shutdown_daemon()

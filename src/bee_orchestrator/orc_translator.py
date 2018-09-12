@@ -66,7 +66,7 @@ class Adapter(Target):
     """
 
     def execute(self, command, system=None):
-        self._adaptee.specific_execute(command, system=None)
+        return self._adaptee.specific_execute(command, system=None)
 
     def shutdown(self):
         self._adaptee.specific_shutdown()

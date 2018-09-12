@@ -1,0 +1,40 @@
+class: BEE-Localhost
+id: inputsExample
+label: Demo basic idea behind user input files and relation to baseCommand
+inputs:
+  example_file:
+    type: file
+    inputBinding:
+      position: 1
+  example_string:
+    type: string
+    inputBinding:
+      position: 3
+      prefix: -i
+    default: "Goodbye"
+  example_int:
+    type: int
+    inputBinding:
+      position: 2
+      prefix: -l
+    default: 7
+  another_file:
+    type: file
+    inputBinding:
+      position: 3
+      prefix: -f
+requirements:
+    EnvVarRequirements:
+      envDef:
+        PATH: $HOME/.local/bin
+      sourceDef:
+        activate: bxp
+workerBees:
+    generate.sh:
+        program:
+            system: sh
+        flags:
+          -f: ${another_file}$
+        output: example_string
+terminateAfter: true
+baseCommand: bash

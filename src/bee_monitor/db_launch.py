@@ -106,10 +106,12 @@ class LaunchDB(object):
             self.blog.message("Beeflow Name: {}".format(line[8]))
             self.blog.message("Beeflow")
             self._clean_dict(ast.literal_eval(line[10]))
-        self.blog.message("Error: {}".format(line[11]),
-                          color=self.blog.err)
-        if line[13] is not None:
+        if line[11] == "None":
+            self.blog.message("Error: {}".format(line[11]),
+                              color=self.blog.err)
+        if line[13] != "None":
             self.blog.message("Input Values", color=self.blog.dbase)
+            print(line[13])
             self._clean_dict(ast.literal_eval(line[13]))
 
     def __connect_db(self):
@@ -176,6 +178,7 @@ class LaunchDB(object):
                               beeflow_name=None, beeflow_loc=None,
                               beeflow_full=None, allocation_script=None,
                               input_values=None):
+
         try:
             cursor.execute("INSERT INTO launcher ("
                            "jobID, "
@@ -202,7 +205,7 @@ class LaunchDB(object):
                             beeflow_name,
                             beeflow_loc,
                             str(beeflow_full),
-                            error,
+                            str(error),
                             str(allocation_script),
                             str(input_values)))
             self.__db_conn.commit()

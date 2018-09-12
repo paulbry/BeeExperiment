@@ -1,53 +1,72 @@
-# system
-import os
-import tarfile
-from termcolor import cprint
 # project
-from bee_cluster import BeeTask
-from bee_charliecloud_node import BeeCharliecloudNode
+from bee_orchestrator.bee_cluster import BeeTask
+from bee_orchestrator.orc_translator import Adapter
 
 
 # Manipulates all nodes in a task
 class BeeCharliecloudLauncher(BeeTask):
-    def __init__(self, task_id, beefile):
-        BeeTask.__init__(self, task_id=task_id, beefile=beefile)
+    def __init__(self, task_id, beefile, beelog, input_mng):
+        BeeTask.__init__(self, task_id=task_id, beefile=beefile,beelog=beelog,
+                         input_mng=input_mng)
 
-        self.__current_status = 0  # initializing
+        self.__current_status = 10  # initializing
+        self.begin_event = 0
+        self.end_event = 0
 
         # Task configuration
         self.platform = 'BEE-Charliecloud'
 
-        # Container configuration
-        # TODO: add verification steps
-        self.__cc_source = self._beefile['requirements']['CharliecloudRequirement']\
-            .get('tarDir')
-        self.__cc_tarDir = self._beefile['requirements']['CharliecloudRequirement']\
-            .get('tarDir', '/var/tmp')
-        self.__delete_after = self._beefile['requirements']['CharliecloudRequirement']\
-            .get('deleteAfter', True)
-        self.__container_name = self.__verify_container_name()
+        try:
+            self._manageSys = self._beefile['requirements']['ResourceRequirement']\
+                .get('manageSys', 'localhost')
+        except KeyError:
+            self._manageSys = 'localhost'
+        self._sys_adapter = Adapter(system=self._manageSys, config=self._beefile,
+                                    file_loc='', task_name=self._task_id,
+                                    beelog=self.blog, input_mng=self._input_mng)
+
+        # DEFAULT Container configuration
+        # TODO: add verification steps?
+        self.__default_tar_dir = "/var/tmp"
+        self.__cc_default_key = list(self._beefile_req['CharliecloudRequirement'].keys())[0]
+        self.__cc_flags = self.__default_flags()
 
         # bee-charliecloud
         self.__bee_cc_list = []
 
-        self.current_status = 1  # initialized
+        self.current_status = 20  # initialized
 
     # Wait events (support for existing bee_orc_ctl)
     def add_wait_event(self, new_event):
-        self.event_list = new_event
+        self.__event_list(new_event)
 
     # Task management
     def run(self):
         self.launch()
 
+        self.begin_event = 1
+        self.__current_status = 50  # Running
+
+        self.execute_workers()
+        self.execute_base()
+
+        self.end_event = 1
+        self.__current_status = 60  # finished
+
+        if self._beefile.get('terminateAfter', True):
+            self.terminate(clean=True)
+
     def launch(self):
-        self.terminate()
-        self.__current_status = 3  # Launching
+        self.__current_status = 40  # Launching
+        # TODO: what else ???
 
-        cprint("[" + self._task_id + "] Charliecloud launching", self.output_color)
+        self.blog("Charliecloud launching", self._task_id,
+                  self.blog.msg)
 
+        # TODO: re-implement
+        """
         # Fill bee_cc_list of running hosts (nodes)
-        # Each element is an BeeCharliecloud object
+        # Each element is an BeeCharliecloudNode object
         for host in self.__hosts:
             curr_rank = len(self.__bee_cc_list)
             self.__hosts_mpi += str(host) + ","
@@ -92,123 +111,86 @@ class BeeCharliecloudLauncher(BeeTask):
         else:
             cprint("[" + self.__task_name + "] No nodes allocated!", self.error_color)
             self.terminate()
-
-    def run_scripts(self):
-        self.__current_status = 4  # Running
-        self.begin_event = True
-        # General, SRUN, and MPI run can be run together & defined
-        # in the same beefile; however, batch mode is exclusive
-        if self.__task_conf['batch_mode']:
-            self.batch_run()
-        else:
-            if self.__task_conf['general_run']:
-                self.general_run()
-            try:  # optional to avoid affecting existing
-                if self.__task_conf['srun_run']:
-                    self.srun_run()
-            except KeyError:
-                pass
-            if self.__task_conf['mpi_run']:
-                self.mpi_run()
-        self.__current_status = 5  # finished
-        cprint("[" + self.__task_name + "] end event", self.output_color)
-        self.end_event = True
-        if self.__delete_after:
-            self.terminate()
-
-    def batch_run(self):
-        # TODO: implement and test ?
-        cprint("Batch mode not implemented for Bee_Chaliecloud yet!", 'red')
-        self.terminate()
-
-    def terminate(self, clean=False):
         """
-        Terminate the task
-        Remove ALL
-        :param clean: Flag if terminate function should be run
-                but the status should NOT be set to terminated (6)
-        """
-        if self.__delete_after and self.__hosts_mpi is not None:
-            # Remove ALL ch-directories found on nodes
-            self.__remove_ch_dir(self.__hosts_mpi, self.__hosts_total)
-        if not clean:
-            self.__current_status = 6  # Terminated
+
+    def execute_workers(self):
+        # TODO: document and support for inputs / outputs
+        # TODO: identify plan for support variables
+        workers = self._beefile.get('workerBees')
+        if workers is not None:
+            for wb in workers:
+                cmd = ['ch-run']
+                prog = workers[wb].get('program')
+                if prog is not None:
+                    p_sys = prog.get('system')
+                    if p_sys is not None:
+                        # TODO: verify system = container!
+                        cmd += self.__cc_flags.get(p_sys)
+                        p_sys = self._input_mng.check_str(p_sys)
+                        cmd.append(str(p_sys))
+                    p_flags = prog.get('flags')
+                    if p_flags is not None:
+                        for key, value in p_flags.items():
+                            cmd.append(str(self._input_mng.check_str(key)))
+                            if value is not None:
+                                cmd.append((str(self._input_mng.check_str(value))))
+                cmd.append("--")
+                cmd.append(str(self._input_mng.check_str(wb)))
+
+                wb_flags = workers[wb].get('flags')
+                if wb_flags is not None:
+                    for key, value in wb_flags.items():
+                        cmd.append(str(self._input_mng.check_str(key)))
+                        if value is not None:
+                            cmd.append((str(self._input_mng.check_str(value))))
+
+                self.blog.message("Executing: " + str(cmd), self._task_id,
+                                  self.blog.msg)
+                out = self._sys_adapter.execute(cmd, system=prog)
+                if out is not None and workers[wb].get('output') is not None:
+                    self._input_mng.update_vars(workers[wb].get('output'), out)
 
     def wait_for_others(self):
-        self.current_status = 2  # Waiting
+        self.__current_status = 30  # Waiting
         for event in self.event_list:
             event.wait()
 
-    # Task management support functions (private)
-    def __local_launch(self):
-        """
-        Run Charliecloud exclusively using local instance
-        Note, this is useful when attempting to use bee-cc
-        outside of a HPC environment or single node
-        """
-        self.__unpack_ch_dir(self.__hosts, 1)
+    def execute_base(self):
+        # TODO: support output in accordance with OWL
+        cmd = self._input_mng.prepare_base_cmd(self._beefile.get('baseCommand'))
+        if cmd is not None:
+            out = self._sys_adapter.execute(cmd)
 
-    def __verify_container_name(self):
-        """
-        Using self.__container_path verify if the user specified is a valid
-        tarball and extract the name that will be referenced by Charliecloud
-        :return: If container correct, return name (without extension)
-        """
-        cp = self.__cc_source
-
-        if cp[-7:] == ".tar.gz" and tarfile.is_tarfile(cp):
-            cp = cp[cp.rfind('/') + 1:-7]
-            return cp
+    def terminate(self, clean=False):
+        if clean:
+            self.__current_status = 70  # Closed (clean)
         else:
-            cprint("Error: invalid container file format detected\n"
-                   "Please verify the file is properly compressed (<name>.tar.gz)",
-                   self.error_color)
-            exit(1)
+            self.__current_status = 80  # Terminate
+        self.remove_cc_containers()
+        self._bldaemon.shutdown_daemon()
 
-    def __remove_ch_dir(self, hosts, total_hosts):
-        """
-        Remove directory created via ch-tar2dir (self.unpack()) on
-        a single host, ignores non-existent directories without error
-        :param hosts:   Hosts/nodes on which the process should be invoked
-                        format node1, node2, ...
-        :param total_hosts: Min/Max number of nodes/hosts to be allocation
-                            Should match the number of nodes listed in
-                            the hosts string parameter
-        """
-        cprint("[" + self._task_id  + "] Removing any existing Charliecloud"
-                                        " directory from {}".format(hosts), self.output_color)
-        cmd = ['rm', '-rf', self.__ch_dir + "/" + self.__container_name]
-        if self.__hosts != ["localhost"]:
-            self.run_popen_safe(command=self.compose_srun(cmd, hosts, total_hosts),
-                                nodes=hosts)
-        else:  # To be used when local instance of task only!
-            self.run_popen_safe(command=cmd, nodes=str(self.__hosts))
+    # Task management support functions (private)
+    def remove_cc_containers(self):
+        for key, value in self._beefile_req.get('CharliecloudRequirement').items():
+            if value.get('deleteAfter', False):
+                tar_dir = value.get('tarDir')
+                if tar_dir is None:
+                    tar_dir = self.__default_tar_dir
+                self.__remove_ch_dir(tar_dir, key)
 
-    def __fetch_beefile_value(self, key, dictionary, default=None, quit_err=False,
-                              silent=False):
-        """
-        Fetch a specific key/value pair from the .beefile and
-        raise error is no default supplied and nothing found
-        :param key: Key for value in dictionary
-        :param dictionary: dictionary to be searched
-                            e.g. self.__beefile['task_conf']
-        :param default: Returned if no value found, if None (def)
-                        then error message surfaced
-        :param quit_err: Exit with non-zero (default=False)
-        :param silent: Hide warning message (default=False)
-        :return: Value for key. Data type dependent on beefile,
-                    and no verification beyond existence
-        """
-        try:
-            return dictionary[key]
-        except KeyError:
-            if default is not None and not quit_err:
-                if not silent:
-                    cprint("[" + self._task_id + "] User defined value for ["
-                           + str(key) + "] was not found, default value: "
-                           + str(default) + " used.", self.warning_color)
-                return default
-            else:
-                cprint("[" + self._task_id + "] Key: " + str(key) + " was not found in: " +
-                       str(dictionary), self.error_color)
-                exit(1)
+    def __remove_ch_dir(self, ch_dir, ch_name):
+        self.blog.message(msg="Removing Charliecloud container {}".format(ch_name),
+                          task_name=self._task_id, color=self.blog.msg)
+        cmd = ['rm', '-rf', ch_dir + "/" + ch_name]
+        self._sys_adapter.execute(cmd)
+
+    def __default_flags(self):
+        tmp = {}
+        for key, value in self._beefile_req.get('CharliecloudRequirement').items():
+            flags = []
+            for dfk, dfv in value.get('defaultFlags').items():
+                flags.append(self._input_mng.check_str(dfk))
+                if dfv is not None:
+                    flags.append(self._input_mng.check_str(dfv))
+            tmp.update({key, flags})
+        return tmp

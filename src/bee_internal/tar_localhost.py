@@ -76,9 +76,9 @@ class LocalhostAdaptee:
     def specific_execute(self, command, system=None):
         # TODO: add DB related steps?
         if system is not None:
-            self._stm.run_popen_safe(command)
+            return self._stm.run_popen_safe(command)
         else:  # run via localhost (take responsibility)
-            self._stm.run_popen_safe(command)
+            return self._stm.run_popen_safe(command)
 
     def _run_screen(self, file, job_id):
         # TODO: clean up Popen and document

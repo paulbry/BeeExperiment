@@ -4,18 +4,20 @@ from os import path, getuid
 from threading import Thread, Event
 from pwd import getpwuid
 from json import load
-# project
 
 
 class BeeTask(Thread):
-    def __init__(self, task_id, beefile, beelog):
+    def __init__(self, task_id, beefile, beelog, input_mng):
         Thread.__init__(self)
 
         # Logging conf. object -> BeeLogging(log, log_dest, quite)
         self.blog = beelog
 
+        self._input_mng = input_mng
+
         # Task configuration
         self.platform = None
+        self._sys_adapter = None
         self._beefile = beefile
         self._beefile_req = self._beefile.get('requirements')
         self._task_id = task_id
@@ -88,14 +90,21 @@ class BeeTask(Thread):
         pass
 
     def execute_base(self):
+        """
+        Goal: Execute program/script specified in baseCommand, ensure
+        that all inputs/user-defined variables are properly accounted for
+        """
         pass
 
     def terminate(self, clean=False):
         pass
 
     # Task management support functions (private)
-    def __pyro_port(self):
-        # TODO: document
+    @staticmethod
+    def __pyro_port():
+        """
+        Return port used by daemon (Pyro4)
+        """
         conf_file = str(path.expanduser('~')) + "/.bee/port_conf.json"
         with open(conf_file, 'r') as fc:
             data = load(fc)

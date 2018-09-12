@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
-touch /var/tmp/hello.test
-echo "Hello, world! The time is $(date)." >> /var/tmp/hello.test
 
+file=/var/tmp/hello.test
+
+touch $file
+echo "Hello, world! The time is $(date)." >> $file
+echo $file " has bee updated!"
