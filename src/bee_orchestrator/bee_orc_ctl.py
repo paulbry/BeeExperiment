@@ -12,6 +12,7 @@ from .bee_localhost import BeeLocalhostLauncher as beeLH
 from bee_charliecloud.bee_charliecloud_launcher \
     import BeeCharliecloudLauncher as beeCC
 
+
 @Pyro4.expose
 class BeeLauncherDaemon(object):
     def __init__(self, beelog, daemon=None):

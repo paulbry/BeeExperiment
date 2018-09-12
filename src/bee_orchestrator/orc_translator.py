@@ -28,6 +28,7 @@ class Target(metaclass=abc.ABCMeta):
         self.update_adaptee()
 
     def update_adaptee(self):
+        print("THIS IS A SYSTEM: " + self.__system)
         if self.__system == "slurm":
             self._adaptee = SlurmAdaptee(self._config, self._file_loc,
                                          self._task_name, self.blog,

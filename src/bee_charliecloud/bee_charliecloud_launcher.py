@@ -192,5 +192,5 @@ class BeeCharliecloudLauncher(BeeTask):
                 flags.append(self._input_mng.check_str(dfk))
                 if dfv is not None:
                     flags.append(self._input_mng.check_str(dfv))
-            tmp.update({key, flags})
+            tmp.update({key: flags})
         return tmp
