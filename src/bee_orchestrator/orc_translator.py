@@ -28,25 +28,22 @@ class Target(metaclass=abc.ABCMeta):
         self.update_adaptee()
 
     def update_adaptee(self):
-        print("THIS IS A SYSTEM: " + self.__system)
         if self.__system == "slurm":
             self._adaptee = SlurmAdaptee(self._config, self._file_loc,
                                          self._task_name, self.blog,
                                          self._input_mng)
-        if self.__system == "ssh":
+        elif self.__system == "ssh":
             self._adaptee = SSHAdaptee(self._config, self._file_loc,
                                        self._task_name, self.blog,
                                        self._input_mng)
-        if self.__system == "localhost":
+        elif self.__system == "localhost":
             self._adaptee = LocalhostAdaptee(self._config, self._file_loc,
                                              self._task_name, self.blog,
                                              self._input_mng)
         else:
-            self.blog.message("Unable to support target system: " + self.__system +
-                              " attempting localhost.", self.blog.warn)
-            self._adaptee = LocalhostAdaptee(self._config, self._file_loc,
-                                             self._task_name, self.blog,
-                                             self._input_mng)
+            self.blog.message("Unable to support target system: {}".format(self.__system),
+                              color=self.blog.err)
+            exit(1)
 
     @abc.abstractmethod
     def execute(self, command, system=None):

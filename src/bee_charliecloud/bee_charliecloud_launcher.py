@@ -6,7 +6,7 @@ from bee_orchestrator.orc_translator import Adapter
 # Manipulates all nodes in a task
 class BeeCharliecloudLauncher(BeeTask):
     def __init__(self, task_id, beefile, beelog, input_mng):
-        BeeTask.__init__(self, task_id=task_id, beefile=beefile,beelog=beelog,
+        BeeTask.__init__(self, task_id=task_id, beefile=beefile, beelog=beelog,
                          input_mng=input_mng)
 
         self.__current_status = 10  # initializing
