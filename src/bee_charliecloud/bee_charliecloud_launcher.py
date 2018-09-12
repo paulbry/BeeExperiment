@@ -120,6 +120,8 @@ class BeeCharliecloudLauncher(BeeTask):
         if workers is not None:
             for wb in workers:
                 cmd = ['ch-run']
+
+                # PROGRAM -> Charliecloud details
                 prog = workers[wb].get('program')
                 p_sys = None
                 if prog is not None:
@@ -134,10 +136,12 @@ class BeeCharliecloudLauncher(BeeTask):
                             cmd.append(str(self._input_mng.check_str(key)))
                             if value is not None:
                                 cmd.append((str(self._input_mng.check_str(value))))
+
                 cmd.append(self._input_mng.check_str(self.__default_tar_dir + "/" + p_sys))
                 cmd.append("--")
-                cmd.append(str(self._input_mng.check_str(wb)))
+                cmd.append(str(self._input_mng.check_str(wb))) # WORKER!
 
+                # WORKER FLAGS
                 wb_flags = workers[wb].get('flags')
                 if wb_flags is not None:
                     for key, value in wb_flags.items():
@@ -145,9 +149,15 @@ class BeeCharliecloudLauncher(BeeTask):
                         if value is not None:
                             cmd.append((str(self._input_mng.check_str(value))))
 
-                self.blog.message("Executing: " + str(cmd), self._task_id,
-                                  self.blog.msg)
-                out = self._sys_adapter.execute(cmd, system=prog)
+                # ALLOCATION
+                alloc = workers[wb].get('allocation')
+                if alloc is not None:
+                    out = None
+                else:
+                    self.blog.message("Executing: " + str(cmd), self._task_id,
+                                      self.blog.msg)
+                    out = self._sys_adapter.execute(cmd)
+
                 if out is not None and workers[wb].get('output') is not None:
                     self._input_mng.update_vars(workers[wb].get('output'), out)
 
