@@ -12,12 +12,12 @@ requirements:
     friendly-testing:
     charliecloud:
   CharliecloudRequirement:
-    alpine:
-      source: /usr/projects/beedev/alpine_general/alpine.tar.gz
+    debian:
+      source: /usr/projects/beedev/general/debian.tar.gz
       tarDir: /var/tmp
       removeAfter: False
       defaultFlags:
-        -b: $HOME/pbryant/test
+        -b: /users/pbryant/test
         --no-home:
   EnvVarRequirements:
     envDef:
@@ -25,8 +25,11 @@ requirements:
     sourceDef:
       activate: bxp
 workerBees:
-   helloTime.sh:
+   bash:
     program:
-      system: alpine
+      system: debian
       flags:
         -c: /mnt/0
+        -b: /var/tmp:/var/tmp
+    flags:
+      helloTime.sh:
