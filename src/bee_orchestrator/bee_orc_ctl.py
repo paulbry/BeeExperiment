@@ -9,7 +9,7 @@ from subprocess import Popen
 from time import sleep, strftime
 # project
 from .bee_localhost import BeeLocalhostLauncher as beeLH
-from bee_combs.bee_charliecloud.bee_charliecloud_launcher \
+from bee_charliecloud.bee_charliecloud_launcher \
     import BeeCharliecloudLauncher as beeCC
 
 @Pyro4.expose

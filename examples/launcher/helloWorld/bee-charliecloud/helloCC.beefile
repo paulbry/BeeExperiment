@@ -13,7 +13,7 @@ requirements:
     charliecloud:
   CharliecloudRequirement:
     alpine:
-      source: /var/tmp/alpine.tar.gz
+      source: /usr/projects/beedev/alpine_general/alpine.tar.gz
       tarDir: /var/tmp
       removeAfter: False
       defaultFlags:
