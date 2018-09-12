@@ -121,19 +121,20 @@ class BeeCharliecloudLauncher(BeeTask):
             for wb in workers:
                 cmd = ['ch-run']
                 prog = workers[wb].get('program')
+                p_sys = None
                 if prog is not None:
                     p_sys = prog.get('system')
                     if p_sys is not None:
                         # TODO: verify system = container!
                         cmd += self.__cc_flags.get(p_sys)
                         p_sys = self._input_mng.check_str(p_sys)
-                        cmd.append(str(p_sys))
                     p_flags = prog.get('flags')
                     if p_flags is not None:
                         for key, value in p_flags.items():
                             cmd.append(str(self._input_mng.check_str(key)))
                             if value is not None:
                                 cmd.append((str(self._input_mng.check_str(value))))
+                cmd.append(self._input_mng.check_str(self.__default_tar_dir + "/" + p_sys))
                 cmd.append("--")
                 cmd.append(str(self._input_mng.check_str(wb)))
 
