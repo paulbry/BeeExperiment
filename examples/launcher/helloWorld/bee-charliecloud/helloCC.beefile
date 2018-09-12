@@ -30,6 +30,6 @@ workerBees:
       system: debian
       flags:
         -c: /mnt/0
-        -b: /var/tmp:/var/tmp
+        -b: "/var/tmp:/var/tmp"
     flags:
       helloTime.sh:
