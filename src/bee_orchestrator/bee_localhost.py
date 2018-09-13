@@ -51,38 +51,22 @@ class BeeLocalhostLauncher(BeeTask):
         # TODO: what else ???
 
     def execute_workers(self):
-        # TODO: document and support for inputs / outputs
-        # TODO: identify plan for support variables
-        workers = self._beefile.get('workerBees')
-        if workers is not None:
-            for wb in workers:
+        for workers in self._g_share.fetch_bf_val(self._beefile, 'workerBees', [],
+                                                  False, True):
+            for wb in workers.keys():
                 cmd = []
-                prog = workers[wb].get('program')
-                if prog is not None:
-                    p_sys = prog.get('system')
-                    if p_sys is not None:
-                        p_sys = self._input_mng.check_str(p_sys)
-                        cmd.append(str(p_sys))
-
-                    p_flags = prog.get('flags')
-                    if p_flags is not None:
-                        for key, value in p_flags.items():
-                            cmd.append(str(self._input_mng.check_str(key)))
-                            if value is not None:
-                                cmd.append((str(self._input_mng.check_str(value))))
-
-                cmd.append(str(self._input_mng.check_str(wb)))
-
-                wb_flags = workers[wb].get('flags')
-                if wb_flags is not None:
-                    for key, value in wb_flags.items():
-                        cmd.append(str(self._input_mng.check_str(key)))
-                        if value is not None:
-                            cmd.append((str(self._input_mng.check_str(value))))
+                system = self._workers_system(self._g_share.fetch_bf_val(workers[wb],
+                                              'system', None, False, True))
+                cmd += self._workers_program(self._g_share.fetch_bf_val(workers[wb],
+                                             'program', None, False, True))
+                cmd.append(wb)
+                cmd += self._workers_task(self._g_share.fetch_bf_val(workers[wb],
+                                          'flags', None, False, True))
 
                 self.blog.message("Executing: " + str(cmd), self._task_id,
                                   self.blog.msg)
-                out = self._sys_adapter.execute(cmd, system=prog)
+
+                out = self._sys_adapter.execute(cmd, system)
                 if out is not None and workers[wb].get('output') is not None:
                     self._input_mng.update_vars(workers[wb].get('output'), out)
 
@@ -92,7 +76,6 @@ class BeeLocalhostLauncher(BeeTask):
             event.wait()
 
     def execute_base(self):
-        # TODO: support output in accordance with OWL
         cmd = self._input_mng.prepare_base_cmd(self._beefile.get('baseCommand'))
         if cmd is not None:
             out = self._sys_adapter.execute(cmd)

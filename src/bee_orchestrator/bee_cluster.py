@@ -4,16 +4,13 @@ from os import path, getuid
 from threading import Thread, Event
 from pwd import getpwuid
 from json import load
+# project
+from bee_internal.shared_tools import GeneralMethods
 
 
 class BeeTask(Thread):
     def __init__(self, task_id, beefile, beelog, input_mng):
         Thread.__init__(self)
-
-        # Logging conf. object -> BeeLogging(log, log_dest, quite)
-        self.blog = beelog
-
-        self._input_mng = input_mng
 
         # Task configuration
         self.platform = None
@@ -23,6 +20,11 @@ class BeeTask(Thread):
         self._task_id = task_id
         self._task_label = self._beefile.get('label', 'BEE: {}'.
                                              format(self._task_id))
+
+        # Logging conf. object -> BeeLogging(log, log_dest, quite)
+        self.blog = beelog
+        self._input_mng = input_mng
+        self._g_share = GeneralMethods(self.blog)
 
         # System configuration
         self._user_name = getpwuid(getuid())[0]
@@ -110,3 +112,42 @@ class BeeTask(Thread):
             data = load(fc)
             port = data["pyro4-ns-port"]
         return port
+
+    def _workers_system(self, alloc):
+        # TODO: implement
+        cmd = []
+        if alloc is not None:
+            print(self.platform)
+        return cmd
+
+    def _workers_program(self, prog):
+        cmd = []
+        if prog is not None:
+            name = prog.get('name')
+            if name is not None:
+                cmd.append(self._input_mng.check_str(name))
+                for f in self._g_share.fetch_bf_val(prog, 'flags', {},
+                                                    False, True):
+                    if isinstance(f, dict):
+                        for ok, ov in f.items():
+                            cmd.append(self._input_mng.check_str(ok))
+                            if ov is not None:
+                                cmd.append(self._input_mng.check_str(ov))
+                    else:
+                        cmd.append(self._input_mng.check_str(f))
+        return cmd
+
+    def _workers_task(self, task):
+        cmd = []
+        if task is not None:
+            for f in task:
+                if isinstance(f, dict):
+                    for ok, ov in f.items():
+                        print(ok)
+                        print(ov)
+                        cmd.append(self._input_mng.check_str(ok))
+                        if ov is not None:
+                            cmd.append(self._input_mng.check_str(ov))
+                else:
+                    cmd.append(self._input_mng.check_str(f))
+        return cmd

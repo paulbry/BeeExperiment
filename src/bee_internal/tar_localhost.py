@@ -39,13 +39,14 @@ class LocalhostAdaptee:
             if self._config_req.get('SoftwareModules') is not None:
                 self._stm.software_modules(temp_file=tmp_f)
             if self._config_req.get('EnvVarRequirements') is not None:
-                self._stm.env_variables(temp_file=tmp_f)
+                self._stm.env_variables(temp_file=tmp_f, input_mng=self._input_mng)
             if self._config_req.get('CharliecloudRequirement') is not None:
                 self._stm.deploy_charliecloud(temp_file=tmp_f)
-        tmp_f.write(bytes("rm -- \"$0\"\n", self._encode))
 
         job_id = datetime.fromtimestamp(time()).strftime('%m%d-%H%M%S')
         self.__deploy_bee_orchestrator(temp_file=tmp_f)
+
+        tmp_f.write(bytes("\nrm -- \"$0\"\n", self._encode))
 
         self.blog.message("LOCALHOST SCRIPT CONTENTS", self._task_name,
                           self.blog.msg)
@@ -73,10 +74,10 @@ class LocalhostAdaptee:
     def specific_move_file(self):
         pass
 
-    def specific_execute(self, command, system=None):
+    def specific_execute(self, command, system):
         # TODO: add DB related steps?
-        if system is not None:
-            return self._stm.run_popen_safe(command)
+        if system:
+            return self._stm.run_popen_safe(system + command)
         else:  # run via localhost (take responsibility)
             return self._stm.run_popen_safe(command)
 
@@ -90,7 +91,6 @@ class LocalhostAdaptee:
         pass
 
     def __deploy_bee_orchestrator(self, temp_file):
-        # TODO: re-write to account for log changes!
         """
         Scripting to launch bee_orchestrator, add to file
         :param temp_file: Target sbatch file (named temp file)

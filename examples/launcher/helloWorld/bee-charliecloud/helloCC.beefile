@@ -17,19 +17,19 @@ requirements:
       tarDir: /var/tmp
       removeAfter: False
       defaultFlags:
-        -b: /users/pbryant/test
-        --no-home:
+        - -b: /users/pbryant/test
+        - --no-home:
   EnvVarRequirements:
     envDef:
-      PATH: $HOME/.local/bin
+      - PATH: $HOME/.local/bin
     sourceDef:
-      activate: bxp
+      - activate: bxp
 workerBees:
-   bash:
-    program:
-      system: debian
+  - bash:
+      program:
+        name: debian
+        flags:
+          - -c: /mnt/0
+          - -b: "/var/tmp:/var/tmp"
       flags:
-        -c: /mnt/0
-        -b: "/var/tmp:/var/tmp"
-    flags:
-      helloTime.sh:
+        - helloTime.sh:

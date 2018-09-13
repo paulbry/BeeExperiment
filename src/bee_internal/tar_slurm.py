@@ -48,7 +48,7 @@ class SlurmAdaptee:
             if self._config_req.get('SoftwareModules') is not None:
                 self._stm.software_modules(temp_file=tmp_f)
             if self._config_req.get('EnvVarRequirements') is not None:
-                self._stm.env_variables(temp_file=tmp_f)
+                self._stm.env_variables(temp_file=tmp_f, input_mng=self._input_mng)
             if self._config_req.get('CharliecloudRequirement') is not None:
                 self._stm.deploy_charliecloud(temp_file=tmp_f, ch_pre="srun")
 
@@ -100,10 +100,13 @@ class SlurmAdaptee:
         for key, value in self.\
                 _config['requirements']['ResourceRequirement'].items():
             if key == 'custom':
-                for c_key, c_value in value.items():
-                    temp_file.write(bytes("#SBATCH {}={}\n".format(c_key,
-                                                                   c_value),
-                                    self._encode))
+                for f in value:
+                    if type(f) is dict:
+                        ok, ov = f.items()
+                        temp_file.write(bytes("#SBATCH {}={}\n".
+                                              format(self._input_mng.check_str(ok),
+                                                     self._input_mng.check_str(ov)),
+                                        self._encode))
             else:
                 gsl = self.__generate_sbatch_line(key, value)
                 if gsl is not None:

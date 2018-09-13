@@ -100,20 +100,31 @@ class InputManagement(object):
             self.blog.message("\t{} = {}".format(key, value))
 
     def check_str(self, tar):
-        loc = 0
-        while loc != -1:
-            loc = tar.find(self.__pre, loc)
-            if loc != -1:
-                x = tar.find(self.__post, loc)
-                if x == -1:
-                    self.blog.message("Error checking: {}\nVerify input variable "
-                                      "syntax.", color=self.blog.err)
-                    exit(1)
-                tmp = self.variables.get(tar[loc+2:x])
-                if tmp is not None:
-                    tar = tar.replace(tar[loc:x] + self.__post, tmp)
-                else:
-                    self.blog.message("Error checking: {}\nNo matching input "
-                                      "found.", color=self.blog.err)
-                loc = x
-        return tar
+        if isinstance(tar, str):
+            loc = 0
+            star = str(tar)
+            try:
+                while loc != -1:
+                    loc = star.find(self.__pre, loc)
+                    if loc != -1:
+                        x = star.find(self.__post, loc)
+                        if x == -1:
+                            self.blog.message("Error checking: {}\nVerify input variable "
+                                              "syntax.", color=self.blog.err)
+                            exit(1)
+                        tmp = self.variables.get(star[loc+2:x])
+                        if tmp is not None:
+                            star = star.replace(star[loc:x] + self.__post, tmp)
+                        else:
+                            self.blog.message("Error checking: {}\nNo matching input "
+                                              "found.", color=self.blog.err)
+                            exit(1)
+                        loc = x
+                return star
+            except AttributeError as e:
+                self.blog.message("Error checking user supplied variables/inputs. Insure "
+                                  "that all expected values have been supplied:\n"
+                                  "{}\n{}".format(self.variables, e), color=self.blog.err)
+                exit(1)
+        else:  # unsupported type
+            return tar

@@ -26,15 +26,15 @@ inputs:
 requirements:
     EnvVarRequirements:
       envDef:
-        PATH: $HOME/.local/bin
+        - PATH: $HOME/.local/bin
       sourceDef:
-        activate: bxp
+        - activate: bxp
 workerBees:
-    generate.sh:
+    - generate.sh:
         program:
-            system: sh
+            name: sh
         flags:
-          -f: ${another_file}$
+          - -f: ${another_file}$
         output: example_string
 terminateAfter: true
 baseCommand: bash

@@ -20,7 +20,7 @@ class GlobalMethods(object):
         try:
             return dictionary[key]
         except KeyError:
-            if default is not None and not quit_err:
+            if not quit_err:
                 if not silent:
                     self.blog.message("User defined value for [" +
                                       str(key) + "] was not found, default value: "
@@ -86,24 +86,31 @@ class TranslatorMethods(GlobalMethods):
                 module += "/" + str(value.get('version', None))
             temp_file.write(bytes(module + "\n", 'UTF-8'))
 
-    def env_variables(self, temp_file):
+    def env_variables(self, temp_file, input_mng):
         """
         Added source <key> <value> and export <key> <value>:$<key>
         in order to establish the environment
         :param temp_file: Target sbatch file (named temp file)
+        :param input_mng: InputMangement object
         """
         temp_file.write(bytes("\n# Environmental Requirements\n", self._encode))
         env_dict = self._config_req['EnvVarRequirements']
-        if env_dict.get('envDef') is not None:
-            for key, value in env_dict.get('envDef').items():
-                export = "export {}={}:${}".format(str(key), str(value), str(key))
-                temp_file.write(bytes(export + "\n", 'UTF-8'))
-        if env_dict.get('sourceDef') is not None:
-            for key, value in env_dict.get('sourceDef').items():
-                source = "source {}".format(str(key))
-                if value is not None:
-                    source += " " + str(value)
-                temp_file.write(bytes(source + "\n", 'UTF-8'))
+        for f in self.fetch_bf_val(env_dict, 'envDev', {}, False, True):
+            ok = f.keys()
+            ov = f.values()
+            export = "export {}={}:${}".format(input_mng.check_str(ok),
+                                               input_mng.check_str(ov),
+                                               input_mng.check_str(ok))
+            temp_file.write(bytes(export + "\n", 'UTF-8'))
+        for f in self.fetch_bf_val(env_dict, 'sourceDef', {}, False, True):
+            if isinstance(f, dict):
+                for ok, ov in f.items():
+                    print(ok)
+                    print(ov)
+                    source = "source {}".format(input_mng.check_str(ok))
+                    if ov is not None:
+                        source = "source {}".format(input_mng.check_str(f))
+                    temp_file.write(bytes(source + "\n", 'UTF-8'))
 
     def deploy_charliecloud(self, temp_file, ch_pre=None):
         """

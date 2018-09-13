@@ -4,12 +4,12 @@ label: Basic hello world example
 requirements:
     EnvVarRequirements:
       envDef:
-        PATH: $HOME/.local/bin
+        - PATH: $HOME/.local/bin
       sourceDef:
-        activate: bxp
+        - activate: bxp
 workerBees:
-    helloTime.sh:
+    - helloTime.sh:
         program:
-            system: sh
+          system: sh
 terminateAfter: true
 baseCommand: env

@@ -114,50 +114,27 @@ class BeeCharliecloudLauncher(BeeTask):
         """
 
     def execute_workers(self):
-        # TODO: document and support for inputs / outputs
-        # TODO: identify plan for support variables
-        workers = self._beefile.get('workerBees')
-        if workers is not None:
-            for wb in workers:
+        for workers in self._g_share.fetch_bf_val(self._beefile, 'workerBees', [],
+                                                  False, True):
+            for wb in workers.keys():
                 cmd = ['ch-run']
+                system = self._workers_system(self._g_share.fetch_bf_val(workers[wb],
+                                              'system', None, False, True))
+                cmd += self._workers_program(self._g_share.fetch_bf_val(workers[wb],
+                                             'program', None, False, True))
 
-                # PROGRAM -> Charliecloud details
-                prog = workers[wb].get('program')
-                p_sys = None
-                if prog is not None:
-                    p_sys = prog.get('system')
-                    if p_sys is not None:
-                        # TODO: verify system = container!
-                        cmd += self.__cc_flags.get(p_sys)
-                        p_sys = self._input_mng.check_str(p_sys)
-                    p_flags = prog.get('flags')
-                    if p_flags is not None:
-                        for key, value in p_flags.items():
-                            cmd.append(str(self._input_mng.check_str(key)))
-                            if value is not None:
-                                cmd.append((str(self._input_mng.check_str(value))))
-
-                cmd.append(self._input_mng.check_str(self.__default_tar_dir + "/" + p_sys))
+                ch = self._g_share.fetch_bf_val(workers[wb]['program'], 'name',
+                                                self.__cc_default_key, False, True)
+                cmd.append(self._input_mng.check_str(self.__default_tar_dir + "/" + ch))
                 cmd.append("--")
-                cmd.append(str(self._input_mng.check_str(wb))) # WORKER!
+                cmd.append(str(self._input_mng.check_str(wb)))
+                cmd += self._workers_task(self._g_share.fetch_bf_val(workers[wb],
+                                          'flags', None, False, True))
 
-                # WORKER FLAGS
-                wb_flags = workers[wb].get('flags')
-                if wb_flags is not None:
-                    for key, value in wb_flags.items():
-                        cmd.append(str(self._input_mng.check_str(key)))
-                        if value is not None:
-                            cmd.append((str(self._input_mng.check_str(value))))
+                self.blog.message("Executing: " + str(cmd), self._task_id,
+                                  self.blog.msg)
 
-                # ALLOCATION
-                alloc = workers[wb].get('allocation')
-                if alloc is not None:
-                    out = None
-                else:
-                    self.blog.message("Executing: " + str(cmd), self._task_id,
-                                      self.blog.msg)
-                    out = self._sys_adapter.execute(cmd)
-
+                out = self._sys_adapter.execute(cmd, system)
                 if out is not None and workers[wb].get('output') is not None:
                     self._input_mng.update_vars(workers[wb].get('output'), out)
 
