@@ -8,7 +8,7 @@ requirements:
     manageSys: slurm
   SoftwareModules:
     python:
-      version: 2.7-anaconda-5.0.1
+      version: 3.6-anaconda-5.0.1
     friendly-testing:
     charliecloud:
   CharliecloudRequirement:
