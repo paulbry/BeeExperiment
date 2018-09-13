@@ -83,7 +83,7 @@ class TranslatorMethods(GlobalMethods):
                 _config['requirements']['SoftwareModules'].items():
             module = "module load {}".format(key)
             if value is not None:
-                module += "/" + str(value.get('version', None))
+                module += "/" + str(value.get('version', ''))
             temp_file.write(bytes(module + "\n", 'UTF-8'))
 
     def env_variables(self, temp_file, input_mng):
@@ -96,17 +96,14 @@ class TranslatorMethods(GlobalMethods):
         temp_file.write(bytes("\n# Environmental Requirements\n", self._encode))
         env_dict = self._config_req['EnvVarRequirements']
         for f in self.fetch_bf_val(env_dict, 'envDev', {}, False, True):
-            ok = f.keys()
-            ov = f.values()
-            export = "export {}={}:${}".format(input_mng.check_str(ok),
-                                               input_mng.check_str(ov),
-                                               input_mng.check_str(ok))
-            temp_file.write(bytes(export + "\n", 'UTF-8'))
+            for ok, ov in f.items():
+                export = "export {}={}:${}".format(input_mng.check_str(ok),
+                                                   input_mng.check_str(ov),
+                                                   input_mng.check_str(ok))
+                temp_file.write(bytes(export + "\n", 'UTF-8'))
         for f in self.fetch_bf_val(env_dict, 'sourceDef', {}, False, True):
             if isinstance(f, dict):
                 for ok, ov in f.items():
-                    print(ok)
-                    print(ov)
                     source = "source {}".format(input_mng.check_str(ok))
                     if ov is not None:
                         source = "source {}".format(input_mng.check_str(f))
