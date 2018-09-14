@@ -25,11 +25,12 @@ requirements:
     sourceDef:
       - activate: bxp
 workerBees:
-  - bash:
-      container:
-        name: debian
+  - Task:
+    - bash:
+        container:
+          name: debian
+          flags:
+            - -c: /mnt/0
+            - -b: "/var/tmp:/var/tmp"
         flags:
-          - -c: /mnt/0
-          - -b: "/var/tmp:/var/tmp"
-      flags:
-        - helloTime.sh:
+          - helloTime.sh:
