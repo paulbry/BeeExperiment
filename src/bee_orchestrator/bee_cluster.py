@@ -125,13 +125,12 @@ class BeeTask(Thread):
     ###########################################################################
     def _bee_tasks(self, bf_tasks, container_conf=None):
         for task in bf_tasks:
-            print(task)
             cmd = []
             try:
                 for wb in task:
                     system = self._workers_system(self._g_share.fetch_bf_val(task[wb],
                                                   'system', None, False, True))
-                    if container_conf is not None:
+                    if container_conf is not None and task[wb].get('container') is not None:
                         cmd += self._workers_containers(container_conf, task[wb])
                     cmd.append(wb)
                     cmd += self._workers_flags(self._g_share.fetch_bf_val(task[wb],

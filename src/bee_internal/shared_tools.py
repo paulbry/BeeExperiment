@@ -116,7 +116,7 @@ class TranslatorMethods(GlobalMethods):
         :param ch_pre: Prefix (string) used before ch-tar2dir
                     e.g srun
         """
-        temp_file.write(bytes("\n# Deploy Charliecloud Container\n", self._encode))
+        temp_file.write(bytes("\n# Deploy Charliecloud Containers\n", self._encode))
         # TODO: better error handling?
         # TODO: options for build/pull?
         for cc in self._config_req['CharliecloudRequirement']:
