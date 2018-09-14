@@ -106,7 +106,7 @@ class TranslatorMethods(GlobalMethods):
                 for ok, ov in f.items():
                     source = "source {}".format(input_mng.check_str(ok))
                     if ov is not None:
-                        source = "source {}".format(input_mng.check_str(f))
+                        source += " " + format(input_mng.check_str(ov))
                     temp_file.write(bytes(source + "\n", 'UTF-8'))
 
     def deploy_charliecloud(self, temp_file, ch_pre=None):

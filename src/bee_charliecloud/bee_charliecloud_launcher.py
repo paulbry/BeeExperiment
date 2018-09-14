@@ -28,8 +28,6 @@ class BeeCharliecloudLauncher(BeeTask):
         # DEFAULT Container configuration
         # TODO: add verification steps?
         self.__default_tar_dir = "/var/tmp"
-        self.__cc_default_key = list(self._beefile_req['CharliecloudRequirement'].keys())[0]
-        self.__cc_flags = self.__default_flags()
 
         # bee-charliecloud
         self.__bee_cc_list = []
@@ -63,80 +61,21 @@ class BeeCharliecloudLauncher(BeeTask):
         self.blog.message("Charliecloud launching", self._task_id,
                           self.blog.msg)
 
-        # TODO: re-implement
-        """
-        # Fill bee_cc_list of running hosts (nodes)
-        # Each element is an BeeCharliecloudNode object
-        for host in self.__hosts:
-            curr_rank = len(self.__bee_cc_list)
-            self.__hosts_mpi += str(host) + ","
-            self.__hosts_total += 1
-            if curr_rank == 0:
-                hostname = "{}=bee-head".format(self.__task_name)
-            else:
-                hostname = "{}-bee-worker{}".format(self.__task_name,
-                                                    str(curr_rank).zfill(3))
-            # Each object represent a node
-            bee_cc = BeeCharliecloudNode(task_id=self.__task_id, hostname=hostname,
-                                     host=host, rank=curr_rank, task_conf=self.__task_conf,
-                                     bee_cc_conf=self.__bee_charliecloud_conf,
-                                     container_name=self.__container_name)
-            # Add new CC to host
-            self.__bee_cc_list.append(bee_cc)
-            bee_cc.master = self.__bee_cc_list[0]
-
-        # Remove erroneous comma (less impact), for readability
-        if self.__hosts_mpi[-1] == ",":
-            self.__hosts_mpi = self.__hosts_mpi[:-1]
-
-        cprint("Preparing launch " + self._task_id + " for nodes "
-               + self.__hosts_mpi, self.output_color)
-
-        # Check if there is an allocation to unpack images on
-        if 'SLURM_JOBID' in os.environ:
-            cprint(os.environ['SLURM_NODELIST'] + ": Launching " +
-                   str(self.__task_name), self.output_color)
-
-            # use_existing (invoked via flag at runtime)
-            # leverages an already existing unpacked image
-            if not self.__use_existing:
-                self.__unpack_ch_dir(self.__hosts_mpi, self.__hosts_total)
-            self.wait_for_others()
-            self.run_scripts()
-        elif self.__hosts == ["localhost"]:  # single node or local instance
-            cprint("Launching local instance " + str(self.__task_name),
-                   self.output_color)
-            self.__local_launch()
-            self.run_scripts()
-        else:
-            cprint("[" + self.__task_name + "] No nodes allocated!", self.error_color)
-            self.terminate()
-        """
+        # TODO: re-implement self.__bee_cc_list
 
     def execute_workers(self):
-        for workers in self._g_share.fetch_bf_val(self._beefile, 'workerBees', [],
+        for workers in self._g_share.fetch_bf_val(self._beefile, 'workerBees', {},
                                                   False, True):
-            for wb in workers.keys():
-                cmd = ['ch-run']
-                system = self._workers_system(self._g_share.fetch_bf_val(workers[wb],
-                                              'system', None, False, True))
-                cmd += self._workers_program(self._g_share.fetch_bf_val(workers[wb],
-                                             'program', None, False, True))
-
-                ch = self._g_share.fetch_bf_val(workers[wb]['program'], 'name',
-                                                self.__cc_default_key, False, True)
-                cmd.append(self._input_mng.check_str(self.__default_tar_dir + "/" + ch))
-                cmd.append("--")
-                cmd.append(str(self._input_mng.check_str(wb)))
-                cmd += self._workers_task(self._g_share.fetch_bf_val(workers[wb],
-                                          'flags', None, False, True))
-
-                self.blog.message("Executing: " + str(cmd), self._task_id,
-                                  self.blog.msg)
-
-                out = self._sys_adapter.execute(cmd, system)
-                if out is not None and workers[wb].get('output') is not None:
-                    self._input_mng.update_vars(workers[wb].get('output'), out)
+            for wb in workers:
+                if wb.lower() == 'task':
+                    self._bee_tasks(workers.get(wb, {}), self._beefile_req['CharliecloudRequirement'])
+                elif wb.lower() == 'lambda':
+                    pass
+                elif wb.lower() == 'subbee':
+                    pass
+                else:
+                    self.blog.message("Unsupported workerBee detected: {}".format(wb),
+                                      self._task_id, self.blog.err)
 
     def wait_for_others(self):
         self.__current_status = 30  # Waiting
@@ -155,7 +94,7 @@ class BeeCharliecloudLauncher(BeeTask):
         else:
             self.__current_status = 80  # Terminate
         self.remove_cc_containers()
-        self._bldaemon.shutdown_daemon()
+        self.remote.shutdown_daemon()
 
     # Task management support functions (private)
     def remove_cc_containers(self):

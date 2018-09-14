@@ -15,6 +15,7 @@ class BeeTask(Thread):
         # Task configuration
         self.platform = None
         self._sys_adapter = None
+        self._manageSys = None
         self._beefile = beefile
         self._beefile_req = self._beefile.get('requirements')
         self._task_id = task_id
@@ -31,9 +32,9 @@ class BeeTask(Thread):
 
         # Pyro4
         self._port = self.__pyro_port()
-        ns = Pyro4.locateNS(port=self._port, hmac_key=self._user_name)
+        ns = Pyro4.locateNS(port=self._port, hmac_key=getpwuid(getuid())[0])
         uri = ns.lookup("bee_launcher.daemon")
-        self._bldaemon = Pyro4.Proxy(uri)
+        self.remote = Pyro4.Proxy(uri)
 
         # Events for workflow
         self.__begin_event = None
@@ -113,41 +114,93 @@ class BeeTask(Thread):
             port = data["pyro4-ns-port"]
         return port
 
-    def _workers_system(self, alloc):
-        # TODO: implement
-        cmd = []
-        if alloc is not None:
-            print(self.platform)
+    ###########################################################################
+    # workerBees
+    # A workerBees is a command made up of several components
+    #   <systems> <command> <flags>
+    # optionally <container> specifics can be supplemented between systems
+    # and command.
+    # e.g. srun -n 8 chrun -w --no-home /var/tmp/alpine -- sh hello.sh
+    # TODO: clean up documentation
+    ###########################################################################
+    def _bee_tasks(self, bf_tasks, container_conf=None):
+        for task in bf_tasks:
+            print(task)
+            cmd = []
+            try:
+                for wb in task:
+                    system = self._workers_system(self._g_share.fetch_bf_val(task[wb],
+                                                  'system', None, False, True))
+                    if container_conf is not None:
+                        cmd += self._workers_containers(container_conf, task[wb])
+                    cmd.append(wb)
+                    cmd += self._workers_flags(self._g_share.fetch_bf_val(task[wb],
+                                               'flags', {}, False, True))
+                    self.blog.message("Executing: " + str(cmd), self._task_id,
+                                      self.blog.msg)
+
+                    out = self._sys_adapter.execute(cmd, system)
+                    if out is not None and task[wb].get('output') is not None:
+                        self._input_mng.update_vars(task[wb].get('output'), out)
+            except KeyError as e:
+                self.blog.message("Error while configuring workerBee specifed "
+                                  "tasks.\n{}".format(repr(e)), self._task_id,
+                                  self.blog.err)
+                exit(1)
+
+    def _workers_containers(self, cont_conf, task_conf):
+        name = task_conf['container'].get('name', next(iter(cont_conf)))
+        cmd = ['ch-run']
+        for f in cont_conf.get('defaultFlags', {}):
+            if isinstance(f, dict):
+                for ok, ov in f.items():
+                    cmd.append(self._input_mng.check_str(ok))
+                    if ov is not None:
+                        cmd.append(self._input_mng.check_str(ov))
+            else:
+                cmd.append(self._input_mng.check_str(f))
+
+        for f in task_conf['container'].get('flags', {}):
+            if isinstance(f, dict):
+                for ok, ov in f.items():
+                    cmd.append(self._input_mng.check_str(ok))
+                    if ov is not None:
+                        cmd.append(self._input_mng.check_str(ov))
+            else:
+                cmd.append(self._input_mng.check_str(f))
+
+        loc = self._input_mng.check_str(cont_conf[name].get('tarDir', '/var/tmp'))
+        cmd.append(loc + "/" + self._input_mng.check_str(name))
+        cmd.append("--")
         return cmd
 
-    def _workers_program(self, prog):
+    def _workers_system(self, sys):
         cmd = []
-        if prog is not None:
-            name = prog.get('name')
-            if name is not None:
-                cmd.append(self._input_mng.check_str(name))
-                for f in self._g_share.fetch_bf_val(prog, 'flags', {},
-                                                    False, True):
-                    if isinstance(f, dict):
-                        for ok, ov in f.items():
-                            cmd.append(self._input_mng.check_str(ok))
-                            if ov is not None:
-                                cmd.append(self._input_mng.check_str(ov))
-                    else:
-                        cmd.append(self._input_mng.check_str(f))
-        return cmd
-
-    def _workers_task(self, task):
-        cmd = []
-        if task is not None:
-            for f in task:
+        if sys is not None:
+            tar = sys.get('manageSys', self._manageSys)
+            if tar == 'localhost':
+                return cmd
+            else:
+                cmd.append(tar)
+            for f in self._g_share.fetch_bf_val(sys, 'flags', {},
+                                                False, True):
                 if isinstance(f, dict):
                     for ok, ov in f.items():
-                        print(ok)
-                        print(ov)
                         cmd.append(self._input_mng.check_str(ok))
                         if ov is not None:
                             cmd.append(self._input_mng.check_str(ov))
                 else:
                     cmd.append(self._input_mng.check_str(f))
+        return cmd
+
+    def _workers_flags(self, flags):
+        cmd = []
+        for f in flags:
+            if isinstance(f, dict):
+                for ok, ov in f.items():
+                    cmd.append(self._input_mng.check_str(ok))
+                    if ov is not None:
+                        cmd.append(self._input_mng.check_str(ov))
+            else:
+                cmd.append(self._input_mng.check_str(f))
         return cmd

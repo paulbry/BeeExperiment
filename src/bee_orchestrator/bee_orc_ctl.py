@@ -3,6 +3,7 @@ import os
 import socket
 import Pyro4
 import Pyro4.naming
+import _thread
 from json import load, dumps
 from pwd import getpwuid
 from subprocess import Popen
@@ -11,6 +12,8 @@ from time import sleep, strftime
 from .bee_localhost import BeeLocalhostLauncher as beeLH
 from bee_charliecloud.bee_charliecloud_launcher \
     import BeeCharliecloudLauncher as beeCC
+from bee_internal.in_out_manage import InputManagement
+from bee_logging.bee_log import BeeLogging
 
 
 @Pyro4.expose
@@ -40,10 +43,13 @@ class BeeLauncherDaemon(object):
     def launch_task(self):
         self.beetask.start()
     
-    def create_and_launch_task(self, beefile, file_name, input_mng):
+    def create_and_launch_task(self, beefile, file_name, blog_args, mng_args):
+        self.blog = BeeLogging(blog_args.get('logflag'), blog_args.get('log_dest'),
+                               blog_args.get('quite'))
         self.blog.message("Task received in current working directory: " + os.getcwd(),
                           "{}.beefile".format(file_name), self.blog.msg)
-        # TODO: add encode step for file!
+        input_mng = InputManagement(beefile, mng_args.get('user_values'),
+                                    self.blog, mng_args.get('yml_file_name'))
         self.create_task(beefile, file_name, input_mng)
         self.launch_task()
 
@@ -67,37 +73,40 @@ class ExecOrc(object):
     def __init__(self, beelog):
         self.blog = beelog
 
-    def main(self, beefile=None, file_name=None, input_mng=None):
+    def main(self, beefile=None, file_name=None, blog_args=None, mng_args=None):
         """
         Prepare environment for daemon and launch (loop)
             https://pypi.org/project/Pyro4/
-        :param beefile: Task to be launched once daemon launched
-                        Full path to task (beefile) e.g. /var/tmp/test
-        :param file_name: Beefile name (no .beefile)
-        :param input_mng: InputManagement object
         """
+        #############################################################
+        # TODO: document daemon!!!
+        #############################################################
         open_port = self.get_open_port()
         self.update_system_conf(open_port)
         hmac_key = getpwuid(os.getuid())[0]
         os.environ["PYRO_HMAC_KEY"] = hmac_key
         Popen(['python', '-m', 'Pyro4.naming', '-p', str(open_port)])
         sleep(5)
-        #############################################################
-        # TODO: document daemon!!!
-        #############################################################
         daemon = Pyro4.Daemon()
         bldaemon = BeeLauncherDaemon(self.blog, daemon)
         bldaemon_uri = daemon.register(bldaemon)
         ns = Pyro4.locateNS(port=open_port, hmac_key=hmac_key)
         ns.register("bee_launcher.daemon", bldaemon_uri)
+        print(bldaemon_uri)
         self.blog.message("Bee orchestration controller started.",
                           color=self.blog.msg)
-
-        # Launch task before starting daemon
-        if beefile is not None:
-            bldaemon.create_and_launch_task(beefile, file_name, input_mng)
-
+        if blog_args is not None and mng_args is not None:
+            # TODO: implement better solution (possibly in __main__)?
+            _thread.start_new_thread(self.delay_launch, ((beefile, file_name,
+                                                          blog_args, mng_args,
+                                                          bldaemon_uri, )))
         daemon.requestLoop()
+
+    @staticmethod
+    def delay_launch(beefile, file_name, blog_args, mng_args, bldaemon_uri):
+        sleep(4)
+        remote = Pyro4.Proxy(bldaemon_uri)
+        remote.create_and_launch_task(beefile, file_name, blog_args, mng_args)
 
     @staticmethod
     def update_system_conf(open_port):

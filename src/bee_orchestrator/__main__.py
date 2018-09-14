@@ -5,7 +5,6 @@ from os import path, remove, chdir
 # project
 from .bee_orc_ctl import ExecOrc
 from bee_internal.beefile_manager import BeefileLoader, YMLLoader
-from bee_internal.in_out_manage import InputManagement
 from bee_logging.bee_log import BeeLogging
 
 
@@ -84,14 +83,18 @@ def manage_args(args):
         if args.orc:
             # bee-orchestrator -o -t $(pwd)/hello_lh
             f = BeefileLoader(args.task[0], beelog)
+            blog_args = {"logflag": args.logflag,
+                         "log_dest": args.log_dest,
+                         "quite": args.quite}
+            mng_args = {'user_values': None,
+                        'yml_file_name': None}
 
             if args.input_file:
                 y = YMLLoader(args.input_file[0], beelog)
-                input_mng = InputManagement(f.beefile, y.ymlfile, beelog, args.input_file[0])
-            else:
-                input_mng = InputManagement(f.beefile, None, beelog, None)
+                mng_args = {'user_values': y.ymlfile,
+                            'yml_file_name': args.input_file[0]}
 
-            eo.main(f.beefile, args.task[0], input_mng)
+            eo.main(f.beefile, args.task[0], blog_args, mng_args)
         elif args.orc_arm:
             beelog.message("ARM support not ready at the moment!",
                            color=beelog.err)

@@ -51,24 +51,18 @@ class BeeLocalhostLauncher(BeeTask):
         # TODO: what else ???
 
     def execute_workers(self):
-        for workers in self._g_share.fetch_bf_val(self._beefile, 'workerBees', [],
+        for workers in self._g_share.fetch_bf_val(self._beefile, 'workerBees', {},
                                                   False, True):
-            for wb in workers.keys():
-                cmd = []
-                system = self._workers_system(self._g_share.fetch_bf_val(workers[wb],
-                                              'system', None, False, True))
-                cmd += self._workers_program(self._g_share.fetch_bf_val(workers[wb],
-                                             'program', None, False, True))
-                cmd.append(wb)
-                cmd += self._workers_task(self._g_share.fetch_bf_val(workers[wb],
-                                          'flags', None, False, True))
-
-                self.blog.message("Executing: " + str(cmd), self._task_id,
-                                  self.blog.msg)
-
-                out = self._sys_adapter.execute(cmd, system)
-                if out is not None and workers[wb].get('output') is not None:
-                    self._input_mng.update_vars(workers[wb].get('output'), out)
+            for wb in workers:
+                if wb.lower() == 'task':
+                    self._bee_tasks(workers.get(wb, {}), self._beefile_req['CharliecloudRequirement'])
+                elif wb.lower() == 'lambda':
+                    pass
+                elif wb.lower() == 'subbee':
+                    pass
+                else:
+                    self.blog.message("Unsupported workerBee detected: {}".format(wb),
+                                      self._task_id, self.blog.err)
 
     def wait_for_others(self):
         self.__current_status = 30  # Waiting
@@ -85,4 +79,4 @@ class BeeLocalhostLauncher(BeeTask):
             self.__current_status = 70  # Closed (clean)
         else:
             self.__current_status = 80  # Terminate
-        self._bldaemon.shutdown_daemon()
+        self.remote.shutdown_daemon()
