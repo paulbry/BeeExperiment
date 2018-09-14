@@ -150,7 +150,7 @@ class BeeTask(Thread):
     def _workers_containers(self, cont_conf, task_conf):
         name = task_conf['container'].get('name', next(iter(cont_conf)))
         cmd = ['ch-run']
-        for f in cont_conf.get('defaultFlags', {}):
+        for f in cont_conf[name].get('defaultFlags', {}):
             if isinstance(f, dict):
                 for ok, ov in f.items():
                     cmd.append(self._input_mng.check_str(ok))
