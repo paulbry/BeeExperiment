@@ -2,46 +2,53 @@
 from tempfile import NamedTemporaryFile
 from datetime import datetime
 from time import time
+from os import environ
 # project
 from bee_internal.shared_tools import TranslatorMethods
 
 
 class LocalhostAdaptee:
-    def __init__(self, config, file_loc, task_name, beelog, input_mng):
-        self._config = config
-        if self._config is not None:
-            self._config_req = self._config.get('requirements')
-        self._file_loc = file_loc
-        self._task_name = task_name
+    def __init__(self, config, file_loc, task_name, beelog, input_mng,
+                 remote=None):
+        # constants
         self._encode = 'UTF-8'
 
-        # Logging conf. object -> BeeLogging(log, log_dest, quite)
+        # task /configuration
+        self._beefile = config
+        self._beefile_req = self._beefile.get('requirements')
+        self._file_loc = file_loc
+        self._task_name = task_name
+
+        # daemon for ORC control
+        self.remote = remote
+
+        # objects
         self.blog = beelog
         self._input_mng = input_mng
+        self.stm = TranslatorMethods(beefile=self._beefile,
+                                     task_name=self._task_name, beelog=self.blog,
+                                     bldaemon=self.remote, job_id=None)
 
-        # Shared tools
-        self._stm = TranslatorMethods(config=self._config,
-                                      file_loc=self._file_loc,
-                                      task_name=self._task_name,
-                                      beelog=self.blog)
-
+    ###########################################################################
+    # Adapter functions
+    # orc_translator.py & launch_translator.py
+    ###########################################################################
     def specific_allocate(self, test_only=False):
-        # TODO: document
         tmp_f = NamedTemporaryFile()
         tmp_f.write(bytes("#!/bin/bash\n\n", 'UTF-8'))
         #######################################################################
         # Prepare script
         # TODO: further document
         #######################################################################
-        if self._config_req is not None:
-            if self._config_req.get('ResourceRequirement') is not None:
+        if self._beefile_req is not None:
+            if self._beefile_req.get('ResourceRequirement') is not None:
                 self.__resource_requirement(temp_file=tmp_f)
-            if self._config_req.get('SoftwareModules') is not None:
-                self._stm.software_modules(temp_file=tmp_f)
-            if self._config_req.get('EnvVarRequirements') is not None:
-                self._stm.env_variables(temp_file=tmp_f, input_mng=self._input_mng)
-            if self._config_req.get('CharliecloudRequirement') is not None:
-                self._stm.deploy_charliecloud(temp_file=tmp_f)
+            if self._beefile_req.get('SoftwareModules') is not None:
+                self.stm.software_modules(temp_file=tmp_f)
+            if self._beefile_req.get('EnvVarRequirements') is not None:
+                self.stm.env_variables(temp_file=tmp_f, input_mng=self._input_mng)
+            if self._beefile_req.get('CharliecloudRequirement') is not None:
+                self.stm.deploy_charliecloud(temp_file=tmp_f)
 
         job_id = datetime.fromtimestamp(time()).strftime('%m%d-%H%M%S')
         self.__deploy_bee_orchestrator(temp_file=tmp_f)
@@ -64,27 +71,36 @@ class LocalhostAdaptee:
         return out
 
     def specific_schedule(self):
+        # TODO: utilize cron ?
         pass
 
     def specific_shutdown(self, job_id):
-        # TODO: identify other requirements
         cmd = ['screen', '-X', '-S', job_id, 'quit']
-        self._stm.run_popen_safe(cmd)
+        self.stm.run_popen_safe(cmd)
 
     def specific_move_file(self):
+        # TODO: identify requirements
         pass
 
     def specific_execute(self, command, system):
-        # TODO: add DB related steps?
         if system:
-            return self._stm.run_popen_safe(system + command)
+            return self.stm.run_popen_orc(system + command)
         else:  # run via localhost (take responsibility)
-            return self._stm.run_popen_safe(command)
+            return self.stm.run_popen_orc(command)
 
+    @staticmethod
+    def specific_get_jobid():
+        return environ.get('STY')
+
+    def specific_get_remote_orc(self):
+        return self.remote
+
+    ###########################################################################
+    # Protected/Private supporting functions
+    ###########################################################################
     def _run_screen(self, file, job_id):
-        # TODO: clean up Popen and document
         cmd = ['screen', '-S', job_id, '-d', '-m', 'bash', file]
-        self._stm.run_popen_safe(cmd)
+        self.stm.run_popen_safe(cmd)
 
     def __resource_requirement(self, temp_file):
         # TODO: identify resources that should/could be affected

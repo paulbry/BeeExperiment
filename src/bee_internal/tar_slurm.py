@@ -1,31 +1,36 @@
 # system
 from tempfile import NamedTemporaryFile
+from os import environ
 # project
 from bee_internal.shared_tools import TranslatorMethods
 
 
 class SlurmAdaptee:
-    def __init__(self, config, file_loc, task_name, beelog, input_mng):
-        self._config = config
-        if self._config is not None:
-            self._config_req = self._config.get('requirements')
-        self._file_loc = file_loc
-        self._task_name = task_name
+    def __init__(self, config, file_loc, task_name, beelog, input_mng,
+                 remote=None):
+        # constants
         self._encode = 'UTF-8'
 
-        # Logging conf. object -> BeeLogging(log, log_dest, quite)
+        # task /configuration
+        self._beefile = config
+        self._beefile_req = self._beefile.get('requirements')
+        self._file_loc = file_loc
+        self._task_name = task_name
+
+        # daemon for ORC control
+        self.remote = remote
+
+        # objects
         self.blog = beelog
-
-        # User input via yml
-        self._beefile_input = self._config.get('inputs')
         self._input_mng = input_mng
+        self.stm = TranslatorMethods(beefile=self._beefile,
+                                     task_name=self._task_name, beelog=self.blog,
+                                     bldaemon=self.remote, job_id=None)
 
-        # Shared tools
-        self._stm = TranslatorMethods(config=self._config,
-                                      file_loc=self._file_loc,
-                                      task_name=self._task_name,
-                                      beelog=self.blog)
-
+    ###########################################################################
+    # Adapter functions
+    # orc_translator.py & launch_translator.py
+    ###########################################################################
     def specific_allocate(self, test_only=False):
         """
         Create sbatch file utilizing Beefile's defined 'requirements' then
@@ -39,18 +44,18 @@ class SlurmAdaptee:
         # Prepare SBATCH file
         # TODO: further document
         #######################################################################
-        if self._config_req is not None:
-            if self._config_req.get('ResourceRequirement') is not None:
+        if self._beefile_req is not None:
+            if self._beefile_req.get('ResourceRequirement') is not None:
                 self.__resource_requirement(temp_file=tmp_f)
             else:
                 self.blog.message("ResourceRequirement key is required for "
                                   "allocation", self._task_name, self.blog.err)
-            if self._config_req.get('SoftwareModules') is not None:
-                self._stm.software_modules(temp_file=tmp_f)
-            if self._config_req.get('EnvVarRequirements') is not None:
-                self._stm.env_variables(temp_file=tmp_f, input_mng=self._input_mng)
-            if self._config_req.get('CharliecloudRequirement') is not None:
-                self._stm.deploy_charliecloud(temp_file=tmp_f, ch_pre="srun")
+            if self._beefile_req.get('SoftwareModules') is not None:
+                self.stm.software_modules(temp_file=tmp_f)
+            if self._beefile_req.get('EnvVarRequirements') is not None:
+                self.stm.env_variables(temp_file=tmp_f, input_mng=self._input_mng)
+            if self._beefile_req.get('CharliecloudRequirement') is not None:
+                self.stm.deploy_charliecloud(temp_file=tmp_f, ch_pre="srun")
 
         self.__deploy_bee_orchestrator(temp_file=tmp_f)
 
@@ -66,29 +71,37 @@ class SlurmAdaptee:
         return out
 
     def specific_schedule(self):
+        # TODO: get sbatch --begin ?
         pass
 
     def specific_shutdown(self, job_id):
-        # TODO: add identify other requirements?
         cmd = ['scancel', job_id]
-        self._stm.run_popen_safe(cmd)
+        self.stm.run_popen_safe(cmd)
 
     def specific_move_file(self):
+        # TODO: identify requirements
         pass
 
     def specific_execute(self, command, system=None):
-        # TODO: add DB related steps?
-        cmd = ['srun'] + command
         if system is not None:
-            # TODO: think about how to approach
-            return self._stm.run_popen_safe(cmd)
+            return self.stm.run_popen_safe(system + command)
         else:  # run via SRUN (take responsibility)
-            return self._stm.run_popen_safe(cmd)
+            cmd = ['srun'] + command
+            return self.stm.run_popen_safe(cmd)
 
-    # private / supporting functions
+    @staticmethod
+    def specific_get_jobid():
+        return environ.get('SLURM_JOB_ID')
+
+    def specific_get_remote_orc(self):
+        return self.remote
+
+    ###########################################################################
+    # Protected/Private supporting functions
+    ###########################################################################
     def _run_sbatch(self, file):
         cmd = ['sbatch', file]
-        out = self._stm.run_popen_safe(command=cmd, err_exit=True)
+        out = self.stm.run_popen_safe(command=cmd, err_exit=True)
         str_out = (str(out))[:-3]
         return str_out.rsplit(" ", 1)[1]
 
@@ -98,7 +111,7 @@ class SlurmAdaptee:
         :param temp_file: Target sbatch file (named temp file)
         """
         for key, value in self.\
-                _config['requirements']['ResourceRequirement'].items():
+                _beefile['requirements']['ResourceRequirement'].items():
             if key == 'custom':
                 for f in value:
                     if type(f) is dict:
@@ -112,10 +125,11 @@ class SlurmAdaptee:
                 if gsl is not None:
                     temp_file.write(bytes(gsl + "\n", self._encode))
         # Set job-name equal if ID is available
-        j_id = self._config.get('id', None)
+        j_id = self._beefile.get('id', None)
         if j_id is not None:
             temp_file.write(bytes("#SBATCH --job-name={}".format(j_id),
                                   self._encode))
+        temp_file.write(bytes("\n", self._encode))
 
     @staticmethod
     def __generate_sbatch_line(key, value):
@@ -143,7 +157,6 @@ class SlurmAdaptee:
             return a + b + c
 
     def __deploy_bee_orchestrator(self, temp_file):
-        # TODO: re-write to account for log changes!
         """
         Scripting to launch bee_orchestrator, add to file
         :param temp_file: Target sbatch file (named temp file)

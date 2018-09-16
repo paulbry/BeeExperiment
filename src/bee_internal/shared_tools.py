@@ -1,47 +1,61 @@
 # system
 from subprocess import Popen, PIPE, CalledProcessError, STDOUT
+from bee_monitor.db_orc import OrchestratorDB
 
 
 class GlobalMethods(object):
-    def __init__(self, config, file_loc, task_name, beelog):
-        self._config = config
-        if self._config is not None:
-            self._config_req = self._config.get('requirements')
-        self._file_loc = file_loc
-        self._task_name = task_name
+    def __init__(self, beefile, task_name, beelog,
+                 bldaemon=None, job_id=None):
+
+        # constants
         self._encode = 'UTF-8'
 
-        # Logging conf. object -> BeeLogging(log, log_dest, quite)
-        self.blog = beelog
+        # task / configuration
+        self._beefile = beefile
+        self._beefile_req = self._beefile.get('requirements')
+        self._task_name = task_name
+        self._job_id = job_id
+
+        # objects
+        self.blog = beelog  # BeeLogging
+        self.orc_db = OrchestratorDB(self.blog)
+
+        # daemon for ORC control
+        self.remote = bldaemon
 
     def fetch_bf_val(self, dictionary, key, default=None,
-                     quit_err=False, silent=False):
-        # TODO: document
+                     quit_err=False, silent=False, status=99):
         try:
             return dictionary[key]
         except KeyError:
             if not quit_err:
+                msg = "User defined value for [{}] was not found, default" \
+                      " value: {} used.".format(key, default)
                 if not silent:
-                    self.blog.message("User defined value for [" +
-                                      str(key) + "] was not found, default value: "
-                                      + str(default) + " used.",
-                                      color=self.blog.warn)
+                    self.blog.message(msg=msg, color=self.blog.warn)
+                self.__fetch_orc_control(status, "fetch_bf_val()", msg, None, 0)
                 return default
             else:
-                self.blog.message("Key: " + str(key) + " was not found",
-                                  color=self.blog.err)
-            exit(1)
+                msg = "Key: {} was not found!".format(key)
+                self.blog.message(msg=msg, color=self.blog.err)
+                self.__fetch_orc_control(status, "fetch_bf_val()", None, msg, 1)
+
+    def __fetch_orc_control(self, status, cmd, out, err, code):
+        self.orc_db.new_orc(task_id=self._task_name,
+                            status=status, job_id=self._job_id,
+                            command=cmd, std_output=out,
+                            std_err=err, exit_status=code)
+        if code > 0:
+            if self.remote is not None:
+                self.remote.shutdown_daemon()
+            exit(code)
 
     def run_popen_safe(self, command, err_exit=True):
         """
-        Run defined command via Popen, try/except statements
-        built in and message output when appropriate
-        :param command: Command to be run
-        :param err_exit: Exit upon error, default True
-        :return: stdout from p.communicate() based upon results
-                    of command run via subprocess
-                None, error message returned if except reached
-                    and err_exit=False
+        Run command via Popen
+        :param command:
+        :param err_exit: Exit (w/status 1) on exception
+        :return: stdout on success, None on failure
         """
         self.blog.message("Executing: " + str(command))
         # TODO: improve for larger program requirements? Stream output?
@@ -64,10 +78,56 @@ class GlobalMethods(object):
                 exit(1)
             return None
 
+    ###########################################################################
+    # Orchestration / Runtime related methods
+    ###########################################################################
+    def run_popen_orc(self, command):
+        """
+        Run command (origniating with orchestration) via Popen
+        :param command:
+        :return: output, exitStatus
+        """
+        r_cmd = (''.join(str(x) + " " for x in command))
+        self.blog.message("Executing: {}".format(r_cmd))
+        # TODO: improve for larger program requirements? Stream output?
+        try:
+            p = Popen(command, stdout=PIPE, stderr=STDOUT)
+            out, err = p.communicate()
+            return out.decode('utf8'), p.returncode
+        except CalledProcessError as err:
+            return err, 1
+        except OSError as err:
+            return err, 1
+
+    def out_control(self, cmd, out, status):
+        """
+
+        :param cmd:
+        :param out:
+        :param status:
+        :return:
+        """
+        self.orc_db.new_orc(task_id=self._beefile,
+                            status=status, job_id=self._job_id,
+                            command=cmd, std_output=out,
+                            std_err=None, exit_status=0)
+
+    def err_control(self, code, cmd, out, err, status, err_exit=True):
+        self.blog.message(msg="Error during: {}\n{}".format(cmd, err), color=self.blog.err)
+        self.orc_db.new_orc(task_id=self._task_name,
+                            status=status, job_id=self._job_id,
+                            command=cmd, std_output=out,
+                            std_err=err, exit_status=code)
+        if code > 0 and err_exit:
+            self.remote.shutdown_daemon()
+            exit(code)
+
 
 class TranslatorMethods(GlobalMethods):
-    def __init__(self, config, file_loc, task_name, beelog):
-        GlobalMethods.__init__(self, config, file_loc, task_name, beelog)
+    def __init__(self, beefile, task_name, beelog, bldaemon=None,
+                 job_id=None):
+        GlobalMethods.__init__(self, beefile, task_name, beelog, bldaemon,
+                               job_id)
 
     ###########################################################################
     # General script generation modules utilized during allocation
@@ -80,7 +140,7 @@ class TranslatorMethods(GlobalMethods):
         """
         temp_file.write(bytes("\n# Load Modules\n", self._encode))
         for key, value in self. \
-                _config['requirements']['SoftwareModules'].items():
+                _beefile['requirements']['SoftwareModules'].items():
             module = "module load {}".format(key)
             if value is not None:
                 module += "/" + str(value.get('version', ''))
@@ -94,14 +154,14 @@ class TranslatorMethods(GlobalMethods):
         :param input_mng: InputMangement object
         """
         temp_file.write(bytes("\n# Environmental Requirements\n", self._encode))
-        env_dict = self._config_req['EnvVarRequirements']
-        for f in self.fetch_bf_val(env_dict, 'envDev', {}, False, True):
+        env_dict = self._beefile_req.get('EnvVarRequirements', {})
+        for f in env_dict.get('envDev', {}):
             for ok, ov in f.items():
                 export = "export {}={}:${}".format(input_mng.check_str(ok),
                                                    input_mng.check_str(ov),
                                                    input_mng.check_str(ok))
                 temp_file.write(bytes(export + "\n", 'UTF-8'))
-        for f in self.fetch_bf_val(env_dict, 'sourceDef', {}, False, True):
+        for f in env_dict.get('sourceDef', {}):
             if isinstance(f, dict):
                 for ok, ov in f.items():
                     source = "source {}".format(input_mng.check_str(ok))
@@ -117,10 +177,8 @@ class TranslatorMethods(GlobalMethods):
                     e.g srun
         """
         temp_file.write(bytes("\n# Deploy Charliecloud Containers\n", self._encode))
-        # TODO: better error handling?
-        # TODO: options for build/pull?
-        for cc in self._config_req['CharliecloudRequirement']:
-            cc_task = self._config_req['CharliecloudRequirement'][cc]
+        for cc in self._beefile_req.get('CharliecloudRequirement', {}):
+            cc_task = self._beefile_req['CharliecloudRequirement'][cc]
             if ch_pre is not None:
                 cc_deploy = str(ch_pre) + " ch-tar2dir "
             else:
@@ -128,8 +186,3 @@ class TranslatorMethods(GlobalMethods):
             cc_deploy += str(cc_task['source']) + " " \
                          + str(cc_task.get('tarDir', '/var/tmp')) + "\n"
             temp_file.write(bytes(cc_deploy, self._encode))
-
-
-class GeneralMethods(GlobalMethods):
-    def __init__(self, beelog):
-        GlobalMethods.__init__(self, None, None, None, beelog)
