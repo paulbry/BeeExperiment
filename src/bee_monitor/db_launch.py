@@ -2,93 +2,43 @@
 import ast
 import sqlite3
 from os import path
+# project
+from .db_tools import SharedDBTools
 
 
-class LaunchDB(object):
+class LaunchDB(SharedDBTools):
     def __init__(self, beelog):
-        # Database Tracking (atm hardcoded location!)
-        self._db_full = path.expanduser('~') + "/.bee/launcher.db"
-        self.__db_conn = None
-        self.blog = beelog
+        SharedDBTools.__init__(self, beelog, path.expanduser('~') + "/.bee/launcher.db")
 
     def query_all(self):
         """
         Query launcher table for all entries and print in human-readable form
         SELECT * FROM launcher ORDER BY time ASC
         """
-        cmd = "SELECT * FROM launcher ORDER BY time ASC"
-        cursor = self.__connect_db()
-        if self.execute_query(cursor, cmd):
-            for line in cursor.fetchall():
-                self.__print_all(line)
-        self.__close_db()
-
-    def delete_all(self):
-        """
-        Remove all entries from the launcher table
-        """
-        cmd = "DELETE FROM launcher"
-        cursor = self.__connect_db()
-        if self.execute_query(cursor, cmd):
-            self.blog.message("All records deleted from launcher table",
-                              color=self.blog.dbase)
-        self.__close_db()
+        self._exec_query_all('launcher')
 
     def query_all_specific(self, index, value):
         """
         Query launcher table for all entries and print in human-readable forme
         SELECT * FROM launcher WHERE <index>=<value>
         """
-        cmd = "SELECT * FROM launcher WHERE {}='{}'".format(
-            index, value
-        )
-        cursor = self.__connect_db()
-        if self.execute_query(cursor, cmd):
-            for line in cursor.fetchall():
-                self.__print_all(line)
-        self.__close_db()
+        self._exec_query_all_specific('launcher', index, value)
 
     def query_value(self, index, value, result="*"):
         """
         Query launcher table for
-        SELECT <result> FROM launcher WHERE <index> = <value>
+        SELECT <result> FROM <db> WHERE <index> = <value>
         """
-        cmd = "SELECT {} FROM launcher WHERE {}={}".format(
-            result, index, str(value)
-        )
-        cursor = self.__connect_db()
-        if self.execute_query(cursor, cmd):
-            r = cursor.fetchone()[0]
-        else:
-            r = None
-        self.__close_db()
+        r = self._exec_query_value('launcher', index, value, result)
         return r
 
-    def execute_query(self, cursor, cmd):
-        try:
-            cursor.execute(cmd)
-            return True
-        except sqlite3.Error as e:
-            self.blog.message("Error during: {}\n".format(cmd) + repr(e),
-                              self._db_full, self.blog.err)
-            return False
-        except sqlite3.OperationalError as e:
-            self.blog.message("Error during: {}\n".format(cmd) + repr(e),
-                              self._db_full, self.blog.err)
-            return False
-
-    def _clean_dict(self, d, indent=1):
+    def delete_all(self):
         """
-        Print (to console) the Python dicationary passed (d).
+        Remove all entries from the specified table
         """
-        for key, value in d.items():
-            if isinstance(value, dict):
-                self.blog.message('\t' * indent + str(key) + ":")
-                self._clean_dict(value, indent + 1)
-            else:
-                self.blog.message('\t' * indent + str(key) + ": " + str(value))
+        self._exec_delete_all('launcher')
 
-    def __print_all(self, line):
+    def print_all(self, line):
         """
         Print data from launcher.db in readable format
         :param line: single line from SELECT * FROM launcher
@@ -114,15 +64,6 @@ class LaunchDB(object):
             print(line[13])
             self._clean_dict(ast.literal_eval(line[13]))
 
-    def __connect_db(self):
-        self.__db_conn = sqlite3.connect(self._db_full)
-        return self.__db_conn.cursor()
-
-    def __close_db(self, commit=True):
-        if commit:
-            self.__db_conn.commit()
-        self.__db_conn.close()
-
     ###########################################################################
     # launcher table
     ###########################################################################
@@ -138,7 +79,7 @@ class LaunchDB(object):
         NOTE: creating the launcher table (if required) will be handled
         automatically.
         """
-        c = self.__connect_db()
+        c = self._connect_db()
         self.__launcher_table(c)
         self.__insert_launch_event(cursor=c, job_id=job_id, b_class=b_class,
                                    b_rjms=b_rjms, status=status, error=error,
@@ -150,7 +91,7 @@ class LaunchDB(object):
                                    beeflow_full=beeflow_full,
                                    allocation_script=allocation_script,
                                    input_values=input_values)
-        self.__close_db()
+        self._close_db()
 
     def __launcher_table(self, cursor):
         cmd = "CREATE TABLE IF NOT EXISTS launcher " \
@@ -170,7 +111,7 @@ class LaunchDB(object):
               "inputValues TEXT," \
               "time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL)"
         if self.execute_query(cursor, cmd):
-            self.__db_conn.commit()
+            self._db_conn.commit()
 
     def __insert_launch_event(self, cursor, job_id, b_class, b_rjms=None,
                               status=None, error=None, beefile_name=None,
@@ -208,7 +149,7 @@ class LaunchDB(object):
                             str(error),
                             str(allocation_script),
                             str(input_values)))
-            self.__db_conn.commit()
+            self._db_conn.commit()
         except sqlite3.Error as e:
             self.blog.message("Error during: insert_launch_event\n" + repr(e),
                               self._db_full, self.blog.err)
