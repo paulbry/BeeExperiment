@@ -3,7 +3,6 @@ from os import path
 # project
 from bee_internal.beefile_manager import BeefileLoader, BeefileExamine, \
     YMLLoader
-from bee_internal.shared_tools import GeneralMethods
 from bee_monitor.db_launch import LaunchDB
 from .launcher_translator import Adapter
 from bee_internal.in_out_manage import InputManagement
@@ -12,7 +11,6 @@ from bee_internal.in_out_manage import InputManagement
 class BeeLauncher(object):
     def __init__(self, beelog):
         self.blog = beelog  # Logging configuration object
-        self.gen = GeneralMethods(self.blog)
 
     def launch(self, beefile, task_name, file_loc,
                test_only=False, input_mng=None):
@@ -23,12 +21,11 @@ class BeeLauncher(object):
         :param task_name: Name of beefile as provided via command
         :param file_loc: Full path to beefile
         :param test_only: boolean
-        :param input_val_file: User provided input yml file (filename.yml)
+        :param input_mng: User provided input yml file (filename.yml)
                                 Not opened during launch step, used during
                                 orchestration
         """
-        b_class = self.gen.fetch_bf_val(dictionary=beefile, key='class',
-                                        quit_err=True)
+        b_class = beefile.get('class')
         try:  # ResourceRequirements not required when using localhost
             b_rjms = beefile['requirements']['ResourceRequirement']['manageSys']
         except KeyError:
@@ -38,7 +35,8 @@ class BeeLauncher(object):
                               "\n\tClass: {}".format(b_class)
                               + "\n\tManageSys: {}".format(b_rjms)
                               + "\n\tTask: {}".format(task_name),
-                          task_name=task_name, color=self.blog.msg)
+                          task_name=task_name,
+                          color=self.blog.msg)
 
         adapt = Adapter(system=b_rjms, config=beefile, file_loc=file_loc,
                         task_name=task_name, beelog=self.blog,

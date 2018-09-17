@@ -54,13 +54,8 @@ def verify_single_beeflow(potential_file):
 # https://docs.python.org/2.7/library/argparse.html
 ###############################################################################
 def launch_default(args):
-    bee_args = None
     bl = BeeLogging(args.logflag, args.log_dest, args.quite)
-    try:
-        bee_args = BeeArguments(bl)
-    except Exception as err:
-        bl.message("Error during launch\n{}".format(err), color=bl.err)
-        exit(1)
+    bee_args = BeeArguments(bl)
 
     # execute task if argument is present
     # exclusivity rules are managed by argparse groups

@@ -1,8 +1,11 @@
 # system
 import abc
+import Pyro4
+from pwd import getpwuid
+from os import getuid, path
+from json import load
 # project
 from bee_internal.tar_localhost import LocalhostAdaptee
-from bee_internal.tar_ssh import SSHAdaptee
 from bee_internal.tar_slurm import SlurmAdaptee
 
 
@@ -19,6 +22,12 @@ class Target(metaclass=abc.ABCMeta):
 
         self._input_mng = input_mng
 
+        # Pyro4
+        self._port = self.__pyro_port()
+        ns = Pyro4.locateNS(port=self._port, hmac_key=getpwuid(getuid())[0])
+        uri = ns.lookup("bee_launcher.daemon")
+        self.remote = Pyro4.Proxy(uri)
+
         # Beefile related
         self._config = config
         self._file_loc = file_loc
@@ -31,15 +40,11 @@ class Target(metaclass=abc.ABCMeta):
         if self.__system == "slurm":
             self._adaptee = SlurmAdaptee(self._config, self._file_loc,
                                          self._task_name, self.blog,
-                                         self._input_mng)
-        elif self.__system == "ssh":
-            self._adaptee = SSHAdaptee(self._config, self._file_loc,
-                                       self._task_name, self.blog,
-                                       self._input_mng)
+                                         self._input_mng, self.remote)
         elif self.__system == "localhost":
             self._adaptee = LocalhostAdaptee(self._config, self._file_loc,
                                              self._task_name, self.blog,
-                                             self._input_mng)
+                                             self._input_mng, self.remote)
         else:
             self.blog.message("Unable to support target system: {}".format(self.__system),
                               color=self.blog.err)
@@ -57,6 +62,25 @@ class Target(metaclass=abc.ABCMeta):
     def move_file(self):
         pass
 
+    @abc.abstractmethod
+    def get_jobid(self):
+        pass
+
+    @abc.abstractmethod
+    def get_remote_orc(self):
+        pass
+
+    @staticmethod
+    def __pyro_port():
+        """
+        Return port used by daemon (Pyro4)
+        """
+        conf_file = str(path.expanduser('~')) + "/.bee/port_conf.json"
+        with open(conf_file, 'r') as fc:
+            data = load(fc)
+            port = data["pyro4-ns-port"]
+        return port
+
 
 class Adapter(Target):
     """
@@ -71,3 +95,9 @@ class Adapter(Target):
 
     def move_file(self):
         self._adaptee.specific_move_file()
+
+    def get_jobid(self):
+        return self._adaptee.specific_get_jobid()
+
+    def get_remote_orc(self):
+        return self._adaptee.specific_get_remote_orc()

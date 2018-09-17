@@ -5,12 +5,14 @@ from threading import Thread, Event
 from pwd import getpwuid
 from json import load
 # project
-from bee_internal.shared_tools import GeneralMethods
+from bee_launcher.bee_launch import BeeArguments
 
 
 class BeeTask(Thread):
     def __init__(self, task_id, beefile, beelog, input_mng):
         Thread.__init__(self)
+
+        self._current_status = 00
 
         # Task configuration
         self.platform = None
@@ -21,11 +23,12 @@ class BeeTask(Thread):
         self._task_id = task_id
         self._task_label = self._beefile.get('label', 'BEE: {}'.
                                              format(self._task_id))
+        self._job_id = None
+        self.global_m = None
 
         # Logging conf. object -> BeeLogging(log, log_dest, quite)
         self.blog = beelog
         self._input_mng = input_mng
-        self._g_share = GeneralMethods(self.blog)
 
         # System configuration
         self._user_name = getpwuid(getuid())[0]
@@ -123,51 +126,33 @@ class BeeTask(Thread):
     # e.g. srun -n 8 chrun -w --no-home /var/tmp/alpine -- sh hello.sh
     # TODO: clean up documentation
     ###########################################################################
-    def _bee_tasks(self, bf_tasks, container_conf=None):
-        for task in bf_tasks:
-            cmd = []
-            try:
-                for wb in task:
-                    system = self._workers_system(self._g_share.fetch_bf_val(task[wb],
-                                                  'system', None, False, True))
-                    if container_conf is not None and task[wb].get('container') is not None:
-                        cmd += self._workers_containers(container_conf, task[wb])
-                    cmd.append(wb)
-                    cmd += self._workers_flags(self._g_share.fetch_bf_val(task[wb],
-                                               'flags', {}, False, True))
-                    self.blog.message("Executing: " + str(cmd), self._task_id,
-                                      self.blog.msg)
+    def _bee_tasks(self, bf_task, container_conf=None):
+        try:
+            for wb in bf_task:
+                cmd = []
+                system = self._workers_system(bf_task[wb].get('system', None))
+                if container_conf is not None and bf_task[wb].get('container') is not None:
+                    cmd += self._workers_containers(container_conf, bf_task[wb])
+                cmd.append(wb)
+                cmd += self._workers_flags(bf_task[wb].get('flags', {}))
+                self.blog.message("Executing: " + str(cmd), self._task_id,
+                                  self.blog.msg)
+                out, code = self._sys_adapter.execute(cmd, system)
+                return [out, code, cmd, bf_task[wb].get('output')]
 
-                    out = self._sys_adapter.execute(cmd, system)
-                    if out is not None and task[wb].get('output') is not None:
-                        self._input_mng.update_vars(task[wb].get('output'), out)
-            except KeyError as e:
-                self.blog.message("Error while configuring workerBee specifed "
-                                  "tasks.\n{}".format(repr(e)), self._task_id,
-                                  self.blog.err)
-                exit(1)
+        except KeyError as e:
+            msg = "Error while configuring workerBee specified " \
+                  "tasks.\n{}".format(repr(e))
+            self.blog.message(msg, self._task_id, self.blog.err)
+            return [msg, 1, None, None]
 
     def _workers_containers(self, cont_conf, task_conf):
         name = task_conf['container'].get('name', next(iter(cont_conf)))
         cmd = ['ch-run']
         for f in cont_conf[name].get('defaultFlags', {}):
-            if isinstance(f, dict):
-                for ok, ov in f.items():
-                    cmd.append(self._input_mng.check_str(ok))
-                    if ov is not None:
-                        cmd.append(self._input_mng.check_str(ov))
-            else:
-                cmd.append(self._input_mng.check_str(f))
-
+            self.__parse_dict(f, cmd)
         for f in task_conf['container'].get('flags', {}):
-            if isinstance(f, dict):
-                for ok, ov in f.items():
-                    cmd.append(self._input_mng.check_str(ok))
-                    if ov is not None:
-                        cmd.append(self._input_mng.check_str(ov))
-            else:
-                cmd.append(self._input_mng.check_str(f))
-
+            self.__parse_dict(f, cmd)
         loc = self._input_mng.check_str(cont_conf[name].get('tarDir', '/var/tmp'))
         cmd.append(loc + "/" + self._input_mng.check_str(name))
         cmd.append("--")
@@ -181,25 +166,21 @@ class BeeTask(Thread):
                 return cmd
             else:
                 cmd.append(tar)
-            for f in self._g_share.fetch_bf_val(sys, 'flags', {},
-                                                False, True):
-                if isinstance(f, dict):
-                    for ok, ov in f.items():
-                        cmd.append(self._input_mng.check_str(ok))
-                        if ov is not None:
-                            cmd.append(self._input_mng.check_str(ov))
-                else:
-                    cmd.append(self._input_mng.check_str(f))
+            for f in sys.get('flags', {}):
+                self.__parse_dict(f, cmd)
         return cmd
 
     def _workers_flags(self, flags):
         cmd = []
         for f in flags:
-            if isinstance(f, dict):
-                for ok, ov in f.items():
-                    cmd.append(self._input_mng.check_str(ok))
-                    if ov is not None:
-                        cmd.append(self._input_mng.check_str(ov))
-            else:
-                cmd.append(self._input_mng.check_str(f))
+            self.__parse_dict(f, cmd)
         return cmd
+
+    def __parse_dict(self, f, cmd):
+        if isinstance(f, dict):
+            for k, v in f.items():
+                cmd.append(self._input_mng.check_str(k))
+                if v is not None:
+                    cmd.append(self._input_mng.check_str(v))
+        else:
+            cmd.append(self._input_mng.check_str(f))

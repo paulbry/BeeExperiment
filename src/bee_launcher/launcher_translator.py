@@ -2,7 +2,6 @@
 import abc
 # project
 from bee_internal.tar_slurm import SlurmAdaptee
-from bee_internal.tar_ssh import SSHAdaptee
 from bee_internal.tar_localhost import LocalhostAdaptee
 
 
@@ -12,19 +11,16 @@ class Target(metaclass=abc.ABCMeta):
     """
     def __init__(self, system, config, file_loc, task_name, beelog,
                  input_mng):
+        # task / configuration
         self.__system = str(system).lower()
-
-        # Logging conf. object -> BeeLogging(log, log_dest, quite)
-        self.blog = beelog
-
-        # Beefile related
         self._config = config
         self._file_loc = file_loc
         self._task_name = task_name
+        self.remote = None
 
-        # Input file with user provided values
+        # objects
+        self.blog = beelog  # BEE_LOGGING
         self._input_mng = input_mng
-
         self._adaptee = None
         self.update_adaptee()
 
@@ -32,22 +28,16 @@ class Target(metaclass=abc.ABCMeta):
         if self.__system == "slurm":
             self._adaptee = SlurmAdaptee(self._config, self._file_loc,
                                          self._task_name, self.blog,
-                                         self._input_mng)
+                                         self._input_mng, self.remote)
 
-        elif self.__system == "ssh":
-            self._adaptee = SSHAdaptee(self._config, self._file_loc,
-                                       self._task_name, self.blog,
-                                       self._input_mng)
         elif self.__system == "localhost":
             self._adaptee = LocalhostAdaptee(self._config, self._file_loc,
                                              self._task_name, self.blog,
-                                             self._input_mng)
+                                             self._input_mng, self.remote)
         else:
-            self.blog.message("Unable to support target system: " + self.__system
-                              + " attempting localhost.", color=self.blog.warn)
-            self._adaptee = LocalhostAdaptee(self._config, self._file_loc,
-                                             self._task_name, self.blog,
-                                             self._input_mng)
+            self.blog.message("Unable to support target system: {}".format(self.__system),
+                              color=self.blog.err)
+            exit(1)
 
     @abc.abstractmethod
     def allocate(self, test_only=False):

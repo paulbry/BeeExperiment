@@ -107,7 +107,7 @@ class GlobalMethods(object):
         :param status:
         :return:
         """
-        self.orc_db.new_orc(task_id=self._beefile,
+        self.orc_db.new_orc(task_id=self._task_name,
                             status=status, job_id=self._job_id,
                             command=cmd, std_output=out,
                             std_err=None, exit_status=0)
