@@ -1,19 +1,40 @@
-{
-  "task_conf": {
-      "task_name": "vpic",
-      "exec_target": "bee_charliecloud",
-      "mpi_run": [
-	  {
-        "script": "harris_run.sh"
-	  }
-      ]
-  }, 
-  "container_conf":{
-      "container_path": "/scratch/beedev/vpic/vpic.tar.gz"
-  },
-  "exec_env_conf": {
-      "bee_charliecloud": {
-	  "node_list": ["cn31", "cn32"]
-      }
-  }
-}
+id: vpic-ex
+class: BEE-Charliecloud
+label: VPIC example
+requirements:
+  ResourceRequirement:
+    numNodes: 2
+    jobTime: "00:20:00"
+    manageSys: slurm
+  SoftwareModules:
+    python:
+      version: 3.6-anaconda-5.0.1
+    friendly-testing:
+    charliecloud:
+    openmpi:
+      version: 1.10.5
+  EnvVarRequirements:
+    envDef:
+      - PATH: $HOME/.local/bin
+    sourceDef:
+      - activate: bxp
+  CharliecloudRequirement:
+    vpic:
+      source: /usr/projects/beedev/vpic/vpic.tar.gz
+      tarDir: /var/tmp
+      deleteAfter: True
+      defaultFlags:
+        - -w
+        - --no-home
+workerBees:
+  - Task:
+      - ./short_sequoia.Linux:
+          container:
+            name: vpic
+            flags:
+              - -c: /vpic-build/ch-tests/lyin_sequoia
+      - ./harris.Linux:
+          container:
+            name: vpic
+            flags:
+              - -c: /vpic-build/ch-tests/harris
