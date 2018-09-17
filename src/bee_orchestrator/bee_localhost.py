@@ -101,7 +101,7 @@ class BeeLocalhostLauncher(BeeTask):
     def execute_base(self):
         cmd = self._input_mng.prepare_base_cmd(self._beefile.get('baseCommand'))
         if cmd is not None:
-            out = self._sys_adapter.execute(cmd)
+            out = self._sys_adapter.execute(cmd, None, False)
 
     def terminate(self, clean=False):
         if clean:

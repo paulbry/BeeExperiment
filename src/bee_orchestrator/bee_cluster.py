@@ -172,13 +172,21 @@ class BeeTask(Thread):
             for wb in bf_task:
                 cmd = []
                 system = self._workers_system(bf_task[wb].get('system', None))
+                if bf_task[wb].get('output') is not None:
+                    capture_out = True
+                else:
+                    capture_out = False
+
                 if container_conf is not None and bf_task[wb].get('container') is not None:
                     cmd += self._workers_containers(container_conf, bf_task[wb])
                 cmd.append(wb)
                 cmd += self._workers_flags(bf_task[wb].get('flags', {}))
-                self.blog.message("Executing: " + str(cmd), self._task_id,
+
+                r_cmd = (''.join(str(x) + " " for x in cmd))
+                self.blog.message("Executing: {}".format(r_cmd), self._task_id,
                                   self.blog.msg)
-                out, code = self._sys_adapter.execute(cmd, system)
+
+                out, code = self._sys_adapter.execute(cmd, system, capture_out)
                 return [out, code, cmd, bf_task[wb].get('output')]
 
         except KeyError as e:

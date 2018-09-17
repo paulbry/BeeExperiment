@@ -82,11 +82,11 @@ class LocalhostAdaptee:
         # TODO: identify requirements
         pass
 
-    def specific_execute(self, command, system):
+    def specific_execute(self, command, system=None, capture_out=True):
         if system:
-            return self.stm.run_popen_orc(system + command)
+            return self.stm.run_popen_orc(system + command, capture_out)
         else:  # run via localhost (take responsibility)
-            return self.stm.run_popen_orc(command)
+            return self.stm.run_popen_orc(command, capture_out)
 
     @staticmethod
     def specific_get_jobid():

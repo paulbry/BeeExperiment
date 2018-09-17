@@ -57,7 +57,8 @@ class GlobalMethods(object):
         :param err_exit: Exit (w/status 1) on exception
         :return: stdout on success, None on failure
         """
-        self.blog.message("Executing: " + str(command))
+        r_cmd = (''.join(str(x) + " " for x in command))
+        self.blog.message("Executing: {}".format(r_cmd))
         # TODO: improve for larger program requirements? Stream output?
         try:
             p = Popen(command, stdout=PIPE, stderr=STDOUT)
@@ -81,19 +82,20 @@ class GlobalMethods(object):
     ###########################################################################
     # Orchestration / Runtime related methods
     ###########################################################################
-    def run_popen_orc(self, command):
+    def run_popen_orc(self, command, cap_out):
         """
         Run command (origniating with orchestration) via Popen
         :param command:
         :return: output, exitStatus
         """
-        r_cmd = (''.join(str(x) + " " for x in command))
-        self.blog.message("Executing: {}".format(r_cmd))
         # TODO: improve for larger program requirements? Stream output?
         try:
             p = Popen(command, stdout=PIPE, stderr=STDOUT)
             out, err = p.communicate()
-            return out.decode('utf8'), p.returncode
+            if cap_out:
+                return out.decode('utf8'), p.returncode
+            else:
+                return "No output captured", p.returncode
         except CalledProcessError as err:
             return err, 1
         except OSError as err:

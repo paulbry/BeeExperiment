@@ -51,7 +51,7 @@ class Target(metaclass=abc.ABCMeta):
             exit(1)
 
     @abc.abstractmethod
-    def execute(self, command, system=None):
+    def execute(self, command, system=None, capture_out=True):
         pass
 
     @abc.abstractmethod
@@ -91,8 +91,9 @@ class Adapter(Target):
     Adapt the interface of adaptee to the target request
     """
 
-    def execute(self, command, system=None):
-        return self._adaptee.specific_execute(command, system=None)
+    def execute(self, command, system=None, capture_out=True):
+        return self._adaptee.specific_execute(command, system=None,
+                                              capture_out=True)
 
     def shutdown(self):
         self._adaptee.specific_shutdown()
