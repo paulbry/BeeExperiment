@@ -10,7 +10,7 @@ from bee_logging.bee_log import BeeLogging
 # Database are currently hardcoded across the application
 mon_homedir = path.expanduser('~')
 mon_db_launch = mon_homedir + "/.bee/launcher.db"
-mon_db_orchestrator = mon_homedir + "/.bee/orchestrator.db"
+mon_db_orchestrator = mon_homedir + "/.bee/orc.db"
 
 
 # Parser supporting functions
@@ -60,7 +60,7 @@ def orc_default(args):
     try:
         odb = OrchestratorDB(BeeLogging(log=False, log_dest=None, quite=False))
     except Exception as e:
-        cprint("Unable to load LaunchDB supporting class", "red")
+        cprint("Unable to load OrchestratorDB supporting class", "red")
         print(str(e))
         exit(1)
 
@@ -89,9 +89,9 @@ parser = argparse.ArgumentParser(description="BEE Monitor\n"
 #   orchestrator -> bee-orchestrator
 ###############################################################################
 subparser = parser.add_subparsers(title="Monitoring Targets")
-sub_launch_group = subparser.add_parser("launcher",
+sub_launch_group = subparser.add_parser("launch",
                                         help="Details from bee-launcher")
-sub_orc_group = subparser.add_parser("orchestrator",
+sub_orc_group = subparser.add_parser("orc",
                                      help="Details from bee-orchestrator")
 
 ###############################################################################

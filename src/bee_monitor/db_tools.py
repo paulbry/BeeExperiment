@@ -10,7 +10,6 @@ class SharedDBTools(object):
         self._db_full = db_full
         self._db_conn = None
 
-
     # PUBLIC
     def execute_query(self, cursor, cmd):
         try:

@@ -8,27 +8,28 @@ from .db_tools import SharedDBTools
 class OrchestratorDB(SharedDBTools):
     def __init__(self, beelog):
         SharedDBTools.__init__(self, beelog, path.expanduser('~') + "/.bee/orc.db")
+        self.table = 'orchestrator'
 
     def query_all(self):
         """
         Query launcher table for all entries and print in human-readable form
         SELECT * FROM launcher ORDER BY time ASC
         """
-        self._exec_query_all('orchestrator')
+        self._exec_query_all(self.table)
 
     def query_all_specific(self, index, value):
         """
         Query launcher table for all entries and print in human-readable forme
         SELECT * FROM launcher WHERE <index>=<value>
         """
-        self._exec_query_all_specific('orchestrator', index, value)
+        self._exec_query_all_specific(self.table, index, value)
 
     def query_value(self, index, value, result="*"):
         """
         Query launcher table for
         SELECT <result> FROM <db> WHERE <index> = <value>
         """
-        r = self._exec_query_value('orchestrator', index, value, result)
+        r = self._exec_query_value(self.table, index, value, result)
         return r
 
     def print_all(self, line):
@@ -50,7 +51,7 @@ class OrchestratorDB(SharedDBTools):
         """
         Remove all entries from the specified table
         """
-        self._exec_delete_all('orchestrator')
+        self._exec_delete_all(self.table)
 
     ###########################################################################
     # orchestrator table
@@ -66,16 +67,17 @@ class OrchestratorDB(SharedDBTools):
         self._close_db()
 
     def __orc_table(self, cursor):
-        cmd = "CREATE TABLE IF NOT EXISTS orchestrator " \
+        cmd = "CREATE TABLE IF NOT EXISTS {} " \
               "(tableID INTEGER PRIMARY KEY, " \
               "taskID TEXT NOT NULL, " \
-              "status TEXT NOT NULL, " \
+              "status INTEGER NOT NULL, " \
               "jobID TEXT, " \
               "command TEXT, " \
               "stdOutput TEXT, " \
               "stdErr TEXT, " \
               "exitStatus TEXT, " \
-              "time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL)"
+              "time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT " \
+              "NULL)".format(self.table)
         if self.execute_query(cursor, cmd):
             self._db_conn.commit()
 
@@ -84,7 +86,7 @@ class OrchestratorDB(SharedDBTools):
                            std_output=None, std_err=None, exit_status=None):
 
         try:
-            cursor.execute("INSERT INTO launcher ("
+            cursor.execute("INSERT INTO orchestrator ("
                            "taskID, "
                            "status, "
                            "jobID, "
@@ -93,17 +95,17 @@ class OrchestratorDB(SharedDBTools):
                            "stdErr, "
                            "exitStatus) "
                            "VALUES (?, ?, ?, ?, ?, ?, ?)",
-                           (task_id,
+                           (str(task_id),
                             status,
-                            job_id,
-                            command,
+                            str(job_id),
+                            str(command),
                             std_output,
                             std_err,
                             str(exit_status)))
             self._db_conn.commit()
         except sqlite3.Error as e:
-            self.blog.message("Error during: insert_launch_event\n" + repr(e),
+            self.blog.message("Error during: insert_orc_event\n" + repr(e),
                               self._db_full, self.blog.err)
         except sqlite3.OperationalError as e:
-            self.blog.message("Error during: insert_launch_event\n" + repr(e),
+            self.blog.message("Error during: insert_orc_event\n" + repr(e),
                               self._db_full, self.blog.err)
