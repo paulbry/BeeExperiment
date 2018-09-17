@@ -31,7 +31,7 @@ class SharedDBTools(object):
         cmd = "DELETE FROM {}".format(table_name)
         cursor = self._connect_db()
         if self.execute_query(cursor, cmd):
-            self.blog.message("All records deleted from launcher table",
+            self.blog.message("All records deleted from {} table".format(table_name),
                               color=self.blog.dbase)
         self._close_db()
 
