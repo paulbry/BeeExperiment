@@ -172,6 +172,7 @@ class BeeTask(Thread):
             for wb in bf_task:
                 cmd = []
                 system = self._workers_system(bf_task[wb].get('system', None))
+
                 if bf_task[wb].get('output') is not None:
                     capture_out = True
                 else:

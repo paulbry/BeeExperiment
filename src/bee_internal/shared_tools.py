@@ -63,8 +63,6 @@ class GlobalMethods(object):
         try:
             p = Popen(command, stdout=PIPE, stderr=STDOUT)
             out, err = p.communicate()
-            self.blog.message("\tstdout: {}".format(repr(out)))
-            self.blog.message("\tstderr: {}".format(repr(err)))
             return out.decode('utf8')
         except CalledProcessError as e:
             self.blog.message(msg="Error during - " + str(command) + "\n" +
@@ -93,13 +91,8 @@ class GlobalMethods(object):
         try:
             p = Popen(command, stdout=PIPE, stderr=STDOUT)
             out, err = p.communicate()
-            if out:
-                self.blog.message(out)
-            if err:
-                self.blog.message(err)
-
             if cap_out:
-                return str(out.decode('utf8')), p.returncode
+                return out.decode('utf8'), p.returncode
             else:
                 return "No output captured", p.returncode
         except CalledProcessError as err:

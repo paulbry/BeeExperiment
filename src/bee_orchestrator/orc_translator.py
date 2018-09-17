@@ -92,8 +92,8 @@ class Adapter(Target):
     """
 
     def execute(self, command, system=None, capture_out=True):
-        return self._adaptee.specific_execute(command, system=None,
-                                              capture_out=True)
+        return self._adaptee.specific_execute(command, system=system,
+                                              capture_out=capture_out)
 
     def shutdown(self):
         self._adaptee.specific_shutdown()
