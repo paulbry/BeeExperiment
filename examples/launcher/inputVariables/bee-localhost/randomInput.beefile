@@ -30,11 +30,11 @@ requirements:
       sourceDef:
         - activate: bxp
 workerBees:
-    - generate.sh:
-        program:
-            name: sh
-        flags:
-          - -f: ${another_file}$
-        output: example_string
+    - Task:
+      - bash:
+          flags:
+            - generate.sh
+            - -f: ${another_file}$
+          output: example_string
 terminateAfter: true
 baseCommand: bash

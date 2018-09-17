@@ -8,8 +8,9 @@ requirements:
       sourceDef:
         - activate: bxp
 workerBees:
-    - helloTime.sh:
-        program:
-          system: sh
+    - Task:
+      - sh:
+          flags:
+            - helloTime.sh
 terminateAfter: true
 baseCommand: env

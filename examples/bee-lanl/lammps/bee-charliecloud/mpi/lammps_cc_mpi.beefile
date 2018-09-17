@@ -1,0 +1,53 @@
+id: lammpsExample
+class: BEE-Charliecloud
+label: LAMMPS example from https://github.com/lanl/BEE
+requirements:
+  ResourceRequirement:
+    manageSys: slurm
+    numNodes: 1
+    jobTime: "00:30:00"
+  SoftwareModules:
+    friendly-testing:
+    charliecloud:
+    python:
+      version: 3.6-anaconda-5.0.1
+    openmpi:
+      version: 1.10.5
+  EnvVarRequirements:
+    envDef:
+    - PATH: $HOME/.local/bin
+    sourceDef:
+    - activate: bxp
+  CharliecloudRequirement:
+    lammps:
+      source: /usr/projects/beedev/lammps/mpi_1.10/lammps.tar.gz
+      tarDir: /var/tmp
+      removeAfter: true
+workerBees:
+  - Task:
+    - mkdir:
+        flags:
+          - -b: output
+        system:
+          manageSys: localhost
+    - sh:
+        flags:
+          - lammps_cc_mpi_1.sh
+        system:
+          manageSys: mpirun
+          flags:
+            - -map-by: "ppr:4:socket"
+            - --nodes=${mpi_1_nodes}$
+    - sh:
+        flags:
+          - lammps_cc_mpi_1.sh
+        system:
+          manageSys: mpirun
+          flags:
+            - -map-by: "ppr:4:socket"
+            - --nodes=${mpi_2_nodes}$
+    - sh:
+        flags:
+          - lammps_cc_mpi_3.sh
+        system:
+          manageSys: mpirun
