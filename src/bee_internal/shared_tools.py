@@ -86,14 +86,20 @@ class GlobalMethods(object):
         """
         Run command (origniating with orchestration) via Popen
         :param command:
+        :param cap_out:
         :return: output, exitStatus
         """
         # TODO: improve for larger program requirements? Stream output?
         try:
             p = Popen(command, stdout=PIPE, stderr=STDOUT)
             out, err = p.communicate()
+            if out:
+                self.blog.message(out)
+            if err:
+                self.blog.message(err)
+
             if cap_out:
-                return out.decode('utf8'), p.returncode
+                return str(out.decode('utf8')), p.returncode
             else:
                 return "No output captured", p.returncode
         except CalledProcessError as err:

@@ -109,7 +109,7 @@ class BeeCharliecloudLauncher(BeeTask):
         # TODO: support output in accordance with OWL
         cmd = self._input_mng.prepare_base_cmd(self._beefile.get('baseCommand'))
         if cmd is not None:
-            out = self._sys_adapter.execute(cmd, None, False)
+            out, code = self._sys_adapter.execute(cmd, None, False)
 
     def terminate(self, clean=False):
         if clean:
