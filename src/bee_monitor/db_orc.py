@@ -45,7 +45,8 @@ class OrchestratorDB(SharedDBTools):
         self.blog.message("stdOut: {}".format(line[5]))
         self.blog.message("stdErr: {}".format(line[6]))
         self.blog.message("exitStatus: {}".format(line[7]))
-        self.blog.message("timeStamp: {}".format(line[8]))
+        self.blog.message("event: {}".format(line[8]))
+        self.blog.message("timeStamp: {}".format(line[9]))
 
     def delete_all(self):
         """
@@ -58,12 +59,14 @@ class OrchestratorDB(SharedDBTools):
     ###########################################################################
     def new_orc(self, task_id, status,
                 job_id=None, command=None,
-                std_output=None, std_err=None, exit_status=None):
+                std_output=None, std_err=None, exit_status=None,
+                event=None):
         c = self._connect_db()
         self.__orc_table(c)
         self.__insert_orc_event(cursor=c, task_id=task_id, status=status,
                                 job_id=job_id, command=command, std_output=std_output,
-                                std_err=std_err, exit_status=exit_status)
+                                std_err=std_err, exit_status=exit_status,
+                                event=event)
         self._close_db()
 
     def __orc_table(self, cursor):
@@ -76,6 +79,7 @@ class OrchestratorDB(SharedDBTools):
               "stdOutput TEXT, " \
               "stdErr TEXT, " \
               "exitStatus TEXT, " \
+              "event TEXT, " \
               "time TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT " \
               "NULL)".format(self.table)
         if self.execute_query(cursor, cmd):
@@ -83,8 +87,8 @@ class OrchestratorDB(SharedDBTools):
 
     def __insert_orc_event(self, cursor, task_id, status,
                            job_id=None, command=None,
-                           std_output=None, std_err=None, exit_status=None):
-
+                           std_output=None, std_err=None, exit_status=None,
+                           event=None):
         try:
             cursor.execute("INSERT INTO orchestrator ("
                            "taskID, "
@@ -93,15 +97,17 @@ class OrchestratorDB(SharedDBTools):
                            "command, "
                            "stdOutput, "
                            "stdErr, "
-                           "exitStatus) "
-                           "VALUES (?, ?, ?, ?, ?, ?, ?)",
+                           "exitStatus,"
+                           "event) "
+                           "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                            (str(task_id),
                             status,
                             str(job_id),
                             str(command),
                             std_output,
                             std_err,
-                            str(exit_status)))
+                            str(exit_status),
+                            event))
             self._db_conn.commit()
         except sqlite3.Error as e:
             self.blog.message("Error during: insert_orc_event\n" + repr(e),
