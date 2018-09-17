@@ -110,17 +110,27 @@ class GlobalMethods(object):
         self.orc_db.new_orc(task_id=self._task_name,
                             status=status, job_id=self._job_id,
                             command=cmd, std_output=out,
-                            std_err=None, exit_status=0)
+                            std_err=None, exit_status=0,
+                            event="Subprocess")
 
     def err_control(self, code, cmd, out, err, status, err_exit=True):
         self.blog.message(msg="Error during: {}\n{}".format(cmd, err), color=self.blog.err)
         self.orc_db.new_orc(task_id=self._task_name,
                             status=status, job_id=self._job_id,
                             command=cmd, std_output=out,
-                            std_err=err, exit_status=code)
+                            std_err=err, exit_status=code,
+                            event="Subprocess")
         if code > 0 and err_exit:
             self.remote.shutdown_daemon()
             exit(code)
+
+    def general_control(self, status, cmd=None, out=None, err=None,
+                        code=None, event=None):
+        self.orc_db.new_orc(task_id=self._task_name,
+                            status=status, job_id=self._job_id,
+                            command=cmd, std_output=out,
+                            std_err=err, exit_status=code,
+                            event=event)
 
 
 class TranslatorMethods(GlobalMethods):
