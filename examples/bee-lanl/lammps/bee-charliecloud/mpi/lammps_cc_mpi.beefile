@@ -4,7 +4,7 @@ label: LAMMPS example from https://github.com/lanl/BEE
 requirements:
   ResourceRequirement:
     manageSys: slurm
-    numNodes: 1
+    numNodes: 3
     jobTime: "00:30:00"
   SoftwareModules:
     friendly-testing:
