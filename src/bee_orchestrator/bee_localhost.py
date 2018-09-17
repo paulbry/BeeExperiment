@@ -72,7 +72,6 @@ class BeeLocalhostLauncher(BeeTask):
             elif wb_type == 'lambda':
                 pass
             elif wb_type == 'subbee':
-                # self._sub_bee(workers.get(wb, {}))
                 for t in workers[next(iter(workers))]:
                     t_res = self._sub_bees(t)
                     self.__handle_worker_result(t_res)

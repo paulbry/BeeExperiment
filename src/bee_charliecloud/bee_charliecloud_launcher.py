@@ -73,13 +73,15 @@ class BeeCharliecloudLauncher(BeeTask):
             # t_res = [stdOut, exitStatus, command, outputTarget]
             if wb_type == 'task':
                 for t in workers[next(iter(workers))]:
-                    t_res = self._bee_tasks(t)
+                    t_res = self._bee_tasks(t, self._beefile_req.get(
+                        'CharliecloudRequirement'))
                     self.__handle_worker_result(t_res)
             elif wb_type == 'lambda':
                 pass
             elif wb_type == 'subbee':
-                # self._sub_bee(workers.get(wb, {}))
-                pass
+                for t in workers[next(iter(workers))]:
+                    t_res = self._sub_bees(t)
+                    self.__handle_worker_result(t_res)
             else:
                 out = "Unsupported workerBee detected: {}".format(workers)
                 t_res[1] = 1
