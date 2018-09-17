@@ -1,0 +1,32 @@
+id: flecsaleExample
+class: BEE-Charliecloud
+label: Flecsale example from https://github.com/lanl/BEE
+requirements:
+  ResourceRequirement:
+    manageSys: slurm
+    numNodes: 1
+    jobTime: "00:30:00"
+  SoftwareModules:
+    friendly-testing:
+    charliecloud:
+    python:
+      version: 3.6-anaconda-5.0.1
+    openmpi:
+      version: 2.1.2
+  EnvVarRequirements:
+    envDef:
+    - PATH: $HOME/.local/bin
+    sourceDef:
+    - activate: bxp
+  CharliecloudRequirement:
+    flecsale:
+      source: /usr/projects/beedev/flecsale/flecsale.tar.gz
+      tarDir: /var/tmp
+      removeAfter: True
+workerBees:
+  - Task:
+    - bash:
+        program:
+          name: flecsalce_gen_run.sh
+        system:
+          manageSys: localhost
