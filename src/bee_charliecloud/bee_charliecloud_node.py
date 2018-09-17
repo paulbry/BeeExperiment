@@ -1,6 +1,5 @@
 # project
 from bee_orchestrator.bee_node import BeeNode
-from bee_internal.shared_tools import GeneralMethods
 
 
 # functions and operations focused on a single node
@@ -16,7 +15,6 @@ class BeeCharliecloudNode(BeeNode):
         # Charliecloud node configuration
         self.__container_name = container_name
 
-        self.gen_m = GeneralMethods(self.blog)
 
     def general_run(self, script_path):
         """

@@ -95,6 +95,10 @@ class LocalhostAdaptee:
     def specific_get_remote_orc(self):
         return self.remote
 
+    @staticmethod
+    def specific_get_nodes():
+        return []
+
     ###########################################################################
     # Protected/Private supporting functions
     ###########################################################################

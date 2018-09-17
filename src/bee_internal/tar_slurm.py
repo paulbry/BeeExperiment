@@ -96,6 +96,10 @@ class SlurmAdaptee:
     def specific_get_remote_orc(self):
         return self.remote
 
+    def specific_get_nodes(self):
+        # TODO: identify best method for obtaining form SLURM
+        return []
+
     ###########################################################################
     # Protected/Private supporting functions
     ###########################################################################

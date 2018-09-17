@@ -70,6 +70,10 @@ class Target(metaclass=abc.ABCMeta):
     def get_remote_orc(self):
         pass
 
+    @abc.abstractmethod
+    def get_nodes(self):
+        pass
+
     @staticmethod
     def __pyro_port():
         """
@@ -101,3 +105,6 @@ class Adapter(Target):
 
     def get_remote_orc(self):
         return self._adaptee.specific_get_remote_orc()
+
+    def get_nodes(self):
+        return self._adaptee.specific_get_nodes()

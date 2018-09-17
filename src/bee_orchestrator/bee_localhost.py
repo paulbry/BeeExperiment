@@ -31,7 +31,7 @@ class BeeLocalhostLauncher(BeeTask):
                                       beelog=self.blog, bldaemon=self._remote,
                                       job_id=self._job_id)
 
-        self.current_status = 20  # initialized
+        self._status_change(20)  # initialized
 
     # Wait events (support for existing bee_orc_ctl)
     def add_wait_event(self, new_event):
@@ -42,19 +42,21 @@ class BeeLocalhostLauncher(BeeTask):
         self.launch()
 
         self.begin_event = 1
-        self._current_status = 50  # Running
+        self._status_change(50)  # Running
 
         self.execute_workers()
         self.execute_base()
 
         self.end_event = 1
-        self._current_status = 60  # finished
+        self._status_change(60)  # finished
 
         if self._beefile.get('terminateAfter', True):
             self.terminate(clean=True)
 
     def launch(self):
-        self._current_status = 40  # Launching
+        self._status_change(40)  # Launching
+        self.blog.message("Localhost launching", self._task_id,
+                          self.blog.msg)
         # TODO: what else ???
 
     def execute_workers(self):
@@ -71,7 +73,9 @@ class BeeLocalhostLauncher(BeeTask):
                 pass
             elif wb_type == 'subbee':
                 # self._sub_bee(workers.get(wb, {}))
-                pass
+                for t in workers[next(iter(workers))]:
+                    t_res = self._sub_bees(t)
+                    self.__handle_worker_result(t_res)
             else:
                 out = "Unsupported workerBee detected: {}".format(workers)
                 t_res[1] = 1
@@ -91,7 +95,7 @@ class BeeLocalhostLauncher(BeeTask):
                 self._input_mng.update_vars(result[3], result[0])
 
     def wait_for_others(self):
-        self._current_status = 30  # Waiting
+        self._status_change(30)  # Waiting
         for event in self.event_list:
             event.wait()
 
@@ -102,7 +106,7 @@ class BeeLocalhostLauncher(BeeTask):
 
     def terminate(self, clean=False):
         if clean:
-            self._current_status = 70  # Closed (clean)
+            self._status_change(70)  # Closed (clean)
         else:
-            self._current_status = 80  # Terminate
+            self._status_change(80)  # Terminate
         self.remote.shutdown_daemon()

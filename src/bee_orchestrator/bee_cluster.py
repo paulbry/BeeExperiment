@@ -1,5 +1,6 @@
 # system
 import Pyro4
+import argparse
 from os import path, getuid
 from threading import Thread, Event
 from pwd import getpwuid
@@ -105,7 +106,7 @@ class BeeTask(Thread):
     def terminate(self, clean=False):
         pass
 
-    # Task management support functions (private)
+    # Task management support functions (private/protected)
     @staticmethod
     def __pyro_port():
         """
@@ -117,6 +118,15 @@ class BeeTask(Thread):
             port = data["pyro4-ns-port"]
         return port
 
+    def _status_change(self, new):
+        """
+        Change status to new (argument) status and log in orc.db
+        Can only be called  GlobalMethods object created!
+        """
+        self.current_status = new
+        self.global_m.general_control(status=self.current_status,
+                                      event="Status change")
+
     ###########################################################################
     # workerBees
     # A workerBees is a command made up of several components
@@ -125,7 +135,38 @@ class BeeTask(Thread):
     # and command.
     # e.g. srun -n 8 chrun -w --no-home /var/tmp/alpine -- sh hello.sh
     # TODO: clean up documentation
+    #
+    # [stdOut, exitStatus, command, outputTarget]
     ###########################################################################
+    def _sub_bees(self, sub_task):
+        result = [None, 0, str(sub_task), None]
+        try:
+            for wb in sub_task:
+                print(sub_task[wb])
+                args = argparse.Namespace(launch_task=[wb],
+                                          log_dest=[sub_task[wb].get('log_dest',
+                                                                     '/var/tmp/bee.log'),
+                                                    sub_task[wb].get('inputFile')
+                                                    ],
+                                          logflag=sub_task[wb].get('logFlag', False),
+                                          quite=sub_task[wb].get('quite', False),
+                                          testonly=False)
+                ba = BeeArguments(self.blog)
+
+                ty = str(sub_task[wb].get('type')).lower()
+                if ty == 'in-situ':
+                    result[0] = ba.opt_launch(args)
+                elif ty == 'offline':
+                    # TODO: implement check in adapter
+                    self.blog.message("offline SubBee not supported yet!",
+                                      color=self.blog.err)
+                return result
+        except KeyError as e:
+            msg = "Error while configuring workerBee specified " \
+                  "subBee.\n{}".format(repr(e))
+            self.blog.message(msg, self._task_id, self.blog.err)
+            return [msg, 1, None, None]
+
     def _bee_tasks(self, bf_task, container_conf=None):
         try:
             for wb in bf_task:

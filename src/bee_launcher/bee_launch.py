@@ -57,6 +57,7 @@ class BeeLauncher(object):
         else:
             self.blog.message(msg="Unexpected error during allocation",
                               task_name=task_name, color=self.blog.msg)
+        return out
 
     def terminate_task(self, job_id, rjms):
         adapt = Adapter(system=rjms, config=None, file_loc=None, task_name=None,
@@ -75,9 +76,14 @@ class BeeArguments(BeeLauncher):
         :param args: command line argument namespace
         """
         filename = str(args.launch_task[0])
-        f = BeefileLoader(filename, self.blog)
+        try:
+            f = BeefileLoader(filename, self.blog)
+        except FileNotFoundError as err:
+            self.blog("Please verify name/existence of: {}\n{}".format(filename, err),
+                      color=self.blog.err)
+            exit(1)
 
-        if len(args.launch_task) == 2:
+        if len(args.launch_task) == 2 and args.launch_task[1] is not None:
             y = YMLLoader(args.launch_task[1], self.blog)
             input_mng = InputManagement(f.beefile, y.ymlfile,
                                         self.blog, args.launch_task[1])
