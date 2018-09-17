@@ -89,11 +89,12 @@ class GlobalMethods(object):
         """
         # TODO: improve for larger program requirements? Stream output?
         try:
-            p = Popen(command, stdout=PIPE, stderr=STDOUT)
-            out, err = p.communicate()
+            p = Popen(command, stdout=PIPE)
             if cap_out:
-                return out.decode('utf8'), p.returncode
+                out = p.communicate()[0]
+                return (out.decode('utf8')).rstrip(), p.returncode
             else:
+                p.wait()
                 return "No output captured", p.returncode
         except CalledProcessError as err:
             return err, 1
