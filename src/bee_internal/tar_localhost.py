@@ -120,6 +120,6 @@ class LocalhostAdaptee:
         if self._input_mng.yml_file_name is not None:
             in_flag = "--input {} ".format(self._input_mng.yml_file_name)
         bee_deploy = "bee-orchestrator --orc " + in_flag + self.blog.orc_flags() \
-                     + "--task " + self._task_name
+                     + " --task " + self._task_name
         temp_file.write(bytes("cd {} \n".format(self._file_loc), self._encode))
         temp_file.write(bytes(bee_deploy + "\n", self._encode))
