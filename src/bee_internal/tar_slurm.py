@@ -84,10 +84,10 @@ class SlurmAdaptee:
 
     def specific_execute(self, command, system=None, capture_out=True):
         if system is not None:
-            return self.stm.run_popen_safe(system + command, capture_out)
+            return self.stm.run_popen_orc(system + command, capture_out)
         else:  # run via SRUN (take responsibility)
             cmd = ['srun'] + command
-            return self.stm.run_popen_safe(cmd, capture_out)
+            return self.stm.run_popen_orc(cmd, capture_out)
 
     @staticmethod
     def specific_get_jobid():

@@ -83,7 +83,7 @@ class LocalhostAdaptee:
         pass
 
     def specific_execute(self, command, system=None, capture_out=True):
-        if system:
+        if system is not None:
             return self.stm.run_popen_orc(system + command, capture_out)
         else:  # run via localhost (take responsibility)
             return self.stm.run_popen_orc(command, capture_out)

@@ -59,7 +59,6 @@ class GlobalMethods(object):
         """
         r_cmd = (''.join(str(x) + " " for x in command))
         self.blog.message("Executing: {}".format(r_cmd))
-        # TODO: improve for larger program requirements? Stream output?
         try:
             p = Popen(command, stdout=PIPE, stderr=STDOUT)
             out, err = p.communicate()
@@ -87,15 +86,15 @@ class GlobalMethods(object):
         :param cap_out:
         :return: output, exitStatus
         """
-        # TODO: improve for larger program requirements? Stream output?
+        r_cmd = (''.join(str(x) + " " for x in command))
+        self.blog.message("Executing: {}".format(r_cmd))
         try:
             p = Popen(command, stdout=PIPE)
             if cap_out:
                 out = p.communicate()[0]
                 return (out.decode('utf8')).rstrip(), p.returncode
             else:
-                print(p.wait())
-                return "No output captured", p.returncode
+                return "No output captured", p.wait()
         except CalledProcessError as err:
             return err, 1
         except OSError as err:
