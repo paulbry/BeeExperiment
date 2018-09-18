@@ -27,7 +27,7 @@ workerBees:
   - Task:
     - mkdir:
         flags:
-          - -b: output
+          - -p: output
         system:
           manageSys: localhost
     - sh:
