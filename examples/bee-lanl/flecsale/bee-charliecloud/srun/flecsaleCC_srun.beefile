@@ -43,6 +43,7 @@ workerBees:
           flags:
             - -c: /mnt/0
         system:
+          manageSys: srun
           flags:
           - -n: 5
           - --mpi=pmi2

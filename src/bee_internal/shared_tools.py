@@ -58,19 +58,18 @@ class GlobalMethods(object):
         :return: stdout on success, None on failure
         """
         r_cmd = (''.join(str(x) + " " for x in command))
-        self.blog.message("Executing: {}".format(r_cmd))
         try:
             p = Popen(command, stdout=PIPE, stderr=STDOUT)
             out, err = p.communicate()
             return out.decode('utf8')
         except CalledProcessError as e:
-            self.blog.message(msg="Error during - " + str(command) + "\n" +
+            self.blog.message(msg="Error during - " + str(r_cmd) + "\n" +
                                   str(e), color=self.blog.err)
             if err_exit:
                 exit(1)
             return None
         except OSError as e:
-            self.blog.message(msg="Error during - " + str(command) + "\n" +
+            self.blog.message(msg="Error during - " + str(r_cmd) + "\n" +
                                   str(e), color=self.blog.err)
             if err_exit:
                 exit(1)
@@ -86,8 +85,6 @@ class GlobalMethods(object):
         :param cap_out:
         :return: output, exitStatus
         """
-        r_cmd = (''.join(str(x) + " " for x in command))
-        self.blog.message("Executing: {}".format(r_cmd))
         try:
             p = Popen(command, stdout=PIPE)
             if cap_out:
