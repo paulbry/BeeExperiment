@@ -100,8 +100,7 @@ class InputManagement(object):
             self.blog.message("\t{} = {}".format(key, value))
 
     def check_str(self, tar):
-        print(str(tar))
-        print(type(tar))
+        print(self.variables)
         if isinstance(tar, str):
             loc = 0
             star = str(tar)
