@@ -23,6 +23,11 @@ requirements:
       source: /usr/projects/beedev/lammps/mpi_1.10/lammps.tar.gz
       tarDir: /var/tmp
       removeAfter: true
+inputs:
+  mpi_2_nodes:
+    type: string
+  mpi_1_nodes:
+    type: string
 workerBees:
   - Task:
     - mkdir:
@@ -51,3 +56,4 @@ workerBees:
           - lammps_cc_mpi_3.sh
         system:
           manageSys: mpirun
+terminateAfter: true

@@ -7,7 +7,6 @@ class InputManagement(object):
         self.variables = None
         self.__pre = "${"
         self.__post = "}$"
-
         if self.bf_in is not None and self.usr_val is not None:
             self.variables = {}
             self.generate_in_var()
@@ -100,7 +99,6 @@ class InputManagement(object):
             self.blog.message("\t{} = {}".format(key, value))
 
     def check_str(self, tar):
-        print(self.variables)
         if isinstance(tar, str):
             loc = 0
             star = str(tar)
