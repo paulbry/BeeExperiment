@@ -184,11 +184,12 @@ class BeeTask(Thread):
                 cmd += self._workers_flags(bf_task[wb].get('flags', {}))
 
                 r_cmd = (''.join(str(x) + " " for x in cmd))
-                self.blog.message("Executing: {}".format(r_cmd), self._task_id,
+                r_sys = (''.join(str(x) + " " for x in system))
+                self.blog.message("Executing: {}".format(r_sys + r_cmd), self._task_id,
                                   self.blog.msg)
 
                 out, code = self._sys_adapter.execute(cmd, system, capture_out)
-                return [out, code, cmd, bf_task[wb].get('output')]
+                return [out, code, r_sys + r_cmd, bf_task[wb].get('output')]
 
         except KeyError as e:
             msg = "Error while configuring workerBee specified " \

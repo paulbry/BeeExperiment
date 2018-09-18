@@ -126,5 +126,5 @@ class InputManagement(object):
                                   "that all expected values have been supplied:\n"
                                   "{}\n{}".format(self.variables, e), color=self.blog.err)
                 exit(1)
-        else:  # unsupported type
-            return tar
+        else:  # unsupported type (still return string for cmd list
+            return str(tar)

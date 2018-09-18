@@ -46,4 +46,4 @@ workerBees:
           manageSys: srun
           flags:
           - -n: 5
-          - --mpi=pmi2
+          - "--mpi=pmi2"

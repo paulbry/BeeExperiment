@@ -85,6 +85,7 @@ class GlobalMethods(object):
         :param cap_out:
         :return: output, exitStatus
         """
+        print(command)
         try:
             p = Popen(command, stdout=PIPE)
             if cap_out:
