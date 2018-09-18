@@ -94,7 +94,7 @@ class GlobalMethods(object):
                 out = p.communicate()[0]
                 return (out.decode('utf8')).rstrip(), p.returncode
             else:
-                p.wait()
+                print(p.wait())
                 return "No output captured", p.returncode
         except CalledProcessError as err:
             return err, 1
