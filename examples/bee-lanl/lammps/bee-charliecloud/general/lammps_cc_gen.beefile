@@ -29,7 +29,7 @@ workerBees:
   - Task:
     - mkdir:
         flags:
-          - -b: output
+          - -p: output
         system:
           manageSys: localhost
     - /lammps/src/lmp_mpi:
@@ -37,5 +37,5 @@ workerBees:
           name: lammps
         flags:
           - -in: /lammps/examples/melt/in.melt
-          - -log: /mnt/mnt/0/lammps_gen.log
+          - -log: /mnt/0/lammps_gen.log
 terminateAfter: true

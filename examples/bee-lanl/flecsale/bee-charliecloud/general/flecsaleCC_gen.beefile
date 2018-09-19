@@ -27,6 +27,6 @@ workerBees:
   - Task:
     - bash:
         flags:
-          - flecsalce_gen_run.sh
+          - flecsale_gen_run.sh
         system:
           manageSys: localhost
