@@ -42,7 +42,7 @@ workerBees:
           manageSys: mpirun
           flags:
             - -map-by: "ppr:4:socket"
-            - --nodes=${mpi_1_nodes}$
+            - --host: ${mpi_1_nodes}$
     - sh:
         flags:
           - lammps_cc_mpi_1.sh
@@ -50,7 +50,7 @@ workerBees:
           manageSys: mpirun
           flags:
             - -map-by: "ppr:4:socket"
-            - --nodes=${mpi_2_nodes}$
+            - --host: ${mpi_2_nodes}$
     - sh:
         flags:
           - lammps_cc_mpi_3.sh

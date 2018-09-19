@@ -1,2 +1,2 @@
-mpi_1_nodes: cn30,cn31
-mpi_2_nodes: cn31,cn32
+mpi_1_nodes: wc040,wc041
+mpi_2_nodes: wc041,wc042
