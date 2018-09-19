@@ -91,8 +91,6 @@ class BeeCharliecloudLauncher(BeeTask):
                 t_res[1] = 1
                 self.blog.message(out, self._task_id, self.blog.err)
 
-        self.terminate()
-
     def __handle_worker_result(self, result):
         if result[1] > 0:
             self.global_m.err_control(code=result[1], cmd=result[2], out=None,
