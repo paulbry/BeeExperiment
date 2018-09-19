@@ -139,10 +139,14 @@ class BeeTask(Thread):
     # [stdOut, exitStatus, command, outputTarget]
     ###########################################################################
     def _sub_bees(self, sub_task):
+        """
+
+        :param sub_task:
+        :return:
+        """
         result = [None, 0, str(sub_task), None]
         try:
             for wb in sub_task:
-                print(sub_task[wb])
                 args = argparse.Namespace(launch_task=[wb],
                                           log_dest=[sub_task[wb].get('log_dest',
                                                                      '/var/tmp/bee.log'),
@@ -168,6 +172,12 @@ class BeeTask(Thread):
             return [msg, 1, None, None]
 
     def _bee_tasks(self, bf_task, container_conf=None):
+        """
+
+        :param bf_task:
+        :param container_conf:
+        :return:
+        """
         try:
             for wb in bf_task:
                 cmd = []
@@ -198,19 +208,34 @@ class BeeTask(Thread):
             return [msg, 1, None, None]
 
     def _workers_containers(self, cont_conf, task_conf):
+        """
+
+        :param cont_conf:
+        :param task_conf:
+        :return:
+        """
         name = task_conf['container'].get('name', next(iter(cont_conf)))
         cmd = ['ch-run']
+
         for f in cont_conf[name].get('defaultFlags', {}):
             self.__parse_dict(f, cmd)
         for f in task_conf['container'].get('flags', {}):
             self.__parse_dict(f, cmd)
+
         loc = self._input_mng.check_str(cont_conf[name].get('tarDir', '/var/tmp'))
         cmd.append(loc + "/" + self._input_mng.check_str(name))
         cmd.append("--")
+
         return cmd
 
     def _workers_system(self, sys):
+        """
+
+        :param sys:
+        :return:
+        """
         cmd = []
+
         if sys is not None:
             tar = sys.get('manageSys', self._manageSys)
             if tar == 'localhost':
@@ -219,15 +244,29 @@ class BeeTask(Thread):
                 cmd.append(tar)
             for f in sys.get('flags', {}):
                 self.__parse_dict(f, cmd)
+
         return cmd
 
     def _workers_flags(self, flags):
+        """
+
+        :param flags:
+        :return:
+        """
         cmd = []
+
         for f in flags:
             self.__parse_dict(f, cmd)
+
         return cmd
 
     def __parse_dict(self, f, cmd):
+        """
+
+        :param f:
+        :param cmd:
+        :return:
+        """
         if isinstance(f, dict):
             for k, v in f.items():
                 cmd.append(self._input_mng.check_str(k))

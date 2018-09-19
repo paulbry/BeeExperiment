@@ -64,7 +64,13 @@ class BeeLocalhostLauncher(BeeTask):
                                                   False, True, self._current_status):
             wb_type = (next(iter(workers))).lower()
             t_res = [None, -1, None, None]
+            ###################################################################
             # t_res = [stdOut, exitStatus, command, outputTarget]
+            #   stdOut -> capture output only if required by beefile
+            #   exitStatus -> code
+            #   command -> string (join...) of command ran
+            #   outputTarget -> variable in input_mng to be updated
+            ###################################################################
             if wb_type == 'task':
                 for t in workers[next(iter(workers))]:
                     t_res = self._bee_tasks(t)
@@ -78,9 +84,11 @@ class BeeLocalhostLauncher(BeeTask):
                 t_res[1] = 1
                 self.blog.message(out, self._task_id, self.blog.err)
 
-        self.terminate()
-
     def __handle_worker_result(self, result):
+        """
+
+        :param result: t_res (see execute_workers)
+        """
         if result[1] > 0:
             self.global_m.err_control(code=result[1], cmd=result[2], out=None,
                                       err=result[0], status=self.current_status,
@@ -99,7 +107,9 @@ class BeeLocalhostLauncher(BeeTask):
     def execute_base(self):
         cmd = self._input_mng.prepare_base_cmd(self._beefile.get('baseCommand'))
         if cmd is not None:
-            out = self._sys_adapter.execute(cmd, None, False)
+            out, code = self._sys_adapter.execute(cmd, None, False)
+            self.__handle_worker_result([out, code, (''.join(str(x) + " " for x in cmd)),
+                                         None])
 
     def terminate(self, clean=False):
         if clean:

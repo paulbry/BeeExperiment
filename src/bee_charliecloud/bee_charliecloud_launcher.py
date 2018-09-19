@@ -70,7 +70,13 @@ class BeeCharliecloudLauncher(BeeTask):
                                                   False, True, self._current_status):
             wb_type = (next(iter(workers))).lower()
             t_res = [None, -1, None, None]
+            ###################################################################
             # t_res = [stdOut, exitStatus, command, outputTarget]
+            #   stdOut -> capture output only if required by beefile
+            #   exitStatus -> code
+            #   command -> string (join...) of command ran
+            #   outputTarget -> variable in input_mng to be updated
+            ###################################################################
             if wb_type == 'task':
                 for t in workers[next(iter(workers))]:
                     t_res = self._bee_tasks(t, self._beefile_req.get(

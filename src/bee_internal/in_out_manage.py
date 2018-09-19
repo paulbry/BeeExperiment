@@ -75,7 +75,6 @@ class InputManagement(object):
                     exit(1)
         else:
             self.variables.update({key: value})
-        print(self.variables)
 
     def generate_in_var(self):
         for key in self.bf_in.keys():
