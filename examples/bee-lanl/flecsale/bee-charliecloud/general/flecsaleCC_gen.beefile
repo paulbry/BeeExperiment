@@ -26,7 +26,7 @@ requirements:
 workerBees:
   - Task:
     - bash:
-        program:
-          name: flecsalce_gen_run.sh
+        flags:
+          - flecsalce_gen_run.sh
         system:
           manageSys: localhost

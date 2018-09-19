@@ -87,11 +87,12 @@ class GlobalMethods(object):
         """
         print(command)
         try:
-            p = Popen(command, stdout=PIPE)
             if cap_out:
+                p = Popen(command, stdout=PIPE)
                 out = p.communicate()[0]
                 return (out.decode('utf8')).rstrip(), p.returncode
             else:
+                p = Popen(command)
                 return "No output captured", p.wait()
         except CalledProcessError as err:
             return err, 1

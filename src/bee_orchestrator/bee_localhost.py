@@ -57,7 +57,6 @@ class BeeLocalhostLauncher(BeeTask):
         self._status_change(40)  # Launching
         self.blog.message("Localhost launching", self._task_id,
                           self.blog.msg)
-        # TODO: what else ???
 
     def execute_workers(self):
         for workers in self.global_m.fetch_bf_val(self._beefile, 'workerBees', [],
@@ -86,10 +85,10 @@ class BeeLocalhostLauncher(BeeTask):
 
     def __handle_worker_result(self, result):
         """
-
+        Manage results list and ensure details are allocated
         :param result: t_res (see execute_workers)
         """
-        if result[1] > 0:
+        if result[1] != 0:
             self.global_m.err_control(code=result[1], cmd=result[2], out=None,
                                       err=result[0], status=self.current_status,
                                       err_exit=False)

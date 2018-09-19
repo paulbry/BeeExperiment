@@ -11,6 +11,9 @@ class BeefileLoader(object):
         except YAMLError as err:
             beelog.message(err, "{}.beefile".format(file_name), beelog.err)
             exit(1)
+        except FileNotFoundError as err:
+            beelog.message(err, file_name, beelog.err)
+            exit(1)
 
 
 class BeefileExamine(BeefileLoader):
@@ -26,6 +29,9 @@ class BeeflowLoader(object):
             self.beeflow = load(stream)
         except YAMLError as err:
             beelog.message(err, "{}.beeflow".format(flow_name), beelog.err)
+            exit(1)
+        except FileNotFoundError as err:
+            beelog.message(err, flow_name, beelog.err)
             exit(1)
 
 

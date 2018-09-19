@@ -134,7 +134,7 @@ class BeeCharliecloudLauncher(BeeTask):
         self.blog.message(msg="Removing Charliecloud container {}".format(ch_name),
                           task_name=self._task_id, color=self.blog.msg)
         cmd = ['rm', '-rf', ch_dir + "/" + ch_name]
-        self._sys_adapter.execute(cmd)
+        out, code = self._sys_adapter.execute(cmd, None, False)
 
     def __default_flags(self):
         tmp = {}
