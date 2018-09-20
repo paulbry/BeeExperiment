@@ -9,11 +9,9 @@ from pwd import getpwuid
 from subprocess import Popen
 from time import sleep, strftime
 # project
-from .bee_localhost import BeeLocalhostLauncher as beeLH
-from bee_charliecloud.bee_charliecloud_launcher \
-    import BeeCharliecloudLauncher as beeCC
 from bee_internal.in_out_manage import InputManagement
 from bee_logging.bee_log import BeeLogging
+from .bee_cluster import BeeCluster
 
 
 @Pyro4.expose
@@ -30,15 +28,9 @@ class BeeLauncherDaemon(object):
     def create_task(self, beefile, file_name, input_mng):
         self.blog.message("Bee orchestration controller: received task "
                           "creating request")
-        exec_target = beefile.get('class', 'bee-localhost')
         beetask_name = beefile.get('id', file_name + strftime("_%Y%m%d_%H%M%S"))
-        # TODO: correct, accouting for optional/unavailable modules?
-        if str(exec_target).lower() == 'bee-charliecloud':
-            self.blog.message("Launched BEE-Charliecloud Instance!", task_name=beetask_name,)
-            self.beetask = beeCC(beetask_name, beefile, self.blog, input_mng)
-        elif str(exec_target).lower() == 'bee-localhost':
-            self.blog.message("Launched BEE-Localhost Instance!", task_name=beetask_name)
-            self.beetask = beeLH(beetask_name, beefile, self.blog, input_mng)
+        self.blog.message("Launched BEE Instance!", task_name=beetask_name,)
+        self.beetask = BeeCluster(beetask_name, beefile, self.blog, input_mng)
 
     def launch_task(self):
         self.beetask.start()

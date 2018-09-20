@@ -14,14 +14,3 @@ class BeeCharliecloudNode(BeeNode):
 
         # Charliecloud node configuration
         self.__container_name = container_name
-
-
-    def general_run(self, script_path):
-        """
-        Override base general_run in order to implement module work around.
-        Load Charliecloud prior to running the script...
-        """
-        cmd = ['sh', script_path]
-        self.blog.message("General run: {}".format(cmd),
-                          self.__node, self.blog.msg)
-        self.gen_m.run_popen_safe(cmd)

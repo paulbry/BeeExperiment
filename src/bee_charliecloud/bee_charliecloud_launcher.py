@@ -1,5 +1,5 @@
 # project
-from bee_orchestrator.bee_cluster import BeeTask
+from bee_orchestrator.bee_task import BeeTask
 from bee_orchestrator.orc_translator import Adapter
 from bee_internal.shared_tools import GlobalMethods
 
