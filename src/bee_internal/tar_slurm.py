@@ -95,7 +95,7 @@ class SlurmAdaptee:
         return self.remote
 
     def specific_get_nodes(self):
-        nl_env_val = environ.get("SLURM_JOB_NODELIST")
+        nl_env_val = environ.get("SLURM_NODELIST")
         sys_name = nl_env_val[:nl_env_val.find("[")]
         node_list = []
         nums = ["0", "1", "2", "3", "4",

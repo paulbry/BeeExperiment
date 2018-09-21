@@ -85,10 +85,8 @@ class GlobalMethods(object):
         :param cap_out:
         :return: output, exitStatus
         """
-        # TODO: REMOVE
-        print("workerBee DEBUG")
-        print("cap_out: {}".format(cap_out))
-        print("cmd: {}".format(command))
+        self.blog.message("\tworkerBee DEBUG\n" + "\tcap_out: {}\n".format(cap_out)
+                          + "\tcmd: {}".format(command))
         try:
             if cap_out:
                 p = Popen(command, stdout=PIPE)

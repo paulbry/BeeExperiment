@@ -41,7 +41,8 @@ class BeeNode(object):
 
     # Bee launching / management related functions
     def start(self):
-        self.blog.message("BeeNode starting...", self.hostname)
+        self.blog.message("BeeNode starting via host: {}".format(self._node),
+                          self.hostname)
 
     def checkpoint(self):
         pass
