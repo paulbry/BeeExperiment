@@ -24,6 +24,7 @@ class BeeTask(Thread):
         self._task_id = task_id
         self._task_label = self._beefile.get('label', 'BEE: {}'.
                                              format(self._task_id))
+        self.node_list = []
         self._job_id = None
         self.global_m = None
 
@@ -45,14 +46,15 @@ class BeeTask(Thread):
         self.__end_event = None
         self.__event_list = []
 
+    ###########################################################################
     # Event/Trigger management
+    ###########################################################################
     @property
     def begin_event(self):
         return self.__begin_event
 
     @begin_event.setter
     def begin_event(self, flag):
-        # TODO: document
         if flag == 0:
             self.__begin_event = Event()
         elif flag == 1:
@@ -66,7 +68,6 @@ class BeeTask(Thread):
 
     @end_event.setter
     def end_event(self, flag):
-        # TODO: document
         if flag == 0:
             self.__end_event = Event()
         elif flag == 1:
@@ -86,7 +87,9 @@ class BeeTask(Thread):
         """
         self.__event_list.append(new_event)
 
+    ###########################################################################
     # Standard BEE methods
+    ###########################################################################
     def run(self):
         pass
 
@@ -106,7 +109,9 @@ class BeeTask(Thread):
     def terminate(self, clean=False):
         pass
 
+    ###########################################################################
     # Task management support functions (private/protected)
+    ###########################################################################
     @staticmethod
     def __pyro_port():
         """
@@ -138,6 +143,49 @@ class BeeTask(Thread):
     #
     # [stdOut, exitStatus, command, outputTarget]
     ###########################################################################
+    def _bee_cmd(self, cmd_task):
+        """
+
+        :param cmd_task:
+        :return:
+        """
+        print(cmd_task)
+        try:
+            for wb in cmd_task:
+                o_cmd = cmd_task[wb].get('cmd')
+                cmd = []
+                o_cfg = cmd_task[wb].get('output')
+
+                if o_cmd is not None:
+                    if o_cfg is not None:
+                        capture_out = True
+                    else:
+                        capture_out = False
+
+                    if isinstance(o_cmd, list):
+                        for e in o_cmd:
+                            cmd.append(self._input_mng.check_str(e))
+
+                        r_cmd = (''.join(str(x) + " " for x in cmd))
+                        self.blog.message("Executing: {}".format(r_cmd), self._task_id,
+                                          self.blog.msg)
+
+                        out, code = self._sys_adapter.execute(cmd, [], capture_out)
+                        return [out, code, r_cmd, o_cmd]
+                    else:
+                        msg = "Command variable is not list"
+                        self.blog(msg, self._task_id, self.blog.err)
+                        return [msg, 1, str(cmd), None]
+                else:
+                    msg = "Unable to identify cmd key (command) for {}".format(wb)
+                    self.blog.message(msg, self._task_id, self.blog.err)
+                    return [msg, 1, None, None]
+        except KeyError as e:
+            msg = "Error while configuring workerBee specified " \
+                  "command.\n{}".format(repr(e))
+            self.blog.message(msg, self._task_id, self.blog.err)
+            return [msg, 1, None, None]
+
     def _sub_bees(self, sub_task):
         """
 
@@ -208,12 +256,6 @@ class BeeTask(Thread):
             return [msg, 1, None, None]
 
     def _workers_containers(self, cont_conf, task_conf):
-        """
-
-        :param cont_conf:
-        :param task_conf:
-        :return:
-        """
         name = task_conf['container'].get('name', next(iter(cont_conf)))
         cmd = ['ch-run']
 
@@ -229,11 +271,6 @@ class BeeTask(Thread):
         return cmd
 
     def _workers_system(self, sys):
-        """
-
-        :param sys:
-        :return:
-        """
         cmd = []
 
         if sys is not None:
@@ -248,11 +285,6 @@ class BeeTask(Thread):
         return cmd
 
     def _workers_flags(self, flags):
-        """
-
-        :param flags:
-        :return:
-        """
         cmd = []
 
         for f in flags:
@@ -261,12 +293,6 @@ class BeeTask(Thread):
         return cmd
 
     def __parse_dict(self, f, cmd):
-        """
-
-        :param f:
-        :param cmd:
-        :return:
-        """
         if isinstance(f, dict):
             for k, v in f.items():
                 cmd.append(self._input_mng.check_str(k))

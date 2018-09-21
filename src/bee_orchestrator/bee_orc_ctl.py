@@ -17,8 +17,7 @@ from .bee_cluster import BeeCluster
 @Pyro4.expose
 class BeeLauncherDaemon(object):
     def __init__(self, beelog, daemon=None):
-        # Logging conf. object -> BeeLogging(log, log_dest, quite)
-        self.blog = beelog
+        self.blog = beelog  # Logging conf. object
 
         self.blog.message("Starting Bee orchestration controller..")
         self.__py_dir = os.path.dirname(os.path.abspath(__file__))
@@ -61,7 +60,6 @@ class BeeLauncherDaemon(object):
 
 
 class ExecOrc(object):
-    # TODO: identify class objects and update
     def __init__(self, beelog):
         self.blog = beelog
 

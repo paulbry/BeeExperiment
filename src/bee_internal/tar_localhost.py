@@ -33,7 +33,7 @@ class LocalhostAdaptee:
     # Adapter functions
     # orc_translator.py & launch_translator.py
     ###########################################################################
-    def specific_allocate(self, test_only=False):
+    def specific_allocate(self, test_only=False, dependency=None):
         tmp_f = NamedTemporaryFile()
         tmp_f.write(bytes("#!/bin/bash\n\n", 'UTF-8'))
         #######################################################################
@@ -70,16 +70,15 @@ class LocalhostAdaptee:
         tmp_f.close()
         return out
 
-    def specific_schedule(self):
-        # TODO: utilize cron ?
-        pass
-
     def specific_shutdown(self, job_id):
         cmd = ['screen', '-X', '-S', job_id, 'quit']
         self.stm.run_popen_safe(cmd)
 
     def specific_move_file(self):
         # TODO: identify requirements
+        pass
+
+    def specific_launch(self):
         pass
 
     def specific_execute(self, command, system=None, capture_out=True):
@@ -97,6 +96,7 @@ class LocalhostAdaptee:
 
     @staticmethod
     def specific_get_nodes():
+        # Concept of nodes not supported when dealing with local host
         return []
 
     ###########################################################################

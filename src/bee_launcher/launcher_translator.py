@@ -40,7 +40,7 @@ class Target(metaclass=abc.ABCMeta):
             exit(1)
 
     @abc.abstractmethod
-    def allocate(self, test_only=False):
+    def allocate(self, test_only=False, dependency=None):
         #######################################################################
         # Should return tuple stdout
         # out: Unique job idea (signify successful allocation) or None (failed)
@@ -65,8 +65,9 @@ class Adapter(Target):
     """
     Adapt the interface of adaptee to the target request
     """
-    def allocate(self, test_only=False):
-        return self._adaptee.specific_allocate(test_only=test_only)
+    def allocate(self, test_only=False, dependency=None):
+        return self._adaptee.specific_allocate(test_only=test_only,
+                                               dependency=dependency)
 
     def schedule(self):
         self._adaptee.specific_schedule()

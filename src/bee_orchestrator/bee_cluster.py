@@ -1,7 +1,10 @@
+# system
+import getpass
 # project
 from .bee_task import BeeTask
 from .orc_translator import Adapter
 from bee_internal.shared_tools import GlobalMethods
+from .bee_node import BeeNode
 
 
 class BeeCluster(BeeTask):
@@ -20,19 +23,21 @@ class BeeCluster(BeeTask):
         except KeyError:
             self._manageSys = 'localhost'
 
-        # objects
+        # Adapter (translator)
         self._sys_adapter = Adapter(system=self._manageSys, config=self._beefile,
                                     file_loc='', task_name=self._task_id,
                                     beelog=self.blog, input_mng=self._input_mng)
         self._job_id = self._sys_adapter.get_jobid()
         self._remote = self._sys_adapter.get_remote_orc()
+
         self.global_m = GlobalMethods(beefile=self._beefile, task_name=self._task_id,
                                       beelog=self.blog, bldaemon=self._remote,
                                       job_id=self._job_id)
 
         # DEFAULT Container configuration
         self.__default_tar_dir = "/var/tmp"
-        self.bee_node_list = []
+        self.node_list = self._sys_adapter.get_nodes()
+        self.running_nodes = []
 
         self._status_change(20)  # initialized
 
@@ -60,7 +65,20 @@ class BeeCluster(BeeTask):
         self._status_change(40)  # Launching
         self.blog.message("Launching", self._task_id,
                           self.blog.msg)
-        # TODO: re-implement self.__bee_node_list
+        self._sys_adapter.launch()
+        for i in range(0, len(self.node_list)):
+            if i == 0:
+                hostname = "{}-{}-bee-master".format(getpass.getuser(),
+                                                     self._task_id)
+            else:
+                hostname = "{}-{}-bee-worker{}".format(getpass.getuser(),
+                                                       self._task_id, str(i).zfill(3))
+
+            node = BeeNode(task_id=self._task_id, hostname=hostname,
+                           host=self.node_list[i], beefile=self._beefile,
+                           beelog=self.blog)
+            node.start()
+            self.running_nodes.append(node)
 
     def execute_workers(self):
         for workers in self.global_m.fetch_bf_val(self._beefile, 'workerBees', [],
@@ -83,25 +101,15 @@ class BeeCluster(BeeTask):
                 for t in workers[next(iter(workers))]:
                     t_res = self._sub_bees(t)
                     self.__handle_worker_result(t_res)
+            elif wb_type == 'command':
+                print("NEW COMMAND")
+                for t in workers[next(iter(workers))]:
+                    t_res = self._bee_cmd(t)
+                    # self.__handle_worker_result(t_res)
             else:
                 out = "Unsupported workerBee detected: {}".format(workers)
                 t_res[1] = 1
                 self.blog.message(out, self._task_id, self.blog.err)
-
-    def __handle_worker_result(self, result):
-        """
-        Manage results list and ensure details are allocated
-        :param result: t_res (see execute_workers)
-        """
-        if result[1] != 0:
-            self.global_m.err_control(code=result[1], cmd=result[2], out=None,
-                                      err=result[0], status=self.current_status,
-                                      err_exit=False)
-        else:  # code == 0
-            self.global_m.out_control(cmd=result[2], out=result[0],
-                                      status=self.current_status)
-            if result[0] is not None and result[1] == 0 and result[3] is not None:
-                self._input_mng.update_vars(result[3], result[0])
 
     def wait_for_others(self):
         self._status_change(30)  # Waiting
@@ -123,7 +131,9 @@ class BeeCluster(BeeTask):
         self.remove_cc_containers()
         self.remote.shutdown_daemon()
 
+    ############################################################################
     # Task management support functions (private)
+    ############################################################################
     def remove_cc_containers(self):
         for key, value in self._beefile_req.get('CharliecloudRequirement', {}).items():
             if value.get('deleteAfter', False):
@@ -137,6 +147,8 @@ class BeeCluster(BeeTask):
                           task_name=self._task_id, color=self.blog.msg)
         cmd = ['rm', '-rf', ch_dir + "/" + ch_name]
         out, code = self._sys_adapter.execute(cmd, None, False)
+        self.__handle_worker_result([out, code, (''.join(str(x) + " " for x in cmd)),
+                                     None])
 
     def __default_flags(self):
         tmp = {}
@@ -148,3 +160,19 @@ class BeeCluster(BeeTask):
                     flags.append(self._input_mng.check_str(dfv))
             tmp.update({key: flags})
         return tmp
+
+    def __handle_worker_result(self, result):
+        """
+        Manage results list and ensure details are allocated
+        :param result: t_res (see execute_workers)
+            [stdOut, exitStatus, command, outputTarget]
+        """
+        if result[1] != 0:
+            self.global_m.err_control(code=result[1], cmd=result[2], out=None,
+                                      err=result[0], status=self.current_status,
+                                      err_exit=False)
+        else:  # code == 0
+            self.global_m.out_control(cmd=result[2], out=result[0],
+                                      status=self.current_status)
+            if result[0] is not None and result[1] == 0 and result[3] is not None:
+                self._input_mng.update_vars(result[3], result[0])

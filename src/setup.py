@@ -11,7 +11,6 @@ setuptools.setup(
         "bee_logging",
         "bee_internal",
         "bee_orchestrator",
-        "bee_charliecloud"
     ],
     include_package_date=False,
     url="https://github.com/paulbry/BEE",

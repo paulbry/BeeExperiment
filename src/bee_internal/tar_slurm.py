@@ -31,7 +31,7 @@ class SlurmAdaptee:
     # Adapter functions
     # orc_translator.py & launch_translator.py
     ###########################################################################
-    def specific_allocate(self, test_only=False):
+    def specific_allocate(self, test_only=False, dependency=None):
         """
         Create sbatch file utilizing Beefile's defined 'requirements' then
         execute this sbatch via subprocess.
@@ -70,16 +70,14 @@ class SlurmAdaptee:
         tmp_f.close()
         return out
 
-    def specific_schedule(self):
-        # TODO: get sbatch --begin ?
-        pass
-
     def specific_shutdown(self, job_id):
         cmd = ['scancel', job_id]
         self.stm.run_popen_safe(cmd)
 
     def specific_move_file(self):
-        # TODO: identify requirements
+        pass
+
+    def specific_launch(self):
         pass
 
     def specific_execute(self, command, system=None, capture_out=True):
@@ -97,8 +95,44 @@ class SlurmAdaptee:
         return self.remote
 
     def specific_get_nodes(self):
-        # TODO: identify best method for obtaining form SLURM
-        return []
+        nl_env_val = environ.get("SLURM_JOB_NODELIST")
+        sys_name = nl_env_val[:nl_env_val.find("[")]
+        node_list = []
+        nums = ["0", "1", "2", "3", "4",
+                "5", "6", "7", "8", "9"]
+
+        if nl_env_val is not None:
+            os_n_list = nl_env_val[nl_env_val.find("[") + 1:
+                                   nl_env_val.find("]")]
+            tmp = ''
+            i = 0
+            while i < len(os_n_list):
+                if os_n_list[i] in nums:
+                    tmp += os_n_list[i]
+                    i += 1
+                elif os_n_list[i] == ',':
+                    node_list.append(sys_name + tmp)
+                    tmp = ''
+                    i += 1
+                elif os_n_list[i] == '-':
+                    next_p = os_n_list.find(',', i)
+                    if next_p < 0:
+                        next_p = len(os_n_list)
+
+                    tmp_end_val = os_n_list[i + 1:next_p]
+                    val_len = len(tmp_end_val)
+                    while tmp != tmp_end_val:
+                        node_list.append(sys_name + tmp)
+                        tmp = str(int(tmp) + 1)
+                        while len(tmp) < val_len:
+                            tmp = "0" + tmp
+                    tmp = ''
+                    i += 1
+
+            if tmp != '':
+                node_list.append(sys_name + tmp)
+
+        return node_list
 
     ###########################################################################
     # Protected/Private supporting functions

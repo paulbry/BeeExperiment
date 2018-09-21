@@ -63,6 +63,10 @@ class Target(metaclass=abc.ABCMeta):
         pass
 
     @abc.abstractmethod
+    def launch(self):
+        pass
+
+    @abc.abstractmethod
     def get_jobid(self):
         pass
 
@@ -100,6 +104,9 @@ class Adapter(Target):
 
     def move_file(self):
         self._adaptee.specific_move_file()
+
+    def launch(self):
+        self._adaptee.specific_launch()
 
     def get_jobid(self):
         return self._adaptee.specific_get_jobid()
