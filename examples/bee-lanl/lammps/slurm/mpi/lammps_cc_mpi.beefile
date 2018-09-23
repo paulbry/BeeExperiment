@@ -1,10 +1,9 @@
 id: lammpsExample
-class: BEE-Charliecloud
 label: LAMMPS example from https://github.com/lanl/BEE
 requirements:
   ResourceRequirement:
     manageSys: slurm
-    numNodes: 1
+    numNodes: 3
     jobTime: "00:30:00"
   SoftwareModules:
     friendly-testing:
@@ -23,8 +22,11 @@ requirements:
       source: /usr/projects/beedev/lammps/mpi_1.10/lammps.tar.gz
       tarDir: /var/tmp
       removeAfter: true
-      defaultFlags:
-        - -b: output
+inputs:
+  mpi_2_nodes:
+    type: string
+  mpi_1_nodes:
+    type: string
 workerBees:
   - Task:
     - mkdir:
@@ -32,10 +34,25 @@ workerBees:
           - -p: output
         system:
           manageSys: localhost
-    - /lammps/src/lmp_mpi:
-        container:
-          name: lammps
+    - sh:
         flags:
-          - -in: /lammps/examples/melt/in.melt
-          - -log: /mnt/0/lammps_gen.log
+          - lammps_cc_mpi_1.sh
+        system:
+          manageSys: mpirun
+          flags:
+            - -map-by: "ppr:4:socket"
+            - --host: ${mpi_1_nodes}$
+    - sh:
+        flags:
+          - lammps_cc_mpi_1.sh
+        system:
+          manageSys: mpirun
+          flags:
+            - -map-by: "ppr:4:socket"
+            - --host: ${mpi_2_nodes}$
+    - sh:
+        flags:
+          - lammps_cc_mpi_3.sh
+        system:
+          manageSys: mpirun
 terminateAfter: true

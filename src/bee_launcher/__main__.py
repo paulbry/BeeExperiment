@@ -5,6 +5,7 @@ from termcolor import cprint
 # project
 from .bee_launch import BeeArguments
 from bee_logging.bee_log import BeeLogging
+from .bee_flow import terminate_flow_id, terminate_flow_task, LaunchBeeFlow
 
 
 # Parser supporting functions
@@ -36,7 +37,13 @@ def verify_single_beeflow(potential_file):
     :param potential_file: argument provided by user (name)
     :return: argument IF .beeflow found
     """
-    tar = getcwd() + "/" + potential_file + '.beeflow'
+    ext = potential_file[-4:]
+    if ext == "yaml" or ext == ".yml":
+        tar = getcwd() + '/' + potential_file
+    else:  # assume beefile
+        if potential_file[-8:] == ".beeflow":
+            potential_file = potential_file[:-8]
+        tar = getcwd() + '/' + potential_file + '.beeflow'
     if path.isfile(tar):
         return potential_file
     else:
@@ -68,12 +75,8 @@ def launch_default(args):
     if args.examine_task:
         bee_args.opt_examine(args)
 
-
-def flow_default(args):
-    # TODO: update upon implementation
-    # BeeFlow(args.logflag, args.log_dest).main(args.launch_flow[0])
-    bl = BeeLogging(args.logflag, args.log_dest, args.quite)
-    bl.message("Not yet implemented!", bl.err)
+    if args.launch_flow:
+        LaunchBeeFlow(args.launch_flow[0], bl)
 
 
 parser = argparse.ArgumentParser(description="BEE Launcher\n"

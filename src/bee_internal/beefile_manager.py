@@ -1,6 +1,5 @@
 # system
-from yaml import load, loader, YAMLError
-from collections import OrderedDict
+from yaml import load, safe_load, YAMLError
 
 
 class BeefileLoader(object):
@@ -26,7 +25,7 @@ class BeeflowLoader(object):
     def __init__(self, flow_name, beelog):
         try:
             stream = open("{}.beeflow".format(flow_name), "r")
-            self.beeflow = load(stream)
+            self.beeflow = safe_load(stream)
         except YAMLError as err:
             beelog.message(err, "{}.beeflow".format(flow_name), beelog.err)
             exit(1)

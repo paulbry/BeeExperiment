@@ -7,6 +7,7 @@ from .db_launch import LaunchDB
 from .db_orc import OrchestratorDB
 from bee_logging.bee_log import BeeLogging
 
+
 # Database are currently hardcoded across the application
 mon_homedir = path.expanduser('~')
 mon_db_launch = mon_homedir + "/.bee/launcher.db"

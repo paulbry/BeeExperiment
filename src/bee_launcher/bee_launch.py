@@ -25,14 +25,12 @@ class BeeLauncher(object):
                                 Not opened during launch step, used during
                                 orchestration
         """
-        b_class = beefile.get('class')
         try:  # ResourceRequirements not required when using localhost
             b_rjms = beefile['requirements']['ResourceRequirement']['manageSys']
         except KeyError:
             b_rjms = "localhost"
 
         self.blog.message(msg="Preparing to launch..."
-                              "\n\tClass: {}".format(b_class)
                               + "\n\tManageSys: {}".format(b_rjms)
                               + "\n\tTask: {}".format(task_name),
                           task_name=task_name,
@@ -48,7 +46,7 @@ class BeeLauncher(object):
                               task_name=task_name, color=self.blog.msg)
 
             ldb = LaunchDB(beelog=self.blog)
-            ldb.new_launch(job_id=out, b_class=b_class, b_rjms=b_rjms,
+            ldb.new_launch(job_id=out, b_rjms=b_rjms,
                            status="Launched", beefile_full=beefile,
                            beefile_loc=file_loc, input_values=input_mng.variables)
         elif test_only:
@@ -76,8 +74,9 @@ class BeeArguments(BeeLauncher):
         :param args: command line argument namespace
         """
         filename = str(args.launch_task[0])
+        bff = {}
         try:
-            f = BeefileLoader(filename, self.blog)
+            bff = BeefileLoader(filename, self.blog)
         except FileNotFoundError as err:
             self.blog("Please verify name/existence of: {}\n{}".format(filename, err),
                       color=self.blog.err)
@@ -85,12 +84,12 @@ class BeeArguments(BeeLauncher):
 
         if len(args.launch_task) == 2 and args.launch_task[1] is not None:
             y = YMLLoader(args.launch_task[1], self.blog)
-            input_mng = InputManagement(f.beefile, y.ymlfile,
+            input_mng = InputManagement(bff.beefile, y.ymlfile,
                                         self.blog, args.launch_task[1])
         else:
-            input_mng = InputManagement(f.beefile, None, self.blog, None)
+            input_mng = InputManagement(bff.beefile, None, self.blog, None)
 
-        self.launch(beefile=f.beefile, task_name=filename,
+        self.launch(beefile=bff.beefile, task_name=filename,
                     file_loc=path.dirname(path.abspath("{}.beefile".format
                                                        (filename))),
                     test_only=args.testonly, input_mng=input_mng)

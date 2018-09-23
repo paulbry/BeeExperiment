@@ -66,6 +66,9 @@ class BeeCluster(BeeTask):
         self.blog.message("Launching", self._task_id,
                           self.blog.msg)
         self._sys_adapter.launch()
+
+        self.blog.message("Generating node list", self._task_id,
+                          self.blog.msg)
         for i in range(0, len(self.node_list)):
             if i == 0:
                 hostname = "{}-{}-bee-master".format(getpass.getuser(),
@@ -102,10 +105,10 @@ class BeeCluster(BeeTask):
                     t_res = self._sub_bees(t)
                     self.__handle_worker_result(t_res)
             elif wb_type == 'command':
-                print("NEW COMMAND")
                 for t in workers[next(iter(workers))]:
                     t_res = self._bee_cmd(t)
-                    # self.__handle_worker_result(t_res)
+                    print(t_res)
+                    self.__handle_worker_result(t_res)
             else:
                 out = "Unsupported workerBee detected: {}".format(workers)
                 t_res[1] = 1

@@ -4,11 +4,10 @@ class InputManagement(object):
         self.yml_file_name = yml_file_name
         self.usr_val = user_values
         self.blog = beelog
-        self.variables = None
+        self.variables = {}
         self.__pre = "${"
         self.__post = "}$"
         if self.bf_in is not None and self.usr_val is not None:
-            self.variables = {}
             self.generate_in_var()
 
     def prepare_base_cmd(self, base_cmd):

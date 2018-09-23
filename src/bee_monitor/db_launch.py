@@ -43,34 +43,34 @@ class LaunchDB(SharedDBTools):
         Print data from launcher.db in readable format
         :param line: single line from SELECT * FROM launcher
         """
-        self.blog.message("\nBeefile Name: {}".format(line[5]),
+        self.blog.message("\nBeefile Name: {}".format(line[4]),
                           color=self.blog.dbase)
         self.blog.message("JobID: {}".format(line[1]))
-        self.blog.message("Class: {}".format(line[2]))
-        self.blog.message("Management System: {}".format(line[3]))
-        self.blog.message("Status: {}".format(line[4]))
-        self.blog.message("TimeStamp: {}".format(line[14]))
+        self.blog.message("Management System: {}".format(line[2]))
+        self.blog.message("Status: {}".format(line[3]))
+        self.blog.message("TimeStamp: {}".format(line[13]))
         self.blog.message("Beefile", color=self.blog.dbase)
-        self._clean_dict(ast.literal_eval(line[7]))
-        if line[8] is not None:
-            self.blog.message("Beeflow Name: {}".format(line[8]))
-            self.blog.message("Beeflow")
-            self._clean_dict(ast.literal_eval(line[10]))
-        if line[11] == "None":
-            self.blog.message("Error: {}".format(line[11]),
+        self._clean_dict(ast.literal_eval(line[6]))
+        if line[7] is not None:
+            self.blog.message("Beeflow Name: {}".format(line[7]))
+            self.blog.message("Beeflow ID: {}".format(line[9]))
+            self.blog.message("Beeflow", color=self.blog.dbase)
+            self._clean_dict(ast.literal_eval(line[8]))
+        if line[10] == "None":
+            self.blog.message("Error: {}".format(line[10]),
                               color=self.blog.err)
-        if line[13] != "None":
+        if line[12] != "None":
             self.blog.message("Input Values", color=self.blog.dbase)
-            print(line[13])
-            self._clean_dict(ast.literal_eval(line[13]))
+            print(line[12])
+            self._clean_dict(ast.literal_eval(line[12]))
 
     ###########################################################################
     # launcher table
     ###########################################################################
-    def new_launch(self, job_id, b_class,
+    def new_launch(self, job_id,
                    b_rjms=None, status=None, error=None,
                    beefile_name=None, beefile_full=None, beefile_loc=None,
-                   beeflow_name=None, beeflow_loc=None, beeflow_full=None,
+                   beeflow_name=None, beeflow_id=None, beeflow_full=None,
                    allocation_script=None, input_values=None):
         """
         Invoke when a new launch even occurs that needs to be tracked.
@@ -81,13 +81,13 @@ class LaunchDB(SharedDBTools):
         """
         c = self._connect_db()
         self.__launcher_table(c)
-        self.__insert_launch_event(cursor=c, job_id=job_id, b_class=b_class,
+        self.__insert_launch_event(cursor=c, job_id=job_id,
                                    b_rjms=b_rjms, status=status, error=error,
                                    beefile_name=beefile_name,
                                    beefile_full=beefile_full,
                                    beefile_loc=beefile_loc,
                                    beeflow_name=beeflow_name,
-                                   beeflow_loc=beeflow_loc,
+                                   beeflow_id=beeflow_id,
                                    beeflow_full=beeflow_full,
                                    allocation_script=allocation_script,
                                    input_values=input_values)
@@ -97,15 +97,14 @@ class LaunchDB(SharedDBTools):
         cmd = "CREATE TABLE IF NOT EXISTS launcher " \
               "(tableID INTEGER PRIMARY KEY, " \
               "jobID TEXT NOT NULL, " \
-              "class TEXT NOT NULL, " \
               "manageSys TEXT, " \
               "status TEXT, " \
               "beefileName TEXT, " \
               "beefileLocation TEXT, " \
               "beefileFull TEXT, " \
               "beeflowName TEXT, " \
-              "beeflowLocation TEXT, " \
               "beeflowFull TEXT, " \
+              "beeflowID TEXT, " \
               "errDetails TEXT, " \
               "allocationScript TEXT, " \
               "inputValues TEXT," \
@@ -113,38 +112,36 @@ class LaunchDB(SharedDBTools):
         if self.execute_query(cursor, cmd):
             self._db_conn.commit()
 
-    def __insert_launch_event(self, cursor, job_id, b_class, b_rjms=None,
+    def __insert_launch_event(self, cursor, job_id, b_rjms=None,
                               status=None, error=None, beefile_name=None,
                               beefile_full=None, beefile_loc=None,
-                              beeflow_name=None, beeflow_loc=None,
+                              beeflow_name=None, beeflow_id=None,
                               beeflow_full=None, allocation_script=None,
                               input_values=None):
 
         try:
             cursor.execute("INSERT INTO launcher ("
                            "jobID, "
-                           "class, "
                            "manageSys, "
                            "status, "
                            "beefileName, "
                            "beefileLocation, "
                            "beefileFull, "
                            "beeflowName,"
-                           "beeflowLocation, "
+                           "beeflowID, "
                            "beeflowFull, "
                            "errDetails, "
                            "allocationScript, "
                            "inputValues) "
-                           "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                           "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                            (job_id,
-                            b_class,
                             b_rjms,
                             status,
                             beefile_name,
                             beefile_loc,
                             str(beefile_full),
                             beeflow_name,
-                            beeflow_loc,
+                            beeflow_id,
                             str(beeflow_full),
                             str(error),
                             str(allocation_script),

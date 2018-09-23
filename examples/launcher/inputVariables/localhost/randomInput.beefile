@@ -1,4 +1,3 @@
-class: BEE-Localhost
 id: inputsExample
 label: Demo basic idea behind user input files and relation to baseCommand
 inputs:

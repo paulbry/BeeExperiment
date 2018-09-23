@@ -1,0 +1,28 @@
+id: helloWorld
+label: Basic hello world example
+requirements:
+    EnvVarRequirements:
+      envDef:
+        - PATH: $HOME/.local/bin
+      sourceDef:
+        - activate: bxp
+    CharliecloudRequirement:
+      debian:
+        source: /var/tmp/debian.tar.gz
+        tarDir: /var/tmp
+        removeAfter: True
+inputs:
+  example_string:
+    type: string
+    default: "name"
+workerBees:
+    - Command:
+        - create:
+            cmd: ['mkdir', '/var/tmp/output']
+        - something:
+            cmd: ['echo', 'debian']
+            output: example_string
+        - somethingElse:
+            cmd: ['ch-run', '-b', '/var/tmp/output', '-c', '/mnt/0',
+                  '/var/tmp/${example_string}$', '--', 'touch', 'randomFile']
+terminateAfter: true

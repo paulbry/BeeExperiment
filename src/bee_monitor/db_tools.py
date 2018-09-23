@@ -53,6 +53,7 @@ class SharedDBTools(object):
         """
         Print (to console) the Python dicationary passed (d).
         """
+        print(d)
         for key, value in d.items():
             if isinstance(value, dict):
                 self.blog.message('\t' * indent + str(key) + ":")

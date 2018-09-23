@@ -149,7 +149,6 @@ class BeeTask(Thread):
         :param cmd_task:
         :return:
         """
-        print(cmd_task)
         try:
             for wb in cmd_task:
                 o_cmd = cmd_task[wb].get('cmd')
@@ -171,7 +170,7 @@ class BeeTask(Thread):
                                           self.blog.msg)
 
                         out, code = self._sys_adapter.execute(cmd, [], capture_out)
-                        return [out, code, r_cmd, o_cmd]
+                        return [out, code, r_cmd, o_cfg]
                     else:
                         msg = "Command variable is not list"
                         self.blog(msg, self._task_id, self.blog.err)

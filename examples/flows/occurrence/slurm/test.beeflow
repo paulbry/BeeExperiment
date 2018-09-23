@@ -1,0 +1,11 @@
+blast-split:
+blast-worker:
+  dependency_list: [blast-split]
+  dependency_mode: off-line
+  occurrences: 10
+blast-output:
+    dependency_list: [blast-worker]
+    dependency_mode: off-line
+blast-output-err:
+    dependency_list: [blast-worker]
+    dependency_mode: off-line

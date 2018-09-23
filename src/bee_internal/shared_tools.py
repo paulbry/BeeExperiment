@@ -191,7 +191,7 @@ class TranslatorMethods(GlobalMethods):
         for cc in self._beefile_req.get('CharliecloudRequirement', {}):
             cc_task = self._beefile_req['CharliecloudRequirement'][cc]
             if ch_pre is not None:
-                cc_deploy = str(ch_pre) + " ch-tar2dir "
+                cc_deploy = "{} ch-tar2dir ".format(ch_pre)
             else:
                 cc_deploy = "ch-tar2dir "
             cc_deploy += str(cc_task['source']) + " " \

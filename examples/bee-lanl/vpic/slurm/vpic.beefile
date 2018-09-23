@@ -1,5 +1,4 @@
 id: vpic-ex
-class: BEE-Charliecloud
 label: VPIC example
 requirements:
   ResourceRequirement:

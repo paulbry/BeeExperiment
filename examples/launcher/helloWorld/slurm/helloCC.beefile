@@ -1,4 +1,3 @@
-class: BEE-Charliecloud
 id: helloWorld
 label: Basic hello world example
 requirements:
