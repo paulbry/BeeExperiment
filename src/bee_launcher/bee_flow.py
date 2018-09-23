@@ -6,22 +6,39 @@ from subprocess import Popen, CalledProcessError
 # project
 from bee_internal.beefile_manager import BeeflowLoader, BeefileLoader, \
     YMLLoader
-from bee_logging.bee_log import BeeLogging
 from .launcher_translator import Adapter
 from bee_internal.in_out_manage import InputManagement
 from bee_monitor.db_launch import LaunchDB
+from bee_logging.bee_log import  BeeLogging
 
 
 def terminate_flow_id(flow_id):
-    pass
+    blog = BeeLogging(False, None, False)
+    ldb = LaunchDB(blog)
+    res = ldb.query_value_list(index='beeflowID', value=flow_id,
+                               result='manageSys, jobID')
+    blog.message("Preparing termination requests for flowID: {}".format(flow_id),
+                 color=blog.msg)
+    for e in res:
+        mng_sys = e[0]
+        jid = e[1]
 
-
-def terminate_flow_task(task_id):
-    pass
+        if jid is None:
+            blog.message("Unable to find jobID associated with flowID: "
+                         "{}".format(flow_id), color=blog.err)
+        elif mng_sys is None:
+            blog.message("Unable to identify manageSys for jobID: "
+                         "{}".format(jid), color=blog.err)
+        else:
+            adapt = Adapter(system=mng_sys, config=None, file_loc=None, task_name=None,
+                            beelog=blog, input_mng=None)
+            blog.message("Sending termination request for job {} via {}".format(
+                jid, mng_sys))
+            adapt.shutdown(jid)
 
 
 class LaunchBeeFlow(object):
-    def __init__(self, launch_flow, beelog):
+    def __init__(self, launch_flow, beelog, testonly):
         # objects
         self.blog = beelog
         self.ldb = LaunchDB(beelog=self.blog)
@@ -31,6 +48,7 @@ class LaunchBeeFlow(object):
         self.beeflow = self.bf_loader.beeflow
         self.flow_id = "{}-{}".format(self.flow_name,
                                       calendar.timegm(time.gmtime()))
+        self.test_only = testonly
         self.j_id = 0
         # BEGIN
         self.launch_flow()
@@ -113,10 +131,7 @@ class LaunchBeeFlow(object):
         adapt = Adapter(system=b_rjms, config=beefile, file_loc=file_loc,
                         task_name=task_name, beelog=self.blog,
                         input_mng=input_mng)
-        # out = adapt.allocate()
-        # TODO: remove TEMP!
-        self.j_id += 1
-        out = self.j_id
+        out = adapt.allocate(test_only=self.test_only)
 
         if out is not None:
             self.blog.message(msg="Launched with job id: {}".format(out),
@@ -129,6 +144,9 @@ class LaunchBeeFlow(object):
                                 beeflow_full=self.beeflow,
                                 beeflow_id=self.flow_id,
                                 beeflow_name=self.flow_name)
+        elif self.test_only:
+            self.blog.message(msg="Test launch complete!",
+                              task_name=task_name, color=self.blog.msg)
         else:
             self.blog.message(msg="Unexpected error during allocation",
                               task_name=task_name, color=self.blog.msg)
@@ -137,7 +155,8 @@ class LaunchBeeFlow(object):
 
         return out
 
-    def __build_depends(self, val, running_jobs):
+    @staticmethod
+    def __build_depends(val, running_jobs):
         depends = None
         if val is not None:
             if val.get("dependency_list") is not None:
@@ -153,6 +172,13 @@ class LaunchBeeFlow(object):
         return depends
 
     def __manage_input(self, beefile, in_file_name, gen_cmd):
+        """
+        Return appropriate InputManagement object
+        :param beefile: beefile as dictionary
+        :param in_file_name: name of user input file (e.g. input.yml)
+        :param gen_cmd: input generation command
+        :return: InputManagement object
+        """
         if gen_cmd is not None:
             self.__run_popen(gen_cmd)
 

@@ -32,6 +32,18 @@ class LaunchDB(SharedDBTools):
         r = self._exec_query_value('launcher', index, value, result)
         return r
 
+    def query_value_list(self, index, value, result="*"):
+        cmd = "SELECT {} FROM {} WHERE {}='{}'".format(
+            result, 'launcher', index, str(value)
+        )
+        cursor = self._connect_db()
+        if self.execute_query(cursor, cmd):
+            r = cursor.fetchall()
+        else:
+            r = None
+        self._close_db()
+        return r
+
     def delete_all(self):
         """
         Remove all entries from the specified table

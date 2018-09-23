@@ -13,7 +13,10 @@ class SlurmAdaptee:
 
         # task /configuration
         self._beefile = config
-        self._beefile_req = self._beefile.get('requirements')
+        if self._beefile is not None:
+            self._beefile_req = self._beefile.get('requirements')
+        else:
+            self._beefile_req = {}
         self._file_loc = file_loc
         self._task_name = task_name
 

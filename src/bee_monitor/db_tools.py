@@ -62,7 +62,7 @@ class SharedDBTools(object):
                 self.blog.message('\t' * indent + str(key) + ": " + str(value))
 
     def _exec_query_value(self, table, index, value, result="*"):
-        cmd = "SELECT {} FROM {} WHERE {}={}".format(
+        cmd = "SELECT {} FROM {} WHERE {}='{}'".format(
             result, table, index, str(value)
         )
         cursor = self._connect_db()

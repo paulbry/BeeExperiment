@@ -5,7 +5,7 @@ from termcolor import cprint
 # project
 from .bee_launch import BeeArguments
 from bee_logging.bee_log import BeeLogging
-from .bee_flow import terminate_flow_id, terminate_flow_task, LaunchBeeFlow
+from .bee_flow import terminate_flow_id, LaunchBeeFlow
 
 
 # Parser supporting functions
@@ -76,7 +76,10 @@ def launch_default(args):
         bee_args.opt_examine(args)
 
     if args.launch_flow:
-        LaunchBeeFlow(args.launch_flow[0], bl)
+        LaunchBeeFlow(args.launch_flow[0], bl, args.testonly)
+
+    if args.terminate_flow:
+        terminate_flow_id(args.terminate_flow[0])
 
 
 parser = argparse.ArgumentParser(description="BEE Launcher\n"
@@ -127,6 +130,9 @@ launch_group.add_argument("-f", "--beeflow",
                           type=verify_single_beeflow,
                           help="Runs task specified by <LAUNCH_FLOW>.beeflow, "
                                "that needs to be in the current directory")
+launch_group.add_argument("-tf", "--terminate-flow",
+                          dest='terminate_flow', nargs=1,
+                          help="Terminate all tasks related to the <FLOW_ID>.")
 launch_group.add_argument("-e", "--examine",
                           dest='examine_task', nargs=1,
                           help="Examine supplied Beefile for structure & key "
