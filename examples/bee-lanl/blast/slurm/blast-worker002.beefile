@@ -1,0 +1,37 @@
+id: blastWorker002
+label: Blast worker example (flow)
+requirements:
+    ResourceRequirement:
+        numNodes: 1
+        jobTime: "0:20:00"
+        manageSys: slurm
+    SoftwareModules:
+      friendly-testing:
+      charliecloud:
+      python:
+        version: 3.6-anaconda-5.0.1
+      openmpi:
+        version: 1.10.5
+    EnvVarRequirements:
+      envDef:
+        - PATH: $HOME/.local/bin
+      sourceDef:
+        - activate: bxp
+    CharliecloudRequirement:
+        blast:
+            source: /usr/project/beedev/blast/blast.tar.gz
+            tarDir: /var/tmp
+            deleteAfter: true
+            defaultFlags:
+            - --no-home
+            - -b: ouput
+            - -c: /home/beeuser/makeflow-examples/blast
+workerBees:
+    - Task:
+        - sh:
+            flags:
+              - -c
+              - "blastall -p blastn -d nt/nt -i /mnt/0/small.fasta.0
+              -o /mnt/0/input.fasta.1.out 2> /mnt/0/input.fasta.1.err"
+            container:
+                name: blast

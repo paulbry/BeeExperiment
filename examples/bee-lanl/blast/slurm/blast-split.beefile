@@ -1,0 +1,39 @@
+id: blastSplit
+label: Blast split example (flow)
+requirements:
+    ResourceRequirement:
+        numNodes: 1
+        jobTime: "0:15:00"
+        manageSys: slurm
+    SoftwareModules:
+      friendly-testing:
+      charliecloud:
+      python:
+        version: 3.6-anaconda-5.0.1
+      openmpi:
+        version: 1.10.5
+    EnvVarRequirements:
+      envDef:
+        - PATH: $HOME/.local/bin
+      sourceDef:
+        - activate: bxp
+    CharliecloudRequirement:
+        blast:
+            source: /usr/project/beedev/blast/blast.tar.gz
+            tarDir: /var/tmp
+            deleteAfter: true
+            defaultFlags:
+                - --no-home
+                - -b: ouput
+                - -c: /home/beeuser/makeflow-examples/blast
+workerBees:
+    - Command:
+        - prepare:
+            cmd: ['bash', 'blast-prep.sh']
+    - Task:
+        - cat_blast:
+            flags:
+              - -c
+              - "cp small.fasta /mnt/0 && split_fasta 100 /mnt/0/small.fasta"
+            container:
+                name: blast
