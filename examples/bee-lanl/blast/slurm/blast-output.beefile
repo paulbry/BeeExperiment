@@ -19,12 +19,11 @@ requirements:
         - activate: bxp
     CharliecloudRequirement:
         blast:
-            source: /usr/project/beedev/blast/blast.tar.gz
+            source: /usr/projects/beedev/blast/blast.tar.gz
             tarDir: /var/tmp
-            deleteAfter: true
             defaultFlags:
                 - --no-home
-                - -b: ouput
+                - -b: output
 workerBees:
     - Task:
         - cat_blast:

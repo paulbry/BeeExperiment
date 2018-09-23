@@ -19,21 +19,22 @@ requirements:
         - activate: bxp
     CharliecloudRequirement:
         blast:
-            source: /usr/project/beedev/blast/blast.tar.gz
+            source: /usr/projects/beedev/blast/blast.tar.gz
             tarDir: /var/tmp
-            deleteAfter: true
             defaultFlags:
                 - --no-home
-                - -b: ouput
+                - -b: output
                 - -c: /home/beeuser/makeflow-examples/blast
 workerBees:
     - Command:
         - prepare:
             cmd: ['bash', 'blast-prep.sh']
     - Task:
-        - cat_blast:
+        - sh:
             flags:
               - -c
-              - "cp small.fasta /mnt/0 && split_fasta 100 /mnt/0/small.fasta"
+              - '"cp small.fasta /mnt/0 &&
+              /home/beeuser/makeflow-examples/blast/split_fasta 100
+              /mnt/0/small.fasta\"'
             container:
                 name: blast
