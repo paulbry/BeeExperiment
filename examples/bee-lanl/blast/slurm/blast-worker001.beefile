@@ -23,8 +23,7 @@ requirements:
             tarDir: /var/tmp
 workerBees:
     - Task:
-        - sh:
+        - bash:
             flags:
-              - -c
               - blast-worker.sh
               - -z

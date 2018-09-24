@@ -22,8 +22,6 @@ requirements:
             source: /usr/projects/beedev/blast/blast.tar.gz
             tarDir: /var/tmp
 workerBees:
-    - Task:
-        - sh:
-            flags:
-              - -c
-              - blast-err.sh
+  - Command:
+    - err:
+        cmd: ['bash', 'blast-err.sh']
