@@ -135,7 +135,7 @@ class LaunchBeeFlow(object):
         adapt = Adapter(system=b_rjms, config=beefile, file_loc=file_loc,
                         task_name=task_name, beelog=self.blog,
                         input_mng=input_mng)
-        out = adapt.allocate(test_only=self.test_only)
+        out = adapt.allocate(test_only=self.test_only, dependency=depends)
 
         if out is not None:
             self.blog.message(msg="Launched with job id: {}".format(out),
