@@ -121,7 +121,7 @@ class SlurmAdaptee:
         else:
             cmd = ['sbatch', file]
         out = self.stm.run_popen_safe(command=cmd, err_exit=True)
-        str_out = (str(out))[:-3]
+        str_out = (str(out))[:-1]
         return str_out.rsplit(" ", 1)[1]
 
     def __resource_requirement(self, temp_file):
