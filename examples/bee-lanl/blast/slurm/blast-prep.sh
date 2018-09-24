@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BLAST_OUT=~/blast_output
+BLAST_OUT=output
 
 rm -rf $BLAST_OUT
 mkdir $BLAST_OUT

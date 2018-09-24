@@ -21,16 +21,9 @@ requirements:
         blast:
             source: /usr/projects/beedev/blast/blast.tar.gz
             tarDir: /var/tmp
-            defaultFlags:
-            - --no-home
-            - -b: output
-            - -c: /home/beeuser/makeflow-examples/blast
 workerBees:
     - Task:
         - sh:
             flags:
               - -c
-              - '"blastall -p blastn -d nt/nt -i /mnt/0/small.fasta.0
-              -o /mnt/0/input.fasta.1.out 2> /mnt/0/input.fasta.1.err"'
-            container:
-                name: blast
+              - blast-worker.sh

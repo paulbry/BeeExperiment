@@ -21,15 +21,9 @@ requirements:
         blast:
             source: /usr/projects/beedev/blast/blast.tar.gz
             tarDir: /var/tmp
-            defaultFlags:
-            - --no-home
-            - -b: output
 workerBees:
     - Task:
         - sh:
             flags:
               - -c
-              - '"cat /mnt/0/input.fasta.0.err /mnt/0/input.fasta.1.err >
-              /mnt/0/output.fasta.err"'
-            container:
-                name: blast
+              - blast-err.sh
