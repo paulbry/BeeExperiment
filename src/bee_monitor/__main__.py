@@ -3,8 +3,8 @@ import argparse
 from os import path
 from termcolor import cprint
 # project
-from .db_launch import LaunchDB
-from .db_orc import OrchestratorDB
+from bee_monitor.db_launch import LaunchDB
+from bee_monitor.db_orc import OrchestratorDB
 from bee_logging.bee_log import BeeLogging
 
 

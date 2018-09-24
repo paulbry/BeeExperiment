@@ -1,5 +1,6 @@
 # system
 from subprocess import Popen, PIPE, CalledProcessError, STDOUT
+# project
 from bee_monitor.db_orc import OrchestratorDB
 
 
@@ -61,6 +62,7 @@ class GlobalMethods(object):
         :return: stdout on success, None on failure
         """
         r_cmd = (''.join(str(x) + " " for x in command))
+        self.blog.message("Executing: {}".format(r_cmd), self._task_name)
         try:
             p = Popen(command, stdout=PIPE, stderr=STDOUT)
             out, err = p.communicate()
@@ -77,6 +79,21 @@ class GlobalMethods(object):
             if err_exit:
                 exit(1)
             return None
+
+    def run_popen_code(self, command):
+        r_cmd = (''.join(str(x) + " " for x in command))
+        self.blog.message("Executing: {}".format(r_cmd), self._task_name)
+        try:
+            p = Popen(command)
+            return p.wait()
+        except CalledProcessError as e:
+            self.blog.message(msg="Error during - " + str(r_cmd) + "\n" +
+                                  str(e), color=self.blog.err)
+            return 1
+        except OSError as e:
+            self.blog.message(msg="Error during - " + str(r_cmd) + "\n" +
+                                  str(e), color=self.blog.err)
+            return 1
 
     ###########################################################################
     # Orchestration / Runtime related methods

@@ -1,6 +1,6 @@
 # system
-from tempfile import NamedTemporaryFile
 from os import environ
+from tempfile import NamedTemporaryFile
 # project
 from bee_internal.shared_tools import TranslatorMethods
 
@@ -69,13 +69,13 @@ class SlurmAdaptee:
         tmp_f.seek(0)
         out = None
         if not test_only:
-            out = self._run_sbatch(tmp_f.name)
+            out = self._run_sbatch(tmp_f.name, dependency)
         tmp_f.close()
         return out
 
     def specific_shutdown(self, job_id):
         cmd = ['scancel', job_id]
-        self.stm.run_popen_safe(cmd)
+        return self.stm.run_popen_code(cmd)
 
     def specific_move_file(self):
         pass
@@ -115,8 +115,11 @@ class SlurmAdaptee:
     ###########################################################################
     # Protected/Private supporting functions
     ###########################################################################
-    def _run_sbatch(self, file):
-        cmd = ['sbatch', file]
+    def _run_sbatch(self, file, dependency):
+        if dependency is not None:
+            cmd = ['sbatch', '--dependency=afterok:{}'.format(dependency), file]
+        else:
+            cmd = ['sbatch', file]
         out = self.stm.run_popen_safe(command=cmd, err_exit=True)
         str_out = (str(out))[:-3]
         return str_out.rsplit(" ", 1)[1]

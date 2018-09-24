@@ -3,9 +3,9 @@ import argparse
 from os import getcwd, path
 from termcolor import cprint
 # project
-from .bee_launch import BeeArguments
+from bee_launcher.bee_launch import BeeArguments
 from bee_logging.bee_log import BeeLogging
-from .bee_flow import terminate_flow_id, LaunchBeeFlow
+from bee_launcher.bee_flow import terminate_flow_id, LaunchBeeFlow
 
 
 # Parser supporting functions

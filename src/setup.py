@@ -18,7 +18,6 @@ setuptools.setup(
     install_requires=[
         'termcolor',
         'PyYAML',
-        'pexpect',
         'Pyro4'
     ],
     entry_points={

@@ -1,8 +1,8 @@
 # system
 import abc
 # project
-from bee_internal.tar_slurm import SlurmAdaptee
 from bee_internal.tar_localhost import LocalhostAdaptee
+from bee_internal.tar_slurm import SlurmAdaptee
 
 
 class Target(metaclass=abc.ABCMeta):

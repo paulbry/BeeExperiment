@@ -1,18 +1,22 @@
 # system
-import os.path
-import time
 import calendar
+import os
+import time
 from subprocess import Popen, CalledProcessError
 # project
 from bee_internal.beefile_manager import BeeflowLoader, BeefileLoader, \
     YMLLoader
-from .launcher_translator import Adapter
+from bee_launcher.launcher_translator import Adapter
 from bee_internal.in_out_manage import InputManagement
 from bee_monitor.db_launch import LaunchDB
 from bee_logging.bee_log import  BeeLogging
 
 
 def terminate_flow_id(flow_id):
+    """
+
+    :param flow_id:
+    """
     blog = BeeLogging(False, None, False)
     ldb = LaunchDB(blog)
     res = ldb.query_value_list(index='beeflowID', value=flow_id,
@@ -39,7 +43,6 @@ def terminate_flow_id(flow_id):
 
 class LaunchBeeFlow(object):
     def __init__(self, launch_flow, beelog, testonly):
-        # objects
         self.blog = beelog
         self.ldb = LaunchDB(beelog=self.blog)
         self.bf_loader = BeeflowLoader(launch_flow, self.blog)
@@ -49,7 +52,7 @@ class LaunchBeeFlow(object):
         self.flow_id = "{}-{}".format(self.flow_name,
                                       calendar.timegm(time.gmtime()))
         self.test_only = testonly
-        self.j_id = 0
+
         # BEGIN
         self.launch_flow()
 
@@ -90,7 +93,7 @@ class LaunchBeeFlow(object):
                         terminate_flow_id(self.flow_id)
                         exit(1)
 
-                    jobid = self.__launch_task(beefile, beefile.get('id'), bf_file_loc,
+                    jobid = self.__launch_task(beefile, file_name, bf_file_loc,
                                                self.__manage_input(beefile, in_file,
                                                                    in_gen), depends)
                     existing = running_jobs.get(file_name)
@@ -99,7 +102,7 @@ class LaunchBeeFlow(object):
                     else:
                         running_jobs.update({file_name: str(jobid)})
             else:
-                jobid = self.__launch_task(beefile, beefile.get('id'), bf_file_loc,
+                jobid = self.__launch_task(beefile, file_name, bf_file_loc,
                                            self.__manage_input(beefile, in_file,
                                                                in_gen), depends)
 
@@ -124,7 +127,8 @@ class LaunchBeeFlow(object):
         self.blog.message(msg="Preparing to launch..."
                               + "\n\tManageSys: {}".format(b_rjms)
                               + "\n\tTask: {}".format(task_name)
-                              + "\n\tDependencies: {}".format(depends),
+                              + "\n\tDependencies: {}".format(depends)
+                              + "\n\tLocation: {}".format(file_loc),
                           task_name=task_name,
                           color=self.blog.msg)
 
@@ -177,18 +181,22 @@ class LaunchBeeFlow(object):
         :param beefile: beefile as dictionary
         :param in_file_name: name of user input file (e.g. input.yml)
         :param gen_cmd: input generation command
-        :return: InputManagement object
-        """
+        :return: InputManagement object        """
         if gen_cmd is not None:
             self.__run_popen(gen_cmd)
+
+        i_tmp = in_file_name
 
         if in_file_name is not None:
             if not os.path.isfile(in_file_name):
                 self.blog.message("Unable to identify input named: "
-                                  "{}".format(in_file_name), self.blog.err)
+                                  "{}".format(i_tmp), self.blog.err)
                 exit(1)
-            y = YMLLoader(in_file_name, self.blog)
-            return InputManagement(beefile, y.ymlfile, self.blog, in_file_name)
+            if gen_cmd is not None:
+                i_tmp = "{}.{}".format(beefile['id'], i_tmp)
+                os.rename(in_file_name, i_tmp)
+            y = YMLLoader(i_tmp, self.blog)
+            return InputManagement(beefile, y.ymlfile, self.blog, i_tmp)
         else:
             return InputManagement(beefile, None, self.blog, None)
 

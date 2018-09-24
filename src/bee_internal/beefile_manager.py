@@ -1,12 +1,12 @@
-# system
-from yaml import load, safe_load, YAMLError
+# 3rd party
+from yaml import safe_load, YAMLError
 
 
 class BeefileLoader(object):
     def __init__(self, file_name, beelog):
         try:
             stream = open("{}.beefile".format(file_name), "r")
-            self.beefile = load(stream)
+            self.beefile = safe_load(stream)
         except YAMLError as err:
             beelog.message(err, "{}.beefile".format(file_name), beelog.err)
             exit(1)
@@ -44,7 +44,7 @@ class YMLLoader(object):
     def __init__(self, file_name, beelog):
         try:
             stream = open(file_name, "r")
-            self.ymlfile = load(stream)
+            self.ymlfile = safe_load(stream)
         except YAMLError as err:
             beelog.message(err, file_name, beelog.err)
             exit(1)

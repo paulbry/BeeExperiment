@@ -1,9 +1,9 @@
 # system
 import abc
 import Pyro4
-from pwd import getpwuid
-from os import getuid, path
 from json import load
+from os import getuid, path
+from pwd import getpwuid
 # project
 from bee_internal.tar_localhost import LocalhostAdaptee
 from bee_internal.tar_slurm import SlurmAdaptee

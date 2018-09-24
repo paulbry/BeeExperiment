@@ -1,8 +1,8 @@
 # system
-from tempfile import NamedTemporaryFile
 from datetime import datetime
-from time import time
 from os import environ
+from tempfile import NamedTemporaryFile
+from time import time
 # project
 from bee_internal.shared_tools import TranslatorMethods
 
@@ -72,7 +72,7 @@ class LocalhostAdaptee:
 
     def specific_shutdown(self, job_id):
         cmd = ['screen', '-X', '-S', job_id, 'quit']
-        self.stm.run_popen_safe(cmd)
+        return self.stm.run_popen_code(cmd)
 
     def specific_move_file(self):
         # TODO: identify requirements

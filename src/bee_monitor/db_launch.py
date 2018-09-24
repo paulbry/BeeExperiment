@@ -3,7 +3,7 @@ import ast
 import sqlite3
 from os import path
 # project
-from .db_tools import SharedDBTools
+from bee_monitor.db_tools import SharedDBTools
 
 
 class LaunchDB(SharedDBTools):

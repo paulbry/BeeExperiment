@@ -1,10 +1,11 @@
 # system
-import Pyro4
 import argparse
-from os import path, getuid
-from threading import Thread, Event
-from pwd import getpwuid
 from json import load
+from os import path, getuid
+from pwd import getpwuid
+from threading import Thread, Event
+# 3rd party
+import Pyro4
 # project
 from bee_launcher.bee_launch import BeeArguments
 
