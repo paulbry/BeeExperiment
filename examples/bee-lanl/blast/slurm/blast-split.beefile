@@ -29,12 +29,5 @@ workerBees:
     - Command:
         - prepare:
             cmd: ['bash', 'blast-prep.sh']
-    - Task:
-        - sh:
-            flags:
-              - -c
-              - '"cp small.fasta /mnt/0 &&
-              /home/beeuser/makeflow-examples/blast/split_fasta 100
-              /mnt/0/small.fasta\"'
-            container:
-                name: blast
+        - split:
+            cmd: ['bash', 'blast-split.sh']
