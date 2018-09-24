@@ -3,8 +3,9 @@ import sqlite3
 
 
 class SharedDBTools(object):
-    def __init__(self, beelog, db_full):
+    def __init__(self, beelog, db_full, monitored):
         self.blog = beelog
+        self.monitored = monitored
 
         # Database Tracking (atm hardcoded location!)
         self._db_full = db_full

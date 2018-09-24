@@ -6,8 +6,8 @@ from bee_monitor.db_tools import SharedDBTools
 
 
 class OrchestratorDB(SharedDBTools):
-    def __init__(self, beelog):
-        SharedDBTools.__init__(self, beelog, path.expanduser('~') + "/.bee/orc.db")
+    def __init__(self, beelog, monitored=True):
+        SharedDBTools.__init__(self, beelog, path.expanduser('~') + "/.bee/orc.db", monitored)
         self.table = 'orchestrator'
 
     def query_all(self):
@@ -61,13 +61,14 @@ class OrchestratorDB(SharedDBTools):
                 job_id=None, command=None,
                 std_output=None, std_err=None, exit_status=None,
                 event=None):
-        c = self._connect_db()
-        self.__orc_table(c)
-        self.__insert_orc_event(cursor=c, task_id=task_id, status=status,
-                                job_id=job_id, command=command, std_output=std_output,
-                                std_err=std_err, exit_status=exit_status,
-                                event=event)
-        self._close_db()
+        if self.monitored:
+            c = self._connect_db()
+            self.__orc_table(c)
+            self.__insert_orc_event(cursor=c, task_id=task_id, status=status,
+                                    job_id=job_id, command=command, std_output=std_output,
+                                    std_err=std_err, exit_status=exit_status,
+                                    event=event)
+            self._close_db()
 
     def __orc_table(self, cursor):
         cmd = "CREATE TABLE IF NOT EXISTS {} " \

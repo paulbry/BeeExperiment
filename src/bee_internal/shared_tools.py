@@ -22,7 +22,7 @@ class GlobalMethods(object):
 
         # objects
         self.blog = beelog  # BeeLogging
-        self.orc_db = OrchestratorDB(self.blog)
+        self.orc_db = OrchestratorDB(self.blog, self._beefile.get('monitored', True))
 
         # daemon for ORC control
         self.remote = bldaemon

@@ -7,7 +7,7 @@ from bee_monitor.db_tools import SharedDBTools
 
 
 class LaunchDB(SharedDBTools):
-    def __init__(self, beelog):
+    def __init__(self, beelog, monitored=True):
         SharedDBTools.__init__(self, beelog, path.expanduser('~') + "/.bee/launcher.db")
 
     def query_all(self):
@@ -91,19 +91,20 @@ class LaunchDB(SharedDBTools):
         NOTE: creating the launcher table (if required) will be handled
         automatically.
         """
-        c = self._connect_db()
-        self.__launcher_table(c)
-        self.__insert_launch_event(cursor=c, job_id=job_id,
-                                   b_rjms=b_rjms, status=status, error=error,
-                                   beefile_name=beefile_name,
-                                   beefile_full=beefile_full,
-                                   beefile_loc=beefile_loc,
-                                   beeflow_name=beeflow_name,
-                                   beeflow_id=beeflow_id,
-                                   beeflow_full=beeflow_full,
-                                   allocation_script=allocation_script,
-                                   input_values=input_values)
-        self._close_db()
+        if self.monitored:
+            c = self._connect_db()
+            self.__launcher_table(c)
+            self.__insert_launch_event(cursor=c, job_id=job_id,
+                                       b_rjms=b_rjms, status=status, error=error,
+                                       beefile_name=beefile_name,
+                                       beefile_full=beefile_full,
+                                       beefile_loc=beefile_loc,
+                                       beeflow_name=beeflow_name,
+                                       beeflow_id=beeflow_id,
+                                       beeflow_full=beeflow_full,
+                                       allocation_script=allocation_script,
+                                       input_values=input_values)
+            self._close_db()
 
     def __launcher_table(self, cursor):
         cmd = "CREATE TABLE IF NOT EXISTS launcher " \

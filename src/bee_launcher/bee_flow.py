@@ -9,7 +9,7 @@ from bee_internal.beefile_manager import BeeflowLoader, BeefileLoader, \
 from bee_launcher.launcher_translator import Adapter
 from bee_internal.in_out_manage import InputManagement
 from bee_monitor.db_launch import LaunchDB
-from bee_logging.bee_log import  BeeLogging
+from bee_logging.bee_log import BeeLogging
 
 
 def terminate_flow_id(flow_id):
