@@ -98,47 +98,19 @@ class SlurmAdaptee:
         return self.remote
 
     def specific_get_nodes(self):
-        if environ.get('SLURM_JOB_NUM_NODES') == '1':
-            return [environ.get("SLURM_NODELIST")]
+        try:
+            if environ.get('SLURM_JOB_NUM_NODES') == '1':
+                return [environ.get("SLURM_NODELIST")]
 
-        nl_env_val = environ.get("SLURM_NODELIST")
-        sys_name = nl_env_val[:nl_env_val.find("[")]
-        node_list = []
-        nums = ["0", "1", "2", "3", "4",
-                "5", "6", "7", "8", "9"]
+            nl_env_val = environ.get("SLURM_NODELIST")
+            sys_name = nl_env_val[:nl_env_val.find("[")]
+            return self.__nl_analysis(nl_env_val, sys_name)
 
-        if nl_env_val is not None:
-            os_n_list = nl_env_val[nl_env_val.find("[") + 1:
-                                   nl_env_val.find("]")]
-            tmp = ''
-            i = 0
-            while i < len(os_n_list):
-                if os_n_list[i] in nums:
-                    tmp += os_n_list[i]
-                    i += 1
-                elif os_n_list[i] == ',':
-                    node_list.append(sys_name + tmp)
-                    tmp = ''
-                    i += 1
-                elif os_n_list[i] == '-':
-                    next_p = os_n_list.find(',', i)
-                    if next_p < 0:
-                        next_p = len(os_n_list)
-
-                    tmp_end_val = os_n_list[i + 1:next_p]
-                    val_len = len(tmp_end_val)
-                    while tmp != tmp_end_val:
-                        node_list.append(sys_name + tmp)
-                        tmp = str(int(tmp) + 1)
-                        while len(tmp) < val_len:
-                            tmp = "0" + tmp
-                    tmp = ''
-                    i += 1
-
-            if tmp != '':
-                node_list.append(sys_name + tmp)
-
-        return node_list
+        except AttributeError:
+            self.blog.message("Unable to identify nodes in current slurm allocation. "
+                              "Attempting to return empty set, you may experience "
+                              "unexpected results.", self._task_name, self.blog.warn)
+            return []
 
     ###########################################################################
     # Protected/Private supporting functions
@@ -213,3 +185,39 @@ class SlurmAdaptee:
                      + " -t " + self._task_name
         temp_file.write(bytes("cd {} \n".format(self._file_loc), self._encode))
         temp_file.write(bytes(bee_deploy + "\n", self._encode))
+
+    @staticmethod
+    def __nl_analysis(nl_env_val, sys_name):
+        node_list = []
+        nums = ["0", "1", "2", "3", "4",
+                "5", "6", "7", "8", "9"]
+        if nl_env_val is not None:
+            os_n_list = nl_env_val[nl_env_val.find("[") + 1:
+                                   nl_env_val.find("]")]
+            tmp = ''
+            i = 0
+            while i < len(os_n_list):
+                if os_n_list[i] in nums:
+                    tmp += os_n_list[i]
+                    i += 1
+                elif os_n_list[i] == ',':
+                    node_list.append(sys_name + tmp)
+                    tmp = ''
+                    i += 1
+                elif os_n_list[i] == '-':
+                    next_p = os_n_list.find(',', i)
+                    if next_p < 0:
+                        next_p = len(os_n_list)
+
+                    tmp_end_val = os_n_list[i + 1:next_p]
+                    val_len = len(tmp_end_val)
+                    while tmp != tmp_end_val:
+                        node_list.append(sys_name + tmp)
+                        tmp = str(int(tmp) + 1)
+                        while len(tmp) < val_len:
+                            tmp = "0" + tmp
+                    tmp = ''
+                    i += 1
+            if tmp != '':
+                node_list.append(sys_name + tmp)
+        return node_list
