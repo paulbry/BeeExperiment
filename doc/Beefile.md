@@ -103,25 +103,35 @@ or when specified `module load moduleName/version`
 | moduleName    | string (unique)   | No        |   | The name of the modules you wish to load
 | version       | string            | No        | F | Version, will be appended after `modulename/`
 
-It is a requirement that when utlized the environment has already been supplied the correct software both for `module` 
+It is a requirement that when utilized the environment has already been supplied the correct software both for `module` 
 as well as anything the user wishes to load. Bee will not check for these requirements and could have unexpected results 
 if modules are missing or load incorrect versions.
 
 ```yaml
-moduleName:
-moduleName:
+moduleName1:
+moduleName2:
     version: <string>
 ```
 
 ##### CharliecloudRequirement
+[Charliecloud](https://github.com/hpc/charliecloud) provides user-defined software stacks, similar to Docker, with the 
+benefit that it does not require elevated user privilege or a daemon.  
 
 | Key           | Value(s)          | Required  |Out| Notes                         | 
 | --------------|-------------------|-----------|---|-------------------------------|
+
+```yaml
+
+```
 
 ##### EnvVarRequirements
 
 | Key           | Value(s)          | Required  |Out| Notes                         | 
 | --------------|-------------------|-----------|---|-------------------------------|
+
+````yaml
+
+````
 
 #### inputs
 
@@ -152,6 +162,7 @@ inputs:
 
 | Key           | Value(s)          | Required  |Out| Notes                         | 
 | --------------|-------------------|-----------|---|-------------------------------|
+| 
 
 #### Examples
 ##### Basic
@@ -173,7 +184,14 @@ terminateAfter: true
 baseCommand: env
 ```
 
-Finally you will notice the base command `env`. Again, since the `manageSys` is defaulting to localhost
-the 
+In this example you will that the `manageSys` is not included, as such BEE will be 
+defaulting to localhost. This means a bash script will be generated that, inside a screen, sets:
+
+    -  `PATH=$HOME/.local/bin:$PATH`
+    -  `source activate bxp`
+    
+After-which the `Bee-Orchestrator` will be launched. In turn this will:
+1. `$ sh helloTime.sh` -> Invoked the script helloTime
+2. `$ env` -> Print environment variables
 
 ##### ???
