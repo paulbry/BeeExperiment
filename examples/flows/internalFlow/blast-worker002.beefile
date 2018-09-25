@@ -1,0 +1,11 @@
+id: blastWorker002
+label: Blast worker example (flow)
+requirements:
+    ResourceRequirement:
+        numNodes: 1
+        manageSys: slurm
+workerBees:
+    - Task:
+        - bash:
+            flags:
+              - blast-worker.sh

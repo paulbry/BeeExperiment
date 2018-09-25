@@ -87,7 +87,13 @@ class SlurmAdaptee:
         if system is not None:
             return self.stm.run_popen_orc(system + command, capture_out)
         else:  # run via SRUN (take responsibility)
-            cmd = ['srun'] + command
+            try:
+                nl = self._beefile_req['ResourceRequirement']['nodeList']
+                nn = self._beefile_req['ResourceRequirement'].get('numNodes', 1)
+                cmd = ['srun', '--nodelist={}'.format(nl),
+                       '--nodes={}-{}'.format(nn, nn)] + command
+            except KeyError:
+                cmd = ['srun'] + command
             return self.stm.run_popen_orc(cmd, capture_out)
 
     @staticmethod

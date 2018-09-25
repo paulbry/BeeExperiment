@@ -1,0 +1,10 @@
+id: blastOutputErr
+label: Blast output errors example (flow)
+requirements:
+    ResourceRequirement:
+        numNodes: 1
+        manageSys: slurm
+workerBees:
+  - Command:
+    - err:
+        cmd: ['bash', 'blast-err.sh']

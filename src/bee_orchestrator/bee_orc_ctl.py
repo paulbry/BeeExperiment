@@ -24,6 +24,7 @@ class BeeLauncherDaemon(object):
         self.__py_dir = os.path.dirname(os.path.abspath(__file__))
         self.beetask = None
         self.orc_daemon = daemon
+        self.termination_lock = False
 
     def create_task(self, beefile, file_name, input_mng):
         self.blog.message("Bee orchestration controller: received task "
@@ -53,6 +54,49 @@ class BeeLauncherDaemon(object):
 
     def list_all_tasks(self):
         pass
+
+    def launch_internal_beeflow(self, beeflow, beefile_list, parent_beefile,
+                                node_list, flow_name):
+        self.blog.message("Internal BeeFlow triggered", flow_name, color=self.blog.msg)
+
+        # Initialize each task
+        beeflow_tasks = {}
+        nodes_used = 0
+
+        for task_name in beefile_list:
+            beefile = beefile_list[task_name]
+            try:
+                numNodes = int(beefile['requirements']['ResourceRequirement'].get('numNodes', 1))
+                msys = beefile['requirements']['ResourceRequirement'].get('manageSys')
+                if msys != 'slurm':
+                    print("ERROR: only slurm supported for internal BeeFlow at this time!")
+                    exit(1)
+                if numNodes + nodes_used > len(node_list):
+                    print("ERROR more nodes requested than available!")
+                    exit(1)
+                hosts = None
+                for i in range(0, numNodes):
+                    print(node_list[i + nodes_used])
+                    if hosts is None:
+                        hosts = str(node_list[i + nodes_used])
+                    else:
+                        hosts += ".{}".format(node_list[i + nodes_used])
+                nodes_used += numNodes
+                beefile['requirements']['ResourceRequirement'].update({'nodeList': hosts})
+
+                if parent_beefile['requirements'].get('CharliecloudRequirement') is not None:
+                    print(parent_beefile['requirements'].get('CharliecloudRequirement'))
+                    beefile['requirements'].update(
+                        {'CharliecloudRequirement': parent_beefile['requirements'].get('CharliecloudRequirement')})
+            except KeyError as err:
+                print("ERROR: incorrect beefile configuration\n{}".format(err))
+                exit(1)
+            # beefile.update({'requirements': {'ResourceRequirement': {'nodeList': 'test'}}})
+            print(beefile)
+            # beetask = self.create_task(beefile)
+            beetask = "OBJECT"
+            beeflow_tasks.update({task_name: beetask})
+            # self.__beetasks[task_name] = beetask
 
     def shutdown_daemon(self):
         self.blog.message("Bee orchestration controller shutting down",

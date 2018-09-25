@@ -1,0 +1,12 @@
+id: blastSplit
+label: Blast split example (flow)
+requirements:
+    ResourceRequirement:
+        numNodes: 1
+        manageSys: slurm
+workerBees:
+    - Command:
+        - prepare:
+            cmd: ['bash', 'blast-prep.sh']
+        - split:
+            cmd: ['bash', 'blast-split.sh']

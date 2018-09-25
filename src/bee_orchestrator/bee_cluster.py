@@ -1,10 +1,11 @@
 # system
 import getpass
 # project
-from .bee_task import BeeTask
-from .orc_translator import Adapter
+from bee_orchestrator.bee_task import BeeTask
+from bee_orchestrator.orc_translator import Adapter
 from bee_internal.shared_tools import GlobalMethods
-from .bee_node import BeeNode
+from bee_orchestrator.bee_node import BeeNode
+from bee_internal.beefile_manager import BeefileLoader, BeeflowLoader
 
 
 class BeeCluster(BeeTask):
@@ -109,6 +110,18 @@ class BeeCluster(BeeTask):
                     t_res = self._bee_cmd(t)
                     print(t_res)
                     self.__handle_worker_result(t_res)
+            elif wb_type == 'internalflow':
+                bflow = (BeeflowLoader(workers.get('InternalFlow'), self.blog)).beeflow
+                bfiles = {}
+                # node_list = self._sys_adapter.get_nodes()
+                node_list = ['n1', 'n2', 'n3', 'n4', 'n5']
+                for task in bflow:
+                    bfiles.update({task: (BeefileLoader(task, self.blog)).beefile})
+                self.remote.launch_internal_beeflow(beeflow=bflow,
+                                                    beefile_list=bfiles,
+                                                    parent_beefile=self._beefile,
+                                                    node_list=node_list,
+                                                    flow_name=workers.get('InternalFlow'))
             else:
                 out = "Unsupported workerBee detected: {}".format(workers)
                 t_res[1] = 1

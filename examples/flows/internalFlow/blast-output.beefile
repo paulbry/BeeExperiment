@@ -1,0 +1,15 @@
+id: blastOutput
+label: Blast output example (flow)
+requirements:
+    ResourceRequirement:
+        numNodes: 1
+        manageSys: slurm
+workerBees:
+    - Task:
+        -  /home/beeuser/makeflow-examples/blast/cat_blast:
+            flags:
+              - /mnt/0/output.fasta
+              - /mnt/0/input.fasta.0.out
+              - /mnt/0/input.fasta.1.out
+            container:
+                name: blast
