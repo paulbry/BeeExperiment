@@ -66,22 +66,22 @@ class BeeLauncherDaemon(object):
         for task_name in beefile_list:
             beefile = beefile_list[task_name]
             try:
-                numNodes = int(beefile['requirements']['ResourceRequirement'].get('numNodes', 1))
+                num_n = int(beefile['requirements']['ResourceRequirement'].get('numNodes', 1))
                 msys = beefile['requirements']['ResourceRequirement'].get('manageSys')
                 if msys != 'slurm':
                     print("ERROR: only slurm supported for internal BeeFlow at this time!")
                     exit(1)
-                if numNodes + nodes_used > len(node_list):
+                if num_n + nodes_used > len(node_list):
                     print("ERROR more nodes requested than available!")
                     exit(1)
                 hosts = None
-                for i in range(0, numNodes):
+                for i in range(0, num_n):
                     print(node_list[i + nodes_used])
                     if hosts is None:
                         hosts = str(node_list[i + nodes_used])
                     else:
                         hosts += ".{}".format(node_list[i + nodes_used])
-                nodes_used += numNodes
+                nodes_used += num_n
                 beefile['requirements']['ResourceRequirement'].update({'nodeList': hosts})
 
                 if parent_beefile['requirements'].get('CharliecloudRequirement') is not None:
