@@ -54,13 +54,19 @@ class SharedDBTools(object):
         """
         Print (to console) the Python dicationary passed (d).
         """
-        print(d)
-        for key, value in d.items():
-            if isinstance(value, dict):
-                self.blog.message('\t' * indent + str(key) + ":")
-                self._clean_dict(value, indent + 1)
-            else:
-                self.blog.message('\t' * indent + str(key) + ": " + str(value))
+        if isinstance(d, str):
+            self.blog.message('\t' * indent + str(d))
+        elif isinstance(d, dict):
+            for key, value in d.items():
+                if isinstance(value, dict):
+                    self.blog.message('\t' * indent + str(key) + ":")
+                    self._clean_dict(value, indent + 1)
+                elif isinstance(value, list):
+                    print('\t' * indent + str(key))
+                    for e in value:
+                        self._clean_dict(e, indent)
+                else:
+                    self.blog.message('\t' * indent + str(key) + ": " + str(value))
 
     def _exec_query_value(self, table, index, value, result="*"):
         cmd = "SELECT {} FROM {} WHERE {}='{}'".format(

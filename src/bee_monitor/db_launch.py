@@ -73,7 +73,6 @@ class LaunchDB(SharedDBTools):
                               color=self.blog.err)
         if line[12] != "None":
             self.blog.message("Input Values", color=self.blog.dbase)
-            print(line[12])
             self._clean_dict(ast.literal_eval(line[12]))
 
     ###########################################################################

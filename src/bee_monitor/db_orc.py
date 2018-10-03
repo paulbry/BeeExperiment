@@ -40,11 +40,15 @@ class OrchestratorDB(SharedDBTools):
         self.blog.message("\nCommand: {}".format(line[4]),
                           color=self.blog.dbase)
         self.blog.message("TaskID: {}".format(line[1]))
-        self.blog.message("JobID: {}".format(line[3]))
+        if line[3] is not None:
+            self.blog.message("JobID: {}".format(line[3]))
         self.blog.message("Status: {}".format(line[2]))
-        self.blog.message("stdOut: {}".format(line[5]))
-        self.blog.message("stdErr: {}".format(line[6]))
-        self.blog.message("exitStatus: {}".format(line[7]))
+        if line[5] is not None:
+            self.blog.message("stdOut: {}".format(line[5]))
+        if line[6] is not None:
+            self.blog.message("stdErr: {}".format(line[6]))
+        if line[7] is not None and line[7] != 'None':
+            self.blog.message("exitStatus: {}".format(line[7]))
         self.blog.message("event: {}".format(line[8]))
         self.blog.message("timeStamp: {}".format(line[9]))
 
