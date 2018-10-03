@@ -133,8 +133,8 @@ class BeeCluster(BeeTask):
             event.wait()
 
     def execute_base(self):
-        cmd = self._input_mng.prepare_base_cmd(self._beefile.get('baseCommand'))
-        if cmd is not None:
+        res, cmd = self._input_mng.prepare_base_cmd(self._beefile.get('baseCommand'))
+        if res:
             out, code = self._sys_adapter.execute(cmd, None, False)
             self.__handle_worker_result([out, code, (''.join(str(x) + " " for x in cmd)),
                                          None])

@@ -8,7 +8,7 @@ from bee_monitor.db_tools import SharedDBTools
 
 class LaunchDB(SharedDBTools):
     def __init__(self, beelog, monitored=True):
-        SharedDBTools.__init__(self, beelog, path.expanduser('~') + "/.bee/launcher.db")
+        SharedDBTools.__init__(self, beelog, path.expanduser('~') + "/.bee/launcher.db", monitored)
 
     def query_all(self):
         """

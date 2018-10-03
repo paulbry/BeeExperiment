@@ -1,12 +1,21 @@
+# project
+from bee_monitor.db_orc import OrchestratorDB
+
+
 class InputManagement(object):
     def __init__(self, beefile_input, user_values, beelog, yml_file_name):
-        self.bf_in = beefile_input.get('inputs')
-        self.yml_file_name = yml_file_name
-        self.usr_val = user_values
-        self.blog = beelog
-        self.variables = {}
         self.__pre = "${"
         self.__post = "}$"
+
+        self.bf_in = beefile_input.get('inputs')
+        self._task_name = beefile_input.get('id', 'unknown')
+        self.yml_file_name = yml_file_name
+        self.usr_val = user_values
+        self.variables = {}
+
+        self.blog = beelog
+        self.orc_db = OrchestratorDB(self.blog, beefile_input.get('monitored', True))
+
         if self.bf_in is not None and self.usr_val is not None:
             self.generate_in_var()
 
@@ -51,8 +60,8 @@ class InputManagement(object):
                                 self.blog.message("Unsupported input type {}"
                                                   " detected".format(t),
                                                   color=self.blog.err)
-            return cmd
-        return None
+            return True, cmd
+        return False, None
 
     def update_vars(self, key, value):
         x = self.variables.get(key)
@@ -112,6 +121,9 @@ class InputManagement(object):
                         tmp = self.variables.get(star[loc+2:x])
                         if tmp is not None:
                             star = star.replace(star[loc:x] + self.__post, tmp)
+                            self.__templating_control("check_str({})".format(tar),
+                                                      "Updated tar: {}".format(star),
+                                                      code=0)
                         else:
                             self.blog.message("Error checking: {}\nNo matching input "
                                               "found.", color=self.blog.err)
@@ -125,3 +137,10 @@ class InputManagement(object):
                 exit(1)
         else:  # unsupported type (still return string for cmd list
             return str(tar)
+
+    def __templating_control(self, cmd, event, code, status=00):
+        self.orc_db.new_orc(task_id=self._task_name,
+                            status=status, job_id=None,
+                            command=cmd, std_output=None,
+                            std_err=None, exit_status=code,
+                            event=event)
