@@ -11,7 +11,7 @@ from bee_logging.bee_log import BeeLogging
 # Database are currently hardcoded across the application
 mon_homedir = path.expanduser('~')
 mon_db_launch = mon_homedir + "/.bee/launcher.db"
-mon_db_orchestrator = mon_homedir + "/.bee/orc.db"
+mon_db_orchestrator = "/var/tmp/orc.db"
 
 
 # Parser supporting functions

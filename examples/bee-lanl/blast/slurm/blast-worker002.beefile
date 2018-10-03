@@ -26,3 +26,4 @@ workerBees:
         - bash:
             flags:
               - blast-worker.sh
+              - -n: 1

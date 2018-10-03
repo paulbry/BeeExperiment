@@ -7,7 +7,7 @@ from bee_monitor.db_tools import SharedDBTools
 
 class OrchestratorDB(SharedDBTools):
     def __init__(self, beelog, monitored=True):
-        SharedDBTools.__init__(self, beelog, path.expanduser('~') + "/.bee/orc.db", monitored)
+        SharedDBTools.__init__(self, beelog, "/var/tmp/orc.db", monitored)
         self.table = 'orchestrator'
 
     def query_all(self):
