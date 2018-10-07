@@ -1,7 +1,10 @@
 blast-split:
+  inputFile: 'input.yml'
 blast-worker:
   dependency_list: [blast-split]
   dependency_mode: off-line
+  inputFile: 'worker_input.yml'
+  inputGenerator: ['python', 'blastGen.py']
   occurrences: 10
 blast-output:
     dependency_list: [blast-worker]

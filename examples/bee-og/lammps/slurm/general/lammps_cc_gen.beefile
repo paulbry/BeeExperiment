@@ -27,7 +27,7 @@ requirements:
 workerBees:
   - Command:
       - mkdir:
-          cmd: ['mkdir', '-p', 'output']]
+          cmd: ['mkdir', '-p', 'output']
   - Task:
     - /lammps/src/lmp_mpi:
         container:

@@ -1,0 +1,27 @@
+id: blastOutputErr
+label: Blast output errors example (flow)
+requirements:
+    ResourceRequirement:
+        numNodes: 1
+        jobTime: "0:05:00"
+        manageSys: slurm
+    SoftwareModules:
+      friendly-testing:
+      charliecloud:
+      python:
+        version: 3.6-anaconda-5.0.1
+      openmpi:
+        version: 1.10.5
+    EnvVarRequirements:
+      envDef:
+        - PATH: $HOME/.local/bin
+      sourceDef:
+        - activate: bxp
+    CharliecloudRequirement:
+        blast:
+            source: /usr/projects/beedev/blast/blast.tar.gz
+            tarDir: /var/tmp
+workerBees:
+  - Command:
+    - err:
+        cmd: ['bash', 'blast-err.sh']

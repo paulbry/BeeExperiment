@@ -120,7 +120,7 @@ class InputManagement(object):
                             exit(1)
                         tmp = self.variables.get(star[loc+2:x])
                         if tmp is not None:
-                            star = star.replace(star[loc:x] + self.__post, tmp)
+                            star = star.replace(star[loc:x] + self.__post, str(tmp))
                             self.__templating_control("check_str({})".format(tar),
                                                       "Updated tar: {}".format(star),
                                                       code=0)
