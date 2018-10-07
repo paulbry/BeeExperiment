@@ -1,7 +1,7 @@
 id: blastSplit
 label: Blast split example (flow)
 inputs:
-  workerNum:
+  flow_occurences:
     type: int
     default: 2
 requirements:
@@ -34,7 +34,7 @@ workerBees:
       - bash:
           flags:
           - blast-prep.sh
-          - -n: ${workerNum}$
+          - -n: ${flow_occurences}$
     - Command:
         - split:
             cmd: ['bash', 'blast-split.sh']
