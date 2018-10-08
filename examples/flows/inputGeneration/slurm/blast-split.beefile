@@ -25,10 +25,6 @@ requirements:
         blast:
             source: /usr/projects/beedev/blast/blast.tar.gz
             tarDir: /var/tmp
-            defaultFlags:
-                - --no-home
-                - -b: output
-                - -c: /home/beeuser/makeflow-examples/blast
 workerBees:
     - Task:
       - bash:
@@ -38,3 +34,4 @@ workerBees:
     - Command:
         - split:
             cmd: ['bash', 'blast-split.sh']
+    -

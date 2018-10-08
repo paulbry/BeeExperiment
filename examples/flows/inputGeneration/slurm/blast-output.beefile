@@ -1,5 +1,9 @@
 id: blastOutput
 label: Blast output example (flow)
+inputs:
+  workerNum:
+    type: int
+    default: 2
 requirements:
     ResourceRequirement:
         numNodes: 1
@@ -21,15 +25,9 @@ requirements:
         blast:
             source: /usr/projects/beedev/blast/blast.tar.gz
             tarDir: /var/tmp
-            defaultFlags:
-                - --no-home
-                - -b: output
 workerBees:
     - Task:
-        -  /home/beeuser/makeflow-examples/blast/cat_blast:
+        - bash:
             flags:
-              - /mnt/0/output.fasta
-              - /mnt/0/input.fasta.0.out
-              - /mnt/0/input.fasta.1.out
-            container:
-                name: blast
+            - blast-out.sh
+            - -n: ${flow_occurences}$

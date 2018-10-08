@@ -1,7 +1,7 @@
 id: blastWorker001
 label: Blast worker example (flow)
 inputs:
-  flow_occurences:
+  workerNum:
     type: int
     default: 2
 requirements:
@@ -30,4 +30,4 @@ workerBees:
         - bash:
             flags:
               - blast-worker.sh
-              - -n: ${flow_occurences}$
+              - -n: ${workerNum}$
