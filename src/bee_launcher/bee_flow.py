@@ -132,14 +132,11 @@ class LaunchBeeFlow(object):
                           task_name=task_name,
                           color=self.blog.msg)
 
-        """
         adapt = Adapter(system=b_rjms, config=beefile, file_loc=file_loc,
                         task_name=task_name, beelog=self.blog,
                         input_mng=input_mng)
         out = adapt.allocate(test_only=self.test_only, dependency=depends)
-        """
-        import random
-        out = random.randint(1,1000)
+        
         if out is not None:
             self.blog.message(msg="Launched with job id: {}".format(out),
                               task_name=task_name, color=self.blog.msg)
