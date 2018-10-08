@@ -10,3 +10,5 @@ ch-run --no-home -b ${BLAST_OUT} -c ${BLAST_LOC} ${BLAST_CH} -w -- sh -c "./make
                             ./split_fasta $NUM small.fasta"
 
 ch-run --no-home -b ${BLAST_OUT} -c ${BLAST_LOC} ${BLAST_CH} -- sh -c "cp small.fasta.* /mnt/0"
+
+echo "Split Complete!"

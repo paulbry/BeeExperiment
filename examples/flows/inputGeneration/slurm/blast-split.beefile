@@ -34,4 +34,3 @@ workerBees:
     - Command:
         - split:
             cmd: ['bash', 'blast-split.sh']
-    -
