@@ -1,9 +1,8 @@
 import setuptools
 
 setuptools.setup(
-    name="bee-core",
+    name="bee-experiment",
     version="0.1.0",
-    license="https://github.com/lanl/BEE/blob/master/LICENSE",
     author="Paul",
     packages=[
         "bee_launcher",
@@ -13,8 +12,8 @@ setuptools.setup(
         "bee_orchestrator",
     ],
     include_package_date=False,
-    url="https://github.com/paulbry/BEE",
-    description="BEE: Build and Execute Environment",
+    url="https://github.com/paulbry/BeeExperiment",
+    description="BeeExperiment",
     install_requires=[
         'termcolor',
         'PyYAML',

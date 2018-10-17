@@ -171,7 +171,16 @@ class LaunchBeeFlow(object):
                         else:
                             depends += ",{}".format(running_jobs.get(e))
                 elif val.get("dependency_mode") == "in-situ":
-                    # TODO: identify how to support?
+                    # TODO: correct depends (return var), create tuple?
+                    # e.g. SLRUM --after={} would allow these to launch anytime
+                    # after the allocation for the parent job is launched...
+                    # what we need to do is keep these seperate to uphold
+                    # the ideas of adapters
+                    for e in val.get("dependency_list"):
+                        if depends is None:
+                            depends = str(running_jobs.get(e))
+                        else:
+                            depends += ",{}".format(running_jobs.get(e))
                     pass
         return depends
 

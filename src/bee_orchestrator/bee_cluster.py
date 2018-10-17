@@ -113,8 +113,7 @@ class BeeCluster(BeeTask):
             elif wb_type == 'internalflow':
                 bflow = (BeeflowLoader(workers.get('InternalFlow'), self.blog)).beeflow
                 bfiles = {}
-                # node_list = self._sys_adapter.get_nodes()
-                node_list = ['n1', 'n2', 'n3', 'n4', 'n5']
+                node_list = self._sys_adapter.get_nodes()
                 for task in bflow:
                     bfiles.update({task: (BeefileLoader(task, self.blog)).beefile})
                 self.remote.launch_internal_beeflow(beeflow=bflow,

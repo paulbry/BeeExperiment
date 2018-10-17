@@ -7,7 +7,7 @@ inputs:
 requirements:
     ResourceRequirement:
         numNodes: 1
-        jobTime: "0:15:00"
+        jobTime: "0:05:00"
         manageSys: slurm
     SoftwareModules:
       friendly-testing:
