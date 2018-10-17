@@ -5,10 +5,7 @@ blast-worker:
   dependency_mode: off-line
   inputFile: 'worker_input.yml'
   inputGenerator: ['python', 'blastGen.py']
-  occurrences: 10
+  occurrences: 5
 blast-output:
-    dependency_list: [blast-worker]
-    dependency_mode: off-line
-blast-output-err:
     dependency_list: [blast-worker]
     dependency_mode: off-line

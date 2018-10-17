@@ -1,9 +1,12 @@
-id: blastWorker001
+id: blastWorker
 label: Blast worker example (flow)
 inputs:
   workerNum:
     type: int
     default: 2
+  blast_out:
+    type: string
+    default: "output"
 requirements:
     ResourceRequirement:
         numNodes: 1
@@ -25,9 +28,16 @@ requirements:
         blast:
             source: /usr/projects/beedev/blast/blast.tar.gz
             tarDir: /var/tmp
+            defaultFlags:
+            - -b: ${blast_out}$
+            - --no-home:
 workerBees:
     - Task:
-        - bash:
+        - /home/beeuser/makeflow-examples/blast/blastall:
             flags:
-              - blast-worker.sh
-              - -n: ${workerNum}$
+              - -p: blastn
+              - -d: /home/beeuser/makeflow-examples/blast/nt/nt
+              - -i: /mnt/0/small.fast.${workerNum}$
+              - -o: /mnt/0/input.fasta.${workerNum}$.out
+            container:
+              name: blast

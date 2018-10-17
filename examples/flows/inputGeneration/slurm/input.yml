@@ -1,2 +1,4 @@
+blast_loc: /home/beeuser/makeflow-examples/blast
+blast_out: output
 flow_occurences: 5
 worker_num: 0

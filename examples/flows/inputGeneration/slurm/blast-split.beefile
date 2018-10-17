@@ -4,6 +4,8 @@ inputs:
   flow_occurences:
     type: int
     default: 2
+  blast_loc:
+    type: string
 requirements:
     ResourceRequirement:
         numNodes: 1
@@ -25,12 +27,30 @@ requirements:
         blast:
             source: /usr/projects/beedev/blast/blast.tar.gz
             tarDir: /var/tmp
+            defaultFlags:
+            - --no-home: -w
+            - -c: ${blast_loc}$
 workerBees:
     - Task:
+      - python:
+          flags:
+            - makeflow_blast
+            - -d: nt
+            - -i: small.fasta
+            - -o: output.fasta
+            - -p: blastn
+            - --num_seq: ${flow_occurences}$
+            - --makeflow: blast.mf
+          container:
+            name: blast
+      - python:
+          flags:
+            - split_fasta
+            - ${flow_occurences}$
+            - small.fasta
+          container:
+            name: blast
       - bash:
           flags:
           - blast-prep.sh
           - -n: ${flow_occurences}$
-    - Command:
-        - split:
-            cmd: ['bash', 'blast-split.sh']

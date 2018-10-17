@@ -2,10 +2,6 @@
 
 BLAST_OUT=output
 
-rm -rf ${BLAST_OUT}
-mkdir ${BLAST_OUT}
-
-
 while getopts n: option
     do
         case "${option}" in
@@ -26,3 +22,5 @@ do
 done
 
 ch-run --no-home -b output /var/tmp/blast -- ${cmd}
+
+rm -f blast-worker-*worker_input.yml
