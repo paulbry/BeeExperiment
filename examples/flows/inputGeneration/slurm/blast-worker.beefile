@@ -38,7 +38,7 @@ workerBees:
             flags:
               - -p: blastn
               - -d: /home/beeuser/makeflow-examples/blast/nt/nt
-              - -i: /mnt/0/small.fast.${workerNum}$
+              - -i: /mnt/0/small.fasta.${workerNum}$
               - -o: /mnt/0/input.fasta.${workerNum}$.out
             container:
               name: blast
