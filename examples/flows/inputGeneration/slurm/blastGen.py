@@ -13,6 +13,11 @@ def main():
         num = ymlfile.get('worker_num')
 
         print(num)
+
+        with open(target, "w") as w:
+            dump = yaml.dump({'workerNum': num}, default_flow_style=False)
+            w.write(dump)
+
         num += 1
 
         if num < ymlfile.get('flow_occurences'):
@@ -21,10 +26,6 @@ def main():
             ymlfile['worker_num'] = 0
 
         stream.close()
-
-        with open(target, "w") as w:
-            dump = yaml.dump({'workerNum': num}, default_flow_style=False)
-            w.write(dump)
 
         with open(source, "w") as x:
             dump = yaml.dump(ymlfile, default_flow_style=False)
