@@ -30,10 +30,11 @@ requirements:
             tarDir: /var/tmp
             defaultFlags:
             - -b: ${blast_out}$
-            - --no-home:
+            - --no-home: -w
+            - -c: /home/beeuser/makeflow-examples/blast/
 workerBees:
     - Task:
-        - /home/beeuser/makeflow-examples/blast/blastall:
+        - ./blastall:
             flags:
               - -p: blastn
               - -d: /home/beeuser/makeflow-examples/blast/nt/nt
