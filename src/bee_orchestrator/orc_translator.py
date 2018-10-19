@@ -83,7 +83,8 @@ class Target(metaclass=abc.ABCMeta):
         """
         Return port used by daemon (Pyro4)
         """
-        conf_file = str(path.expanduser('~')) + "/.bee/port_conf.json"
+        # conf_file = str(path.expanduser('~')) + "/.bee/port_conf.json"
+        conf_file = "/var/tmp/.bee/port_conf.json"
         with open(conf_file, 'r') as fc:
             data = load(fc)
             port = data["pyro4-ns-port"]

@@ -145,7 +145,8 @@ class ExecOrc(object):
 
     @staticmethod
     def update_system_conf(open_port):
-        conf_file = str(os.path.expanduser('~')) + "/.bee/port_conf.json"
+        # conf_file = str(os.path.expanduser('~')) + "/.bee/port_conf.json"
+        conf_file = "/var/tmp/.bee/port_conf.json"
         with open(conf_file, 'r+') as fc:
             data = load(fc)
             data["pyro4-ns-port"] = open_port

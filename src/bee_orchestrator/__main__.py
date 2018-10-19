@@ -1,7 +1,7 @@
 # system
 import argparse
 from termcolor import cprint
-from os import path, remove, chdir
+from os import path, remove, chdir, makedirs
 # project
 from .bee_orc_ctl import ExecOrc
 from bee_internal.beefile_manager import BeefileLoader, YMLLoader
@@ -14,7 +14,10 @@ def verify_pyro4_conf():
     Create json file used to share port set by Pryo4 across
     instance running orchestrator
     """
-    conf_file = str(path.expanduser('~')) + "/.bee/port_conf.json"
+    if not path.exists('/var/tmp/.bee'):
+        makedirs('/var/tmp/.bee')
+    # conf_file = str(path.expanduser('~')) + "/.bee/port_conf.json"
+    conf_file = "/var/tmp/.bee/port_conf.json"
     if path.isfile(conf_file):
         remove(conf_file)
     with open(conf_file, 'w') as file:
