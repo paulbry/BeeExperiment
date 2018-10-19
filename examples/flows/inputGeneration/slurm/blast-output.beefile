@@ -1,7 +1,7 @@
 id: blastOutput
 label: Blast output example (flow)
 inputs:
-  workerNum:
+  flow_occurences:
     type: int
     default: 2
 requirements:
