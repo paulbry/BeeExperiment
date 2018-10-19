@@ -7,6 +7,7 @@ class BeefileLoader(object):
         try:
             stream = open("{}.beefile".format(file_name), "r")
             self.beefile = safe_load(stream)
+            stream.close()
         except YAMLError as err:
             beelog.message(err, "{}.beefile".format(file_name), beelog.err)
             exit(1)
