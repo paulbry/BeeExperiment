@@ -2,6 +2,7 @@
 import os
 import socket
 import _thread
+import cProfile, pstats, io
 from json import load, dumps
 from pwd import getpwuid
 from subprocess import Popen
@@ -18,6 +19,9 @@ from bee_orchestrator.bee_cluster import BeeCluster
 @Pyro4.expose
 class BeeLauncherDaemon(object):
     def __init__(self, beelog, daemon=None):
+        self.cpr = cProfile.Profile()
+        self.cpr.enable()
+
         self.blog = beelog  # Logging conf. object
 
         self.blog.message("Starting Bee orchestration controller..")
@@ -101,8 +105,15 @@ class BeeLauncherDaemon(object):
     def shutdown_daemon(self):
         self.blog.message("Bee orchestration controller shutting down",
                           color=self.blog.msg)
-        self.orc_daemon.shutdown()
 
+        self.cpr.disable()
+        s = io.StringIO()
+        sortby = 'cumulative'
+        ps = pstats.Stats(self.cpr, stream=s).sort_stats(sortby)
+        ps.print_stats()
+        print(s.getvalue())
+
+        self.orc_daemon.shutdown()
 
 class ExecOrc(object):
     def __init__(self, beelog):

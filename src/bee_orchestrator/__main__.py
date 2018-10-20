@@ -99,7 +99,8 @@ def manage_args(args):
                 mng_args = {'user_values': y.ymlfile,
                             'yml_file_name': args.input_file[0]}
 
-            eo.main(f.beefile, args.task[0], blog_args, mng_args)
+            eo.main(f.beefile, args.task[0], blog_args, mng_args,
+                    start=start)
         elif args.orc_arm:
             beelog.message("ARM support not ready at the moment!",
                            color=beelog.err)
