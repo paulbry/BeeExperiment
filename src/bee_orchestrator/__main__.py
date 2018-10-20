@@ -2,6 +2,7 @@
 import argparse
 from termcolor import cprint
 from os import path, remove, chdir, makedirs
+import time
 # project
 from .bee_orc_ctl import ExecOrc
 from bee_internal.beefile_manager import BeefileLoader, YMLLoader
@@ -76,6 +77,7 @@ parser.add_argument("-q", "--quite",
 
 
 def manage_args(args):
+    start = time.time()
     # check file requirements
     verify_pyro4_conf()
 
@@ -106,7 +108,7 @@ def manage_args(args):
                            color=beelog.err)
 
     elif args.orc:
-        eo.main()
+        eo.main(start=start)
     elif args.orc_arm:
         beelog.message("ARM support not ready at the moment!",
                        color=beelog.err)

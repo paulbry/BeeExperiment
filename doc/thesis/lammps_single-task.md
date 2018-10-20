@@ -207,7 +207,52 @@ launch database.
 ```
 
 ## Execute
+If we examine the allocation at this point in time we can clearly see the request modules and proper conda environment 
+have been loaded. Later  is more so important to how I have choosen to deploy `BeeExperiment` in these examples.
 
+```bash
+(bxp) $ module list
+
+Currently Loaded Modules:
+  1) python/3.6-anaconda-5.0.1   2) friendly-testing   3) charliecloud/0.9.3   4) openmpi/1.10.5
+
+(bxp) $ conda list
+# packages in environment at /usr/projects/beedev/conda/bxp:
+#
+ca-certificates           2018.03.07                    0
+certifi                   2018.8.24                py37_1
+cython                    0.28.5           py37hf484d3e_0    anaconda
+libedit                   3.1.20170329         h6b74fdf_2
+libffi                    3.2.1                hd88cf55_4
+libgcc-ng                 8.2.0                hdf63c60_1
+libstdcxx-ng              8.2.0                hdf63c60_1
+ncurses                   6.1                  hf484d3e_0
+openssl                   1.0.2p               h14c3975_0
+pip                       10.0.1                   py37_0
+python                    3.7.0                hc3d631a_0
+readline                  7.0                  h7b6447c_5
+setuptools                40.2.0                   py37_0
+sqlite                    3.25.2               h7b6447c_0
+tk                        8.6.8                hbc83047_0
+wheel                     0.31.1                   py37_0
+xz                        5.2.4                h14c3975_4
+zlib                      1.2.11               ha838bed_2
+```
+
+As defined in the allocation step the orchestrator launch upon the successful completion of all other requirements.
+`$ bee-orchestrator --orc  -t lammps_cc_gen` This process starts with the orchestrator (using the Pyro4 module) to start
+an unprivileged daemon and immediately trigger the launch of the task `lammps_cc_gen`.
+
+```bash
+Not starting broadcast server for localhost.
+NS running on localhost:38861 (127.0.0.1)
+URI = PYRO:Pyro.NameServer@localhost:38861
+Starting Bee orchestration controller..
+PYRO:obj_c17ac0c9d493404b8ebd54e799fa3412@localhost:41467
+Bee orchestration controller started.
+[lammps_cc_gen.beefile] Task received in current working directory: /turquoise/users/pbryant/BeeExperiment/examples/bee-og/lammps/slurm/general
+Bee orchestration controller: received task creating request
+```
 
 Upon competition of this execution phase the `specific_shutdown()` method will be called
 from within the allocation. For Slurm this is a simple process; however, it may be more

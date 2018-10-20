@@ -5,7 +5,7 @@ import _thread
 from json import load, dumps
 from pwd import getpwuid
 from subprocess import Popen
-from time import sleep, strftime
+from time import sleep, strftime, time
 # 3rd party
 import Pyro4
 import Pyro4.naming
@@ -108,7 +108,8 @@ class ExecOrc(object):
     def __init__(self, beelog):
         self.blog = beelog
 
-    def main(self, beefile=None, file_name=None, blog_args=None, mng_args=None):
+    def main(self, beefile=None, file_name=None, blog_args=None, mng_args=None,
+             start=None):
         """
         Prepare environment for daemon and launch (loop)
             https://pypi.org/project/Pyro4/
@@ -130,6 +131,9 @@ class ExecOrc(object):
         print(bldaemon_uri)
         self.blog.message("Bee orchestration controller started.",
                           color=self.blog.msg)
+        if start is not None:
+            end = time()
+            print(end-start)
         if blog_args is not None and mng_args is not None:
             # TODO: implement better solution (possibly in __main__)?
             _thread.start_new_thread(self.delay_launch, ((beefile, file_name,
