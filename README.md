@@ -73,9 +73,9 @@ environment name `bxp` (`conda -n <name>`)
 TODO
 
 
-###NOTES
+### NOTES
 This work is derived from [BEE: Build and Executed](https://github.com/lanl/BEE)
 
 In addition attributes from the [Common Workflow Language](https://www.commonwl.org/) and
- [Software Carpentry](https://software-carpentry.org/) but is not CWL compliment at this 
+ [Software Carpentry](https://software-carpentry.org/) but is not nearly CWL compliment at this 
  time.
