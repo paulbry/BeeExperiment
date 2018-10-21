@@ -5,15 +5,15 @@ goals undertaken were:
 
 •	Individually package and logically separate Bee-Launcher from Bee-Orchestrator.
 
-•	Construct and implement a new architecture to support targeting a variety of management systems while ensuring that the core functionality remains consistent across each distinct management system. For the purposes of BeeExperiment, I will aim to support Slurm, in addition to the localhost (resources local to the host machine).
+•	Construct and implement a new architecture to support targeting a variety of management systems while ensuring that the core functionality remains consistent.
 
-•	Propose a standardized algorithm in conjunction with a new class structure that will help foster a baseline logic by which BeeExperiment will follow. This proposal goes together with that of the new structures for interacting with management systems.
+•	Propose a standardized algorithm in conjunction with a new class structure.s.
 
 •	Re-engineer BeeFlow while keeping the core concepts found intact.
 
 •	Greatly expand the structure of both the beefile in addition to beeflow file.
 
-•	Introduce structure for supporting Bee-Monitor and Bee-Logging through improved status tracking throughout the runtime of BeeExperiment. This will only aim to offer a limited view of the framework and not any invasive view of the applications/containers themselves.
+•	Introduce structure for supporting Bee-Monitor and Bee-Logging through improved status tracking.
  
 
 **IMPORTANT** This project features on going work, epically with regards to
