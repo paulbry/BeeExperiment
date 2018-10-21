@@ -1,0 +1,56 @@
+id: perfSlurm
+requirements:
+  ResourceRequirement:
+    numNodes: 1
+    jobTime: "0:10:00"
+    manageSys: slurm
+  SoftwareModules:
+    python:
+      version: 3.6-anaconda-5.0.1
+  EnvVarRequirements:
+    envDef:
+      - PATH: $HOME/.local/bin
+    sourceDef:
+      - activate: bxp
+workerBees:
+  - Task:
+    - srun:
+        flags:
+          - -n: 1
+          - -c: 16
+          - stress-ng
+          - -c: 1
+          - -l: 50
+          - -t: 10s
+        system:
+          manageSys: time
+    - srun:
+        flags:
+        - -n: 2
+        - -c: 8
+        - stress-ng
+        - -c: 1
+        - -l: 50
+        - -t: 10s
+        system:
+          manageSys: time
+    - srun:
+        flags:
+        - -n: 4
+        - -c: 4
+        - stress-ng
+        - -c: 1
+        - -l: 50
+        - -t: 10s
+        system:
+          manageSys: time
+    - srun:
+        flags:
+        - -n: 16
+        - -c: 1
+        - stress-ng
+        - -c: 1
+        - -l: 50
+        - -t: 10s
+        system:
+          manageSys: time
