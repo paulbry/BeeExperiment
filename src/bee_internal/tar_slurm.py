@@ -123,7 +123,7 @@ class SlurmAdaptee:
     ###########################################################################
     def _run_sbatch(self, file, dependency):
         if dependency is not None:
-            cmd = ['sbatch', '--dependency=afterok:{}'.format(dependency), file]
+            cmd = ['sbatch', '--dependency={}'.format(dependency), file]
         else:
             cmd = ['sbatch', file]
         out = self.stm.run_popen_safe(command=cmd, err_exit=True)

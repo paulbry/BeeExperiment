@@ -77,7 +77,8 @@ parser.add_argument("-q", "--quite",
 
 
 def manage_args(args):
-    start = time.time()
+    # start = time.time()
+    start = None
     # check file requirements
     verify_pyro4_conf()
 

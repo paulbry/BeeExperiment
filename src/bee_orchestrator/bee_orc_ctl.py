@@ -5,7 +5,7 @@ import _thread
 import cProfile, pstats, io
 from json import load, dumps
 from pwd import getpwuid
-from subprocess import Popen
+from subprocess import Popen, CalledProcessError
 from time import sleep, strftime, time
 # 3rd party
 import Pyro4
@@ -19,16 +19,17 @@ from bee_orchestrator.bee_cluster import BeeCluster
 @Pyro4.expose
 class BeeLauncherDaemon(object):
     def __init__(self, beelog, daemon=None):
+        # Manual test analysis
+        # TODO: tie to command line option?
         self.cpr = cProfile.Profile()
         self.cpr.enable()
 
+        self.beetask = None
+        self.termination_lock = False
+        self.orc_daemon = daemon
         self.blog = beelog  # Logging conf. object
 
         self.blog.message("Starting Bee orchestration controller..")
-        self.__py_dir = os.path.dirname(os.path.abspath(__file__))
-        self.beetask = None
-        self.orc_daemon = daemon
-        self.termination_lock = False
 
     def create_task(self, beefile, file_name, input_mng):
         self.blog.message("Bee orchestration controller: received task "
@@ -49,6 +50,13 @@ class BeeLauncherDaemon(object):
                                     self.blog, mng_args.get('yml_file_name'))
         self.create_task(beefile, file_name, input_mng)
         self.launch_task()
+
+    ##############################################
+    # terminate/delete/list could be better
+    # suited in current implementation with
+    # launcher; however, they need to be planned
+    # in the daemon for other implementations
+    ##############################################
 
     def terminate_task(self, beetask_name):
         pass
@@ -106,6 +114,7 @@ class BeeLauncherDaemon(object):
         self.blog.message("Bee orchestration controller shutting down",
                           color=self.blog.msg)
 
+        # Manual test analysis
         self.cpr.disable()
         s = io.StringIO()
         sortby = 'cumulative'
@@ -114,6 +123,7 @@ class BeeLauncherDaemon(object):
         print(s.getvalue())
 
         self.orc_daemon.shutdown()
+
 
 class ExecOrc(object):
     def __init__(self, beelog):
@@ -125,32 +135,33 @@ class ExecOrc(object):
         Prepare environment for daemon and launch (loop)
             https://pypi.org/project/Pyro4/
         """
-        #############################################################
-        # TODO: document daemon!!!
-        #############################################################
-        open_port = self.get_open_port()
-        self.update_system_conf(open_port)
+        open_port = self.__get_open_port()
+        self.__update_system_conf(open_port)
         hmac_key = getpwuid(os.getuid())[0]
         os.environ["PYRO_HMAC_KEY"] = hmac_key
-        Popen(['python', '-m', 'Pyro4.naming', '-p', str(open_port)])
-        sleep(5)
-        daemon = Pyro4.Daemon()
-        bldaemon = BeeLauncherDaemon(self.blog, daemon)
-        bldaemon_uri = daemon.register(bldaemon)
-        ns = Pyro4.locateNS(port=open_port, hmac_key=hmac_key)
-        ns.register("bee_launcher.daemon", bldaemon_uri)
-        print(bldaemon_uri)
-        self.blog.message("Bee orchestration controller started.",
-                          color=self.blog.msg)
-        if start is not None:
-            end = time()
-            print(end-start)
-        if blog_args is not None and mng_args is not None:
-            # TODO: implement better solution (possibly in __main__)?
-            _thread.start_new_thread(self.delay_launch, ((beefile, file_name,
-                                                          blog_args, mng_args,
-                                                          bldaemon_uri, )))
-        daemon.requestLoop()
+
+        if self.__run_popen_bool(['python', '-m', 'Pyro4.naming', '-p', str(open_port)]):
+            sleep(5)
+            daemon = Pyro4.Daemon()
+            bldaemon = BeeLauncherDaemon(self.blog, daemon)
+            bldaemon_uri = daemon.register(bldaemon)
+            ns = Pyro4.locateNS(port=open_port, hmac_key=hmac_key)
+            ns.register("bee_launcher.daemon", bldaemon_uri)
+            print(bldaemon_uri)
+            self.blog.message("Bee orchestration controller started.",
+                              color=self.blog.msg)
+            # if start is not None:
+            #    end = time()
+            #    print(end-start)
+            if blog_args is not None and mng_args is not None:
+                # Launch beefile(s) passed at runtime in CLI
+                # Checks for daemon in case the launch is deleyed / slow
+                _thread.start_new_thread(self.delay_launch, ((beefile, file_name,
+                                                              blog_args, mng_args,
+                                                              bldaemon_uri, )))
+            daemon.requestLoop()
+        else:
+            exit(1)
 
     @staticmethod
     def delay_launch(beefile, file_name, blog_args, mng_args, bldaemon_uri):
@@ -159,7 +170,7 @@ class ExecOrc(object):
         remote.create_and_launch_task(beefile, file_name, blog_args, mng_args)
 
     @staticmethod
-    def update_system_conf(open_port):
+    def __update_system_conf(open_port):
         # conf_file = str(os.path.expanduser('~')) + "/.bee/port_conf.json"
         conf_file = "/var/tmp/.bee/port_conf.json"
         with open(conf_file, 'r+') as fc:
@@ -170,10 +181,28 @@ class ExecOrc(object):
             fc.truncate()
 
     @staticmethod
-    def get_open_port():
+    def __get_open_port():
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.bind(("", 0))
             s.listen(1)
             port = s.getsockname()[1]
             s.close()
             return port
+
+    def __run_popen_bool(self, command):
+        """
+        Run command via Popen
+        :param command:
+        :return: boolean (t is successful)
+        """
+        try:
+            Popen(command)
+            return True
+        except CalledProcessError as e:
+            self.blog.message(msg="Error during - " + str(command) + "\n" +
+                                  str(e), color=self.blog.err)
+            return False
+        except OSError as e:
+            self.blog.message(msg="Error during - " + str(command) + "\n" +
+                                  str(e), color=self.blog.err)
+            return False

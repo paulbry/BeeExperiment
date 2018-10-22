@@ -164,24 +164,15 @@ class LaunchBeeFlow(object):
         depends = None
         if val is not None:
             if val.get("dependency_list") is not None:
+                for e in val.get("dependency_list"):
+                    if depends is None:
+                        depends = str(running_jobs.get(e))
+                    else:
+                        depends += ",{}".format(running_jobs.get(e))
                 if val.get("dependency_mode") == "off-line":
-                    for e in val.get("dependency_list"):
-                        if depends is None:
-                            depends = str(running_jobs.get(e))
-                        else:
-                            depends += ",{}".format(running_jobs.get(e))
+                    depends = "afterok: {}".format(depends)
                 elif val.get("dependency_mode") == "in-situ":
-                    # TODO: correct depends (return var), create tuple?
-                    # e.g. SLRUM --after={} would allow these to launch anytime
-                    # after the allocation for the parent job is launched...
-                    # what we need to do is keep these seperate to uphold
-                    # the ideas of adapters
-                    for e in val.get("dependency_list"):
-                        if depends is None:
-                            depends = str(running_jobs.get(e))
-                        else:
-                            depends += ",{}".format(running_jobs.get(e))
-                    pass
+                    depends = "after: {}".format(depends)
         return depends
 
     def __manage_input(self, beefile, in_file_name, gen_cmd):
