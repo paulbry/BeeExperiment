@@ -3,7 +3,7 @@ python:
   - "3.6"
 before_script: cd $TRAVIS_BUILD_DIR
 script:
-  - ls
+  - ls -ahl
   - pip install .
   - bee-launcher -h
   - bee-monitor -h
