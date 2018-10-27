@@ -1,0 +1,13 @@
+language: python
+python:
+  - "3.6"
+install:
+  - pip install .
+# command to run tests
+env:
+  - PATH=/usr/local/bin
+  - PATH=$HOME/.local/bin
+script:
+  - bee-launcher -h
+  - bee-monitor -h
+  - bee-orchestrator -h
