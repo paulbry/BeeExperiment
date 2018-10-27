@@ -1,0 +1,15 @@
+id: helloWorld
+label: Basic hello world example
+requirements:
+    EnvVarRequirements:
+      envDef:
+        - PATH: $HOME/.local/bin
+      sourceDef:
+        - activate: bxp
+workerBees:
+    - Task:
+      - sh:
+          occurrences: 5
+          flags:
+            - helloTime.sh
+terminateAfter: true
