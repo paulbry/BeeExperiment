@@ -10,6 +10,7 @@ from time import sleep, strftime, time
 # 3rd party
 import Pyro4
 import Pyro4.naming
+import Pyro4.errors
 # project
 from bee_internal.in_out_manage import InputManagement
 from bee_logging.bee_log import BeeLogging
@@ -18,11 +19,12 @@ from bee_orchestrator.bee_cluster import BeeCluster
 
 @Pyro4.expose
 class BeeLauncherDaemon(object):
-    def __init__(self, beelog, daemon=None):
+    def __init__(self, beelog, daemon=None, debug=False):
         # Manual test analysis
-        # TODO: tie to command line option?
-        self.cpr = cProfile.Profile()
-        self.cpr.enable()
+        self.debug = debug
+        if self.debug:
+            self.cpr = cProfile.Profile()
+            self.cpr.enable()
 
         self.beetask = None
         self.termination_lock = False
@@ -115,12 +117,13 @@ class BeeLauncherDaemon(object):
                           color=self.blog.msg)
 
         # Manual test analysis
-        self.cpr.disable()
-        s = io.StringIO()
-        sortby = 'cumulative'
-        ps = pstats.Stats(self.cpr, stream=s).sort_stats(sortby)
-        ps.print_stats()
-        print(s.getvalue())
+        if self.debug:
+            self.cpr.disable()
+            s = io.StringIO()
+            sortby = 'cumulative'
+            ps = pstats.Stats(self.cpr, stream=s).sort_stats(sortby)
+            ps.print_stats()
+            print(s.getvalue())
 
         self.orc_daemon.shutdown()
 
@@ -130,7 +133,7 @@ class ExecOrc(object):
         self.blog = beelog
 
     def main(self, beefile=None, file_name=None, blog_args=None, mng_args=None,
-             start=None):
+             start=None, debug=False):
         """
         Prepare environment for daemon and launch (loop)
             https://pypi.org/project/Pyro4/
@@ -141,18 +144,19 @@ class ExecOrc(object):
         os.environ["PYRO_HMAC_KEY"] = hmac_key
 
         if self.__run_popen_bool(['python', '-m', 'Pyro4.naming', '-p', str(open_port)]):
-            sleep(5)
+
+            ns = self.__get_name_server(open_port, hmac_key)
             daemon = Pyro4.Daemon()
-            bldaemon = BeeLauncherDaemon(self.blog, daemon)
+            bldaemon = BeeLauncherDaemon(self.blog, daemon, debug)
             bldaemon_uri = daemon.register(bldaemon)
-            ns = Pyro4.locateNS(port=open_port, hmac_key=hmac_key)
             ns.register("bee_launcher.daemon", bldaemon_uri)
             print(bldaemon_uri)
             self.blog.message("Bee orchestration controller started.",
                               color=self.blog.msg)
-            # if start is not None:
-            #    end = time()
-            #    print(end-start)
+            if start is not None:
+                end = time()
+                self.blog.message("Orchestrator launch time: {0}".format(end-start))
+
             if blog_args is not None and mng_args is not None:
                 # Launch beefile(s) passed at runtime in CLI
                 # Checks for daemon in case the launch is deleyed / slow
@@ -165,9 +169,21 @@ class ExecOrc(object):
 
     @staticmethod
     def delay_launch(beefile, file_name, blog_args, mng_args, bldaemon_uri):
-        sleep(4)
+        sleep(4) # wait for daemon
         remote = Pyro4.Proxy(bldaemon_uri)
         remote.create_and_launch_task(beefile, file_name, blog_args, mng_args)
+
+    @staticmethod
+    def __get_name_server(open_port, hmac_key):
+        ns = None
+        while ns is None:
+            try:
+                ns = Pyro4.locateNS(port=open_port, hmac_key=hmac_key)
+            except Pyro4.errors.CommunicationError:
+                pass
+            except Pyro4.errors.NamingError:
+                pass
+        return ns
 
     @staticmethod
     def __update_system_conf(open_port):

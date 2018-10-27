@@ -98,9 +98,10 @@ class BeeCluster(BeeTask):
             ###################################################################
             if wb_type == 'task':
                 for t in workers[next(iter(workers))]:
-                    t_res = self._bee_tasks(t, self._beefile_req.get(
-                        'CharliecloudRequirement'))
-                    self.__handle_worker_result(t_res)
+                    for y in range(0, t.get(next(iter(t))).get('occurrences', 1)):
+                        t_res = self._bee_tasks(t, self._beefile_req.get(
+                            'CharliecloudRequirement'))
+                        self.__handle_worker_result(t_res)
             elif wb_type == 'subbee':
                 for t in workers[next(iter(workers))]:
                     t_res = self._sub_bees(t)
