@@ -44,13 +44,17 @@ class BeeCluster(BeeTask):
 
     # Wait events (support for existing bee_orc_ctl)
     def add_wait_event(self, new_event):
-        self.__event_list(new_event)
+        self._event_list(new_event)
 
     # Task management
     def run(self):
+        if len(self._event_list) > 0:
+            self.wait_for_others()
+
         self.launch()
 
         self.begin_event = 1
+
         self._status_change(50)  # Running
 
         self.execute_workers()
@@ -63,6 +67,10 @@ class BeeCluster(BeeTask):
             self.terminate(clean=True)
 
     def launch(self):
+        """
+        Finish launching allocation (calling system specific launch() method) and
+        then expanding then creating assocaited objects for nodes (bee-node class)
+        """
         self._status_change(40)  # Launching
         self.blog.message("Launching", self._task_id,
                           self.blog.msg)
@@ -85,6 +93,9 @@ class BeeCluster(BeeTask):
             self.running_nodes.append(node)
 
     def execute_workers(self):
+        """
+        Exeucte all workerBees defined in self._beefile
+        """
         for workers in self.global_m.fetch_bf_val(self._beefile, 'workerBees', [],
                                                   False, True, self._current_status):
             wb_type = (next(iter(workers))).lower()
@@ -98,36 +109,25 @@ class BeeCluster(BeeTask):
             ###################################################################
             if wb_type == 'task':
                 for t in workers[next(iter(workers))]:
-                    for y in range(0, t.get(next(iter(t))).get('occurrences', 1)):
-                        t_res = self._bee_tasks(t, self._beefile_req.get(
-                            'CharliecloudRequirement'))
-                        self.__handle_worker_result(t_res)
+                    self.__worker_task_execute(worker_dict=t)
             elif wb_type == 'subbee':
                 for t in workers[next(iter(workers))]:
-                    t_res = self._sub_bees(t)
-                    self.__handle_worker_result(t_res)
+                    self.__worker_subbee_execute(t)
             elif wb_type == 'command':
                 for t in workers[next(iter(workers))]:
-                    t_res = self._bee_cmd(t)
-                    print(t_res)
-                    self.__handle_worker_result(t_res)
+                    self.__worker_command_execute(t)
             elif wb_type == 'internalflow':
-                bflow = (BeeflowLoader(workers.get('InternalFlow'), self.blog)).beeflow
-                bfiles = {}
-                node_list = self._sys_adapter.get_nodes()
-                for task in bflow:
-                    bfiles.update({task: (BeefileLoader(task, self.blog)).beefile})
-                self.remote.launch_internal_beeflow(beeflow=bflow,
-                                                    beefile_list=bfiles,
-                                                    parent_beefile=self._beefile,
-                                                    node_list=node_list,
-                                                    flow_name=workers.get('InternalFlow'))
+                self.__worker_internalflow_execute(workers)
             else:
                 out = "Unsupported workerBee detected: {}".format(workers)
                 t_res[1] = 1
                 self.blog.message(out, self._task_id, self.blog.err)
 
     def wait_for_others(self):
+        """
+        Part of internal flow, wait for all other defined events to realease
+        hold (wait()) before continuing with deployment/execution
+        """
         self._status_change(30)  # Waiting
         for event in self.event_list:
             event.wait()
@@ -144,39 +144,60 @@ class BeeCluster(BeeTask):
             self._status_change(70)  # Closed (clean)
         else:
             self._status_change(80)  # Terminate
-        self.remove_cc_containers()
+        self.__remove_cc_containers()
         self.remote.shutdown_daemon()
 
     ############################################################################
     # Task management support functions (private)
     ############################################################################
-    def remove_cc_containers(self):
-        for key, value in self._beefile_req.get('CharliecloudRequirement', {}).items():
-            if value.get('deleteAfter', False):
-                tar_dir = value.get('tarDir')
-                if tar_dir is None:
-                    tar_dir = self.__default_tar_dir
-                self.__remove_ch_dir(tar_dir, key)
+    def __worker_task_execute(self, worker_dict):
+        """
+        Execute workerBee.task and handle output
+        :param worker_dict: dictionary for workerBee to be executed
+        """
+        for y in range(0, worker_dict.get(next(iter(
+                worker_dict))).get('occurrences', 1)):
+            t_res = self._bee_tasks(worker_dict, self._beefile_req.get(
+                'CharliecloudRequirement'))
+            self.__handle_worker_result(t_res)
 
-    def __remove_ch_dir(self, ch_dir, ch_name):
-        self.blog.message(msg="Removing Charliecloud container {}".format(ch_name),
-                          task_name=self._task_id, color=self.blog.msg)
-        cmd = ['rm', '-rf', ch_dir + "/" + ch_name]
-        out, code = self._sys_adapter.execute(cmd, None, False)
-        self.__handle_worker_result([out, code, (''.join(str(x) + " " for x in cmd)),
-                                     None])
+    def __worker_subbee_execute(self, worker_dict):
+        """
+        Execute workerBee.subbee and handle ouput
+        :param worker_dict: dictionary for workerBee to be executed
+        """
+        t_res = self._sub_bees(worker_dict)
+        self.__handle_worker_result(t_res)
 
-    def __default_flags(self):
-        tmp = {}
-        for key, value in self._beefile_req.get('CharliecloudRequirement').items():
-            flags = []
-            for dfk, dfv in value.get('defaultFlags').items():
-                flags.append(self._input_mng.check_str(dfk))
-                if dfv is not None:
-                    flags.append(self._input_mng.check_str(dfv))
-            tmp.update({key: flags})
-        return tmp
+    def __worker_command_execute(self, worker_dict):
+        """
+        Execute workerBee.command and handle output
+        :param worker_dict: dictionary for workerBee to be executed
+        """
+        t_res = self._bee_cmd(worker_dict)
+        self.blog.message(t_res)
+        self.__handle_worker_result(t_res)
 
+    def __worker_internalflow_execute(self, workers):
+        """
+        Execute workerBee.internaflow and handle output
+        :param workers: ???
+        """
+        # TODO: implement test method that fully utlizes internal flow?
+        bflow = (BeeflowLoader(workers.get('InternalFlow'), self.blog)).beeflow
+        bfiles = {}
+        node_list = self._sys_adapter.get_nodes()
+        for task in bflow:
+            bfiles.update({task: (BeefileLoader(task, self.blog)).beefile})
+        self.remote.launch_internal_beeflow(beeflow=bflow,
+                                            beefile_list=bfiles,
+                                            parent_beefile=self._beefile,
+                                            node_list=node_list,
+                                            flow_name=workers.get('InternalFlow'))
+
+    ############################################################################
+    # Charliecloud support functions (private)
+    ############################################################################
     def __handle_worker_result(self, result):
         """
         Manage results list and ensure details are allocated
@@ -192,3 +213,46 @@ class BeeCluster(BeeTask):
                                       status=self.current_status)
             if result[0] is not None and result[1] == 0 and result[3] is not None:
                 self._input_mng.update_vars(result[3], result[0])
+
+    ############################################################################
+    # Charliecloud support functions (private)
+    ############################################################################
+    def __remove_cc_containers(self):
+        """
+        Identify and Remove all defined Charliecloud containers based upon
+        defined 'tarDir' in the beefile
+        """
+        for key, value in self._beefile_req.get('CharliecloudRequirement', {}).items():
+            if value.get('deleteAfter', False):
+                tar_dir = value.get('tarDir')
+                if tar_dir is None:
+                    tar_dir = self.__default_tar_dir
+                self.__remove_ch_dir(tar_dir, key)
+
+    def __remove_ch_dir(self, ch_dir, ch_name):
+        """
+        Remove -> rm -rf ch_dir/ch_name
+        :param ch_dir: Charliecloud directory
+        :param ch_name: Charliecloud name
+        """
+        self.blog.message(msg="Removing Charliecloud container {}".format(ch_name),
+                          task_name=self._task_id, color=self.blog.msg)
+        cmd = ['rm', '-rf', ch_dir + "/" + ch_name]
+        out, code = self._sys_adapter.execute(cmd, None, False)
+        self.__handle_worker_result([out, code, (''.join(str(x) + " " for x in cmd)),
+                                     None])
+
+    def __default_flags(self):
+        """
+        :return: Return default flags defined in beefile for Charliecloud requirements
+                    as a list to be appended in process call
+        """
+        tmp = {}
+        for key, value in self._beefile_req.get('CharliecloudRequirement').items():
+            flags = []
+            for dfk, dfv in value.get('defaultFlags').items():
+                flags.append(self._input_mng.check_str(dfk))
+                if dfv is not None:
+                    flags.append(self._input_mng.check_str(dfv))
+            tmp.update({key: flags})
+        return tmp

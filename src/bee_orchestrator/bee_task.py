@@ -1,7 +1,7 @@
 # system
 import argparse
 from json import load
-from os import path, getuid
+from os import getuid
 from pwd import getpwuid
 from threading import Thread, Event
 # 3rd party
@@ -45,7 +45,7 @@ class BeeTask(Thread):
         # Events for workflow
         self.__begin_event = None
         self.__end_event = None
-        self.__event_list = []
+        self._event_list = []
 
     ###########################################################################
     # Event/Trigger management
@@ -78,7 +78,7 @@ class BeeTask(Thread):
 
     @property
     def event_list(self):
-        return self.__event_list
+        return self._event_list
 
     @event_list.setter
     def event_list(self, new_event):
@@ -86,7 +86,7 @@ class BeeTask(Thread):
         Append event to event_list
         :param new_event:
         """
-        self.__event_list.append(new_event)
+        self._event_list.append(new_event)
 
     ###########################################################################
     # Standard BEE methods
@@ -211,6 +211,11 @@ class BeeTask(Thread):
                     result[0] = ba.opt_launch(args)
                 elif ty == 'offline':
                     # TODO: implement check in adapter
+                    # In order to support this I need to identify why it would occur
+                    # and under what circumstances. Offline will imply we cannot move
+                    # on with the current task until this sub "beetask" has bee completed.
+                    # How will we manage this? what will we do if it doesnt?
+                    # can we garuntee the ability to monitor across all possible systems?
                     self.blog.message("offline SubBee not supported yet!",
                                       color=self.blog.err)
                 return result
@@ -220,6 +225,13 @@ class BeeTask(Thread):
             self.blog.message(msg, self._task_id, self.blog.err)
             return [msg, 1, None, None]
 
+    ###########################################################################
+    # WorkerBee TASK specif functions (protected)
+    # goal, to ensure a consistent execution of all tasks
+    # as decayed in the beefile. Will follow a logical approach of
+    # system {flags} + container {flags} + task {flags} in building the
+    # command that will be invoked.
+    ###########################################################################
     def _bee_tasks(self, bf_task, container_conf=None):
         """
 
@@ -294,6 +306,13 @@ class BeeTask(Thread):
         return cmd
 
     def __parse_dict(self, f, cmd):
+        """
+        Examine flag (dict or string) from beefile that will be
+        appened to cmd (command), will verify against input for
+        potential templating requirement
+        :param f: flag to be appended
+        :param cmd: command [list] you wish flag to be appended too
+        """
         if isinstance(f, dict):
             for k, v in f.items():
                 cmd.append(self._input_mng.check_str(k))
