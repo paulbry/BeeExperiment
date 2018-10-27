@@ -1,7 +1,7 @@
 language: python
 python:
   - "3.6"
-before_script: cd paulbry/BeeExperiment
+before_script: cd $TRAVIS_BUILD_DI
 script:
   - pip install .
   - bee-launcher -h
