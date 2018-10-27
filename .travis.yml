@@ -1,0 +1,10 @@
+language: python
+python:
+  - "3.6"
+before_script: cd $TRAVIS_BUILD_DIR/src
+script:
+  - pip install .
+  # Check entry points
+  - bee-launcher -h
+  - bee-monitor -h
+  - bee-orchestrator -h

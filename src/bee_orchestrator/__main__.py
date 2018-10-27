@@ -1,7 +1,7 @@
 # system
 import argparse
 from termcolor import cprint
-from os import path, remove, chdir, makedirs
+from os import path, remove, makedirs
 import time
 # project
 from .bee_orc_ctl import ExecOrc
@@ -74,11 +74,20 @@ parser.add_argument("-q", "--quite",
                     default=False,
                     help="Suppress non-error console messages. Will "
                          "override any logging requests.")
+parser.add_argument("--debug",
+                    dest='debug', action='store_true',
+                    default=False,
+                    help="Display debug information related to BeeExperiment"
+                         " runtime (default=False)")
 
 
 def manage_args(args):
-    # start = time.time()
-    start = None
+
+    if args.debug:
+        start = time.time()
+    else:
+        start = None
+
     # check file requirements
     verify_pyro4_conf()
 
@@ -101,7 +110,7 @@ def manage_args(args):
                             'yml_file_name': args.input_file[0]}
 
             eo.main(f.beefile, args.task[0], blog_args, mng_args,
-                    start=start)
+                    start=start, debug=args.debug)
         elif args.orc_arm:
             beelog.message("ARM support not ready at the moment!",
                            color=beelog.err)
@@ -110,7 +119,7 @@ def manage_args(args):
                            color=beelog.err)
 
     elif args.orc:
-        eo.main(start=start)
+        eo.main(start=start, debug=args.debug)
     elif args.orc_arm:
         beelog.message("ARM support not ready at the moment!",
                        color=beelog.err)
