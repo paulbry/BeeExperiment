@@ -6,7 +6,7 @@ import cProfile, pstats, io
 from json import load, dumps
 from pwd import getpwuid
 from subprocess import Popen, CalledProcessError
-from time import sleep, strftime, time
+from time import strftime, time
 # 3rd party
 import Pyro4
 import Pyro4.naming
