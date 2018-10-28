@@ -1,0 +1,23 @@
+id: launch_testonly_slurm
+inputs:
+  example_file:
+    type: file
+    inputBinding:
+      position: 1
+requirements:
+    ResourceRequirement:
+        manageSys: localhost
+    SoftwareModules:
+      software:
+      module:
+        version: 1.1.1
+    EnvVarRequirements:
+      envDef:
+        - PATH: test
+      sourceDef:
+        - activate: test
+    CharliecloudRequirement:
+        blast:
+            source: alpine.tar.gz
+            tarDir: /var/tmp
+terminateAfter: true

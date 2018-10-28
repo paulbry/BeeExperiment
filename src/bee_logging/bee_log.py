@@ -4,9 +4,9 @@ from termcolor import cprint
 
 class BeeLogging(object):
     def __init__(self, log, log_dest, quite):
-        self._log = log
-        self._log_dest = log_dest
-        self._quite = quite
+        self._log = log  # boolean
+        self._log_dest = log_dest  # string
+        self._quite = quite  # boolean
 
         # Termcolor messages
         self.__error_color = 'red'
@@ -15,7 +15,11 @@ class BeeLogging(object):
         self.__database_color = 'green'
 
     def orc_flags(self):
-        # TODO: document
+        """
+        :return: flags for use in orchestrator (string)
+                targeting inclusion in allocation script
+                example; "--logflag --logfile=/test.log"
+        """
         f = ""
         if self._log:
             f += "--logflag "
@@ -42,7 +46,14 @@ class BeeLogging(object):
         return self.__database_color
 
     def message(self, msg, task_name=None, color=None):
-        # TODO: document
+        """
+        Print message with supplied details, utlizes CLI supplied
+        flags (log_dest & log_flag)
+        :param msg: Message to be printed/streamed to console
+        :param task_name: Name of task append and used to log
+                (optional)
+        :param color: termcolor (optional)
+        """
         msg_q = self._quite
         if color is not None and color == self.__error_color:
             msg_q = False

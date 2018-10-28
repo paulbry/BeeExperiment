@@ -155,8 +155,9 @@ class BeeCluster(BeeTask):
         Execute workerBee.task and handle output
         :param worker_dict: dictionary for workerBee to be executed
         """
-        for y in range(0, worker_dict.get(next(iter(
-                worker_dict))).get('occurrences', 1)):
+        on = self._input_mng.check_str(worker_dict.get(next(iter(
+            worker_dict))).get('occurrences', 1))
+        for y in range(0, int(on)):
             t_res = self._bee_tasks(worker_dict, self._beefile_req.get(
                 'CharliecloudRequirement'))
             self.__handle_worker_result(t_res)

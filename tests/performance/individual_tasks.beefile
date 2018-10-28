@@ -1,0 +1,480 @@
+id: perfSlurm
+requirements:
+  ResourceRequirement:
+    numNodes: 1
+    jobTime: "0:10:00"
+    manageSys: slurm
+  SoftwareModules:
+    python:
+      version: 3.6-anaconda-5.0.1
+  EnvVarRequirements:
+    envDef:
+      - PATH: $HOME/.local/bin
+    sourceDef:
+      - activate: bxp
+  CharliecloudRequirement:
+    stress-ng:
+      source: /var/tmp/stress-ng.tar.gz
+      tarDir: /var/tmp
+      deleteAfter: False
+inputs:
+  task_occurences:
+    type: int
+    default: 1
+workerBees:
+  - Task:
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+    - stress-ng:
+        flags:
+        - -c: 1
+        - -l: 25
+        - -t: 10s
+        container:
+          name: stress-ng
+        system:
+          manageSys: localhost
+

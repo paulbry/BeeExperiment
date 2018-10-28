@@ -1,10 +1,20 @@
 language: python
 python:
   - "3.6"
-before_script: cd $TRAVIS_BUILD_DIR/src
+before_script:
+  - pip install python-coveralls
+  - pip install coverage
+  - cd $TRAVIS_BUILD_DIR/src
 script:
   - pip install .
-  # Check entry points
+  - cd $TRAVIS_BUILD_DIR/tests
+  # Entry points (path)
   - bee-launcher -h
   - bee-monitor -h
   - bee-orchestrator -h
+  # Launcher
+  - coverage run -m bee_launcher.__main__ -h
+  - coverage run -m bee_launcher.__main__ --test-only -l launch_testonly_local.beefile basic_inputs.yml
+  - coverage run -m bee_launcher.__main__ --test-only -l launch_testonly_slurm.beefile basic_inputs.yml
+after_success:
+  - coveralls
