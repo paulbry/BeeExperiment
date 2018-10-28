@@ -6,6 +6,7 @@ before_script:
   - pip install coverage
   - cd $TRAVIS_BUILD_DIR/src
 script:
+  - mkdir -p $HOME/.bee
   - pip install .
   - cd $TRAVIS_BUILD_DIR/tests
   # Entry points (path)
