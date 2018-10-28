@@ -1,0 +1,9 @@
+id: launch_test_local
+label: Basic launch test example
+workerBees:
+    - Task:
+      - echo:
+          flags:
+            - $PATH
+terminateAfter: true
+baseCommand: env
