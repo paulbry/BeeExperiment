@@ -3,18 +3,19 @@ python:
   - "3.6"
 before_script:
   - pip install python-coveralls
+  - pip install coverage
   - cd $TRAVIS_BUILD_DIR/src
 script:
   - pip install .
   - cd $TRAVIS_BUILD_DIR/tests
   # Entry points
-  - bee-launcher -h
-  - bee-monitor -h
-  - bee-orchestrator -h
+  - coverage run bee-launcher -h
+  - coverage run bee-monitor -h
+  - coverage run bee-monitor launch -h
+  - coverage run bee-monitor orc -h
+  - coverage run bee-orchestrator -h
   # Launcher
-  - bee-launcher --test-only -l launch_testonly_local.beefile
-  - bee-launcher --test-only -l launch_testonly_local.beefile basic_inputs.yml
-  - bee-launcher --test-only -l launch_testonly_slurm.beefile
-  - bee-launcher --test-only -l launch_testonly_slurm.beefile basic_inputs.yml
+  - coverage run bee-launcher --test-only -l launch_testonly_local.beefile basic_inputs.yml
+  - coverage run bee-launcher --test-only -l launch_testonly_slurm.beefile basic_inputs.yml
 after_success:
   - coveralls
