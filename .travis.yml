@@ -17,6 +17,7 @@ script:
   - coverage run -m bee_launcher.__main__ --test-only -l launch_testonly_local.beefile basic_inputs.yml
   - coverage run -m bee_launcher.__main__ --test-only -l launch_testonly_slurm.beefile basic_inputs.yml
   - coverage run -m bee_launcher.__main__ -l launch_test_local.beefile
+  - sleep 30
   # Orchestrator
   - coverage run -m bee_orchestrator.__main__ --orc --input basic_inputs.yml  --task orc_test_local
   # Monitor
