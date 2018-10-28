@@ -1,0 +1,3 @@
+example_file: AllYourInputs.sh
+example_string: "HELLO WORLD"
+another_file: /var/tmp/hello.test
