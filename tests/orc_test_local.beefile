@@ -1,0 +1,36 @@
+id: inputsExample
+inputs:
+  example_file:
+    type: file
+    inputBinding:
+      position: 1
+  example_string:
+    type: string
+    inputBinding:
+      position: 3
+      prefix: -i
+    default: "Goodbye"
+  example_int:
+    type: int
+    inputBinding:
+      position: 2
+      prefix: -l
+    default: 7
+  another_file:
+    type: file
+    inputBinding:
+      position: 3
+      prefix: -f
+workerBees:
+    - Command:
+      - something:
+          cmd: ['echo', 'debian']
+          output: example_string
+    - Task:
+      - bash:
+          flags:
+            - generate.sh
+            - -f: ${another_file}$
+          output: example_string
+terminateAfter: true
+baseCommand: bash

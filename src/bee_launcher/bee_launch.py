@@ -25,10 +25,15 @@ class BeeLauncher(object):
                                 Not opened during launch step, used during
                                 orchestration
         """
-        try:  # ResourceRequirements not required when using localhost
-            b_rjms = beefile['requirements']['ResourceRequirement']['manageSys']
-        except KeyError:
-            b_rjms = "localhost"
+
+        # ResourceRequirements not required when using localhost
+        b_rjms = "localhost"
+        if beefile.get('requirements', False):
+            if beefile['requirements'].get('ResourceRequirement', False):
+                tmp = beefile['requirements']['ResourceRequirement'].get(
+                    'manageSys', False)
+                if tmp:
+                    b_rjms = tmp
 
         self.blog.message(msg="Preparing to launch..."
                               + "\n\tManageSys: {}".format(b_rjms)
@@ -58,6 +63,11 @@ class BeeLauncher(object):
         return out
 
     def terminate_task(self, job_id, rjms):
+        """
+
+        :param job_id: Unique job identification number
+        :param rjms:
+        """
         adapt = Adapter(system=rjms, config=None, file_loc=None, task_name=None,
                         beelog=self.blog, input_mng=None)
         adapt.shutdown(job_id)

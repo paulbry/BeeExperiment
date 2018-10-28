@@ -18,11 +18,15 @@ class BeeCluster(BeeTask):
         self.end_event = 0
 
         # task / configuration
-        try:
-            self._manageSys = self._beefile['requirements']['ResourceRequirement']\
-                .get('manageSys', 'localhost')
-        except KeyError:
-            self._manageSys = 'localhost'
+        self._manageSys = 'localhost'
+        if self._beefile.get('requirements', False):
+            if self._beefile['requirements'].get('ResourceRequirement', False):
+                tmp = self._beefile['requirements']['ResourceRequirement'].get(
+                    'manageSys', False)
+                if tmp:
+                    self._manageSys = tmp
+
+
 
         # Adapter (translator)
         self._sys_adapter = Adapter(system=self._manageSys, config=self._beefile,

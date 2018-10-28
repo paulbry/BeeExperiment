@@ -1,4 +1,4 @@
-id: launch_testonly_slurm
+id: launch_testonly_localhost
 inputs:
   example_file:
     type: file

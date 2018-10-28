@@ -21,7 +21,7 @@ class BeeTask(Thread):
         self._sys_adapter = None
         self._manageSys = None
         self._beefile = beefile
-        self._beefile_req = self._beefile.get('requirements')
+        self._beefile_req = self._beefile.get('requirements', {})
         self._task_id = task_id
         self._task_label = self._beefile.get('label', 'BEE: {}'.
                                              format(self._task_id))

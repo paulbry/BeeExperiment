@@ -6,3 +6,13 @@ exclude_lines =
     if __name__ == .__main__.:
     raise AssertionError
     raise NotImplementedError
+[run]
+omit =
+    */site-packages/yaml/*
+    */site-packages/termcolor/*
+source =
+     */site-packages/bee_launcher/*
+     */site-packages/bee_internal/*
+     */site-packages/bee_launcher/*
+     */site-packages/bee_monitor/*
+     */site-packages/bee_orchestrator/*
