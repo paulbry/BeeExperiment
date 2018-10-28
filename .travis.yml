@@ -13,8 +13,8 @@ script:
   - bee-monitor -h
   - bee-orchestrator -h
   # Launcher
-  - coverage run -m bee_launcher.__main__.py -h
-  - coverage run -m bee_launcher.__main__.py --test-only -l launch_testonly_local.beefile basic_inputs.yml
-  - coverage run -m bee_launcher.__main__.py --test-only -l launch_testonly_slurm.beefile basic_inputs.yml
+  - coverage run -m bee_launcher.__main__ -h
+  - coverage run -m bee_launcher.__main__ --test-only -l launch_testonly_local.beefile basic_inputs.yml
+  - coverage run -m bee_launcher.__main__ --test-only -l launch_testonly_slurm.beefile basic_inputs.yml
 after_success:
   - coveralls
