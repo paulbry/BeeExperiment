@@ -1,6 +1,6 @@
 # system
 import argparse
-from os import getcwd, path
+from os import getcwd, path, mkdir
 from termcolor import cprint
 # project
 from bee_launcher.bee_launch import BeeArguments
@@ -61,6 +61,12 @@ def verify_single_beeflow(potential_file):
 # https://docs.python.org/2.7/library/argparse.html
 ###############################################################################
 def launch_default(args):
+    # TODO: build into install?
+    try:
+        mkdir(path.expanduser('~') + "/.bee")
+    except OSError:
+        pass
+
     bl = BeeLogging(args.logflag, args.log_dest, args.quite)
     bee_args = BeeArguments(bl)
 
