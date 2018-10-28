@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.com/paulbry/BeeExperiment.svg?branch=master)](https://travis-ci.com/paulbry/BeeExperiment)
+[![Coverage Status](https://coveralls.io/repos/github/paulbry/BeeExperiment/badge.svg?branch=master)](https://coveralls.io/github/paulbry/BeeExperiment?branch=master)
+
 # BeeExperiment
 BeeExperiment is a drastic rewrite of the original open project in an effort to explore
 new ideas, highlight possible changes, and act as an educational endeavor. Some of the 
