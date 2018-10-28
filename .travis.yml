@@ -16,5 +16,16 @@ script:
   - coverage run -m bee_launcher.__main__ -h
   - coverage run -m bee_launcher.__main__ --test-only -l launch_testonly_local.beefile basic_inputs.yml
   - coverage run -m bee_launcher.__main__ --test-only -l launch_testonly_slurm.beefile basic_inputs.yml
+  - coverage run -m bee_launcher.__main__ -l launch_test_local.beefile
+  # Orchestrator
+  - coverage run -m bee_orchestrator.__main__ --orc --input basic_inputs.yml  --task orc_test_local
+  # Monitor
+  - coverage run -m bee_monitor.__main__ -h
+  - coverage run -m bee_monitor.__main__ orc -h
+  - coverage run -m bee_monitor.__main__ launch -h
+  - coverage run -m bee_monitor.__main__ launch -a
+  - coverage run -m bee_monitor.__main__ orc -a
+  - coverage run -m bee_monitor.__main__ launch -da
+  - coverage run -m bee_monitor.__main__ orc -da
 after_success:
   - coveralls
