@@ -127,9 +127,9 @@ class AWSAdaptee:
         """
         all_sgs = self.ec2_client.describe_security_groups()
         bee_security_group_id = -1
-        for sg in all_sgs['SecurityGroups']:
-            if sg['GroupName'] == self.__bee_aws_sgroup:
-                bee_security_group_id = sg['GroupId']
+        for sg in all_sgs.get('SecurityGroups', {}):
+            if sg.get('GroupName') == self.__bee_aws_sgroup:
+                bee_security_group_id = sg.get('GroupId')
         return bee_security_group_id
 
     def __is_bee_pg_exist(self):
@@ -137,7 +137,7 @@ class AWSAdaptee:
         :return: Boolean, determine if BEE placement group exists
         """
         all_pgs = self.ec2_client.describe_placement_groups()
-        for pg in all_pgs['PlacementGroups', {}]:
+        for pg in all_pgs.get('PlacementGroups', {}):
             if pg.get('GroupName', False):
                 return True
         return False
